@@ -1,0 +1,4 @@
+[submodule "backend/libs/BuildingBlocks"]
+	path = backend/libs/BuildingBlocks
+	url = https://github.com/bswierzewski/building_blocks.git
+	branch = main
