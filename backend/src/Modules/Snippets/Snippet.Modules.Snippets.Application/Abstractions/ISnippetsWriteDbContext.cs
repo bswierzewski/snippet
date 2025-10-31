@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using Snippet.Modules.Snippets.Domain.Aggregates;
+
 namespace Snippet.Modules.Snippets.Application.Abstractions;
 
 /// <summary>
@@ -5,8 +8,15 @@ namespace Snippet.Modules.Snippets.Application.Abstractions;
 /// </summary>
 public interface ISnippetsWriteDbContext
 {
-    // DbSet properties will be added here as domain entities are created
-    // Example: DbSet<Snippet> Snippets { get; }
+    /// <summary>
+    /// Gets the collection of snippets for write operations.
+    /// </summary>
+    DbSet<Domain.Aggregates.Snippet> Snippets { get; }
+
+    /// <summary>
+    /// Gets the collection of collections for write operations.
+    /// </summary>
+    DbSet<Collection> Collections { get; }
 
     /// <summary>
     /// Saves all pending changes to the database asynchronously.

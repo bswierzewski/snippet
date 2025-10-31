@@ -1,3 +1,5 @@
+using Snippet.Modules.Snippets.Domain.Aggregates;
+
 namespace Snippet.Modules.Snippets.Application.Abstractions;
 
 /// <summary>
@@ -5,6 +7,13 @@ namespace Snippet.Modules.Snippets.Application.Abstractions;
 /// </summary>
 public interface ISnippetsReadDbContext
 {
-    // DbSet properties will be added here as domain entities are created
-    // Example: DbSet<Snippet> Snippets { get; }
+    /// <summary>
+    /// Gets the queryable collection of snippets for read operations.
+    /// </summary>
+    IQueryable<Domain.Aggregates.Snippet> Snippets { get; }
+
+    /// <summary>
+    /// Gets the queryable collection of collections for read operations.
+    /// </summary>
+    IQueryable<Collection> Collections { get; }
 }
