@@ -3,6 +3,7 @@ using BuildingBlocks.Modules.Users.Web;
 using BuildingBlocks.Modules.Users.Web.Endpoints;
 using BuildingBlocks.Modules.Users.Web.Extensions;
 using Snippet.Modules.Snippets.Infrastructure;
+using Snippet.Web.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,6 +44,8 @@ app.UseAuthorization();  // 2. Authorization second
 
 // Map endpoints from modules
 app.MapUsersEndpoints();
+app.MapCollectionsEndpoints();
+app.MapSnippetsEndpoints();
 
 app.Run();
 
