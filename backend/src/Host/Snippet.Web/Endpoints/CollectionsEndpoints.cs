@@ -1,3 +1,4 @@
+using BuildingBlocks.Application.Models;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Snippet.Modules.Snippets.Application.Commands.Collections.CreateCollection;
@@ -24,22 +25,33 @@ public static class CollectionsEndpoints
 
         group.MapPost("/", CreateCollection)
             .WithName("CreateCollection")
+            .Produces<Guid>(StatusCodes.Status200OK)
+            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
             .WithOpenApi();
 
         group.MapGet("/{id:guid}", GetCollectionById)
             .WithName("GetCollectionById")
+            .Produces<CollectionDto>(StatusCodes.Status200OK)
+            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
             .WithOpenApi();
 
         group.MapGet("/", GetUserCollections)
             .WithName("GetUserCollections")
+            .Produces<IEnumerable<CollectionDto>>(StatusCodes.Status200OK)
+            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
             .WithOpenApi();
 
         group.MapPut("/{id:guid}", UpdateCollection)
             .WithName("UpdateCollection")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
+            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
             .WithOpenApi();
 
         group.MapDelete("/{id:guid}", DeleteCollection)
             .WithName("DeleteCollection")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
             .WithOpenApi();
 
         return endpoints;

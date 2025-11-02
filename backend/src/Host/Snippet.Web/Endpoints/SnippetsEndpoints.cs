@@ -1,3 +1,4 @@
+using BuildingBlocks.Application.Models;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Snippet.Modules.Snippets.Application.Commands.Snippets.AddTag;
@@ -35,63 +36,96 @@ public static class SnippetsEndpoints
         // Commands
         group.MapPost("/", CreateSnippet)
             .WithName("CreateSnippet")
+            .Produces<Guid>(StatusCodes.Status200OK)
+            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
             .WithOpenApi();
 
         group.MapPut("/{id:guid}/content", UpdateSnippetContent)
             .WithName("UpdateSnippetContent")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
+            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
             .WithOpenApi();
 
         group.MapPut("/{id:guid}/language", ChangeSnippetLanguage)
             .WithName("ChangeSnippetLanguage")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
+            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
             .WithOpenApi();
 
         group.MapPost("/{id:guid}/tags", AddTag)
             .WithName("AddTag")
+            .Produces<Guid>(StatusCodes.Status200OK)
+            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
             .WithOpenApi();
 
         group.MapDelete("/{id:guid}/tags/{tagId:guid}", RemoveTag)
             .WithName("RemoveTag")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
             .WithOpenApi();
 
         group.MapPost("/{id:guid}/favorite", ToggleFavorite)
             .WithName("ToggleFavorite")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
             .WithOpenApi();
 
         group.MapPost("/{id:guid}/usage", RecordUsage)
             .WithName("RecordUsage")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
             .WithOpenApi();
 
         group.MapPut("/{id:guid}/collections", MoveSnippet)
             .WithName("MoveSnippet")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
+            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
             .WithOpenApi();
 
         group.MapDelete("/{id:guid}", DeleteSnippet)
             .WithName("DeleteSnippet")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
             .WithOpenApi();
 
         // Queries
         group.MapGet("/{id:guid}", GetSnippetById)
             .WithName("GetSnippetById")
+            .Produces<GetSnippetByIdDto>(StatusCodes.Status200OK)
+            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
             .WithOpenApi();
 
         group.MapGet("/", GetUserSnippets)
             .WithName("GetUserSnippets")
+            .Produces<IEnumerable<SnippetSummaryDto>>(StatusCodes.Status200OK)
+            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
             .WithOpenApi();
 
         group.MapGet("/collections/{collectionId:guid}", GetCollectionSnippets)
             .WithName("GetCollectionSnippets")
+            .Produces<IEnumerable<SnippetSummaryDto>>(StatusCodes.Status200OK)
+            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
             .WithOpenApi();
 
         group.MapGet("/favorites", GetFavoriteSnippets)
             .WithName("GetFavoriteSnippets")
+            .Produces<IEnumerable<SnippetSummaryDto>>(StatusCodes.Status200OK)
+            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
             .WithOpenApi();
 
         group.MapGet("/recent", GetRecentSnippets)
             .WithName("GetRecentSnippets")
+            .Produces<IEnumerable<SnippetSummaryDto>>(StatusCodes.Status200OK)
+            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
             .WithOpenApi();
 
         group.MapPost("/search", SearchSnippets)
             .WithName("SearchSnippets")
+            .Produces<SearchSnippetsResponse>(StatusCodes.Status200OK)
+            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
             .WithOpenApi();
 
         return endpoints;
