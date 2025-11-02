@@ -32,6 +32,8 @@ public class SearchSnippetsQueryHandler : IRequestHandler<SearchSnippetsQuery, R
     {
         var query = _readDbContext.Snippets
             .AsNoTracking()
+            .Include(s => s.SnippetTags).ThenInclude(st => st.Tag)
+            .Include(s => s.SnippetCollections).ThenInclude(sc => sc.Collection)
             .Where(s => s.UserId == _user.Id);
 
         // Apply search term filter
@@ -59,14 +61,14 @@ public class SearchSnippetsQueryHandler : IRequestHandler<SearchSnippetsQuery, R
         if (request.CollectionId.HasValue)
         {
             var collectionId = new CollectionId(request.CollectionId.Value);
-            query = query.Where(s => s.CollectionIds.Contains(collectionId));
+            query = query.Where(s => s.SnippetCollections.Any(sc => sc.CollectionId == collectionId));
         }
 
         // Apply tags filter (OR logic)
         if (request.Tags != null && request.Tags.Any())
         {
             var tagNames = request.Tags.Select(t => t.ToLower()).ToList();
-            query = query.Where(s => s.Tags.Any(t => tagNames.Contains(t.Name.ToLower())));
+            query = query.Where(s => s.SnippetTags.Any(st => tagNames.Contains(st.Tag.Name.ToLower())));
         }
 
         // Get total count before pagination
@@ -79,26 +81,12 @@ public class SearchSnippetsQueryHandler : IRequestHandler<SearchSnippetsQuery, R
             .Take(request.PageSize)
             .ToListAsync(cancellationToken);
 
-        // Fetch collection names
-        var allCollectionIds = snippets
-            .SelectMany(s => s.CollectionIds)
-            .Distinct()
-            .ToList();
-
-        var collections = await _readDbContext.Collections
-            .AsNoTracking()
-            .Where(c => allCollectionIds.Contains(c.Id))
-            .ToDictionaryAsync(c => c.Id, c => c.Name, cancellationToken);
-
         var snippetDtos = snippets.Select(s => new SnippetSummaryDto(
             s.Id.Value,
             s.Title,
             s.Language,
-            s.CollectionIds
-                .Where(cId => collections.ContainsKey(cId))
-                .Select(cId => new CollectionSummaryDto(cId.Value, collections[cId]))
-                .ToList(),
-            s.Tags.Select(t => new TagSummaryDto(t.Id.Value, t.Name, t.Color)).ToList(),
+            s.SnippetCollections.Select(sc => new CollectionSummaryDto(sc.Collection.Id.Value, sc.Collection.Name)).ToList(),
+            s.SnippetTags.Select(st => new TagSummaryDto(st.Tag.Id.Value, st.Tag.Name, st.Tag.Color)).ToList(),
             s.IsFavorite,
             s.UsageCount,
             s.CreatedAt,

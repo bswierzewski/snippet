@@ -26,12 +26,19 @@ public class RemoveTagCommandHandler : IRequestHandler<RemoveTagCommand, Result>
     public async Task<Result> Handle(RemoveTagCommand request, CancellationToken cancellationToken)
     {
         var snippet = await _writeDbContext.Snippets
+            .Include(s => s.SnippetTags).ThenInclude(st => st.Tag)
             .FirstOrDefaultAsync(s => s.Id == new SnippetId(request.SnippetId), cancellationToken);
 
         if (snippet is null)
             return Result.Failure($"Snippet with ID {request.SnippetId} not found");
 
-        snippet.RemoveTag(new TagId(request.TagId));
+        var tagToRemove = snippet.SnippetTags
+            .Select(st => st.Tag)
+            .FirstOrDefault(t => t.Id == new TagId(request.TagId));
+        if (tagToRemove is not null)
+        {
+            snippet.RemoveTag(tagToRemove);
+        }
 
         await _writeDbContext.SaveChangesAsync(cancellationToken);
 

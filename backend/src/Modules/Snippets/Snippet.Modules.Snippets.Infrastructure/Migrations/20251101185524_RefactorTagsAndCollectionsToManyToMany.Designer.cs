@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Snippet.Modules.Snippets.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using Snippet.Modules.Snippets.Infrastructure.Persistence;
 namespace Snippet.Modules.Snippets.Infrastructure.Migrations
 {
     [DbContext(typeof(SnippetsDbContext))]
-    partial class SnippetsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251101185524_RefactorTagsAndCollectionsToManyToMany")]
+    partial class RefactorTagsAndCollectionsToManyToMany
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -185,7 +188,7 @@ namespace Snippet.Modules.Snippets.Infrastructure.Migrations
                     b.ToTable("Tags", (string)null);
                 });
 
-            modelBuilder.Entity("Snippet.Modules.Snippets.Domain.Entities.SnippetCollection", b =>
+            modelBuilder.Entity("SnippetCollections", b =>
                 {
                     b.Property<Guid>("SnippetId")
                         .HasColumnType("uuid");
@@ -198,10 +201,13 @@ namespace Snippet.Modules.Snippets.Infrastructure.Migrations
                     b.HasIndex("CollectionId")
                         .HasDatabaseName("IX_SnippetCollections_CollectionId");
 
+                    b.HasIndex("SnippetId")
+                        .HasDatabaseName("IX_SnippetCollections_SnippetId");
+
                     b.ToTable("SnippetCollections", (string)null);
                 });
 
-            modelBuilder.Entity("Snippet.Modules.Snippets.Domain.Entities.SnippetTag", b =>
+            modelBuilder.Entity("SnippetTags", b =>
                 {
                     b.Property<Guid>("SnippetId")
                         .HasColumnType("uuid");
@@ -211,55 +217,43 @@ namespace Snippet.Modules.Snippets.Infrastructure.Migrations
 
                     b.HasKey("SnippetId", "TagId");
 
+                    b.HasIndex("SnippetId")
+                        .HasDatabaseName("IX_SnippetTags_SnippetId");
+
                     b.HasIndex("TagId")
                         .HasDatabaseName("IX_SnippetTags_TagId");
 
                     b.ToTable("SnippetTags", (string)null);
                 });
 
-            modelBuilder.Entity("Snippet.Modules.Snippets.Domain.Entities.SnippetCollection", b =>
+            modelBuilder.Entity("SnippetCollections", b =>
                 {
-                    b.HasOne("Snippet.Modules.Snippets.Domain.Aggregates.Collection", "Collection")
+                    b.HasOne("Snippet.Modules.Snippets.Domain.Aggregates.Collection", null)
                         .WithMany()
                         .HasForeignKey("CollectionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Snippet.Modules.Snippets.Domain.Aggregates.Snippet", "Snippet")
-                        .WithMany("SnippetCollections")
+                    b.HasOne("Snippet.Modules.Snippets.Domain.Aggregates.Snippet", null)
+                        .WithMany()
                         .HasForeignKey("SnippetId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Collection");
-
-                    b.Navigation("Snippet");
                 });
 
-            modelBuilder.Entity("Snippet.Modules.Snippets.Domain.Entities.SnippetTag", b =>
+            modelBuilder.Entity("SnippetTags", b =>
                 {
-                    b.HasOne("Snippet.Modules.Snippets.Domain.Aggregates.Snippet", "Snippet")
-                        .WithMany("SnippetTags")
+                    b.HasOne("Snippet.Modules.Snippets.Domain.Aggregates.Snippet", null)
+                        .WithMany()
                         .HasForeignKey("SnippetId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Snippet.Modules.Snippets.Domain.Aggregates.Tag", "Tag")
+                    b.HasOne("Snippet.Modules.Snippets.Domain.Aggregates.Tag", null)
                         .WithMany()
                         .HasForeignKey("TagId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Snippet");
-
-                    b.Navigation("Tag");
-                });
-
-            modelBuilder.Entity("Snippet.Modules.Snippets.Domain.Aggregates.Snippet", b =>
-                {
-                    b.Navigation("SnippetCollections");
-
-                    b.Navigation("SnippetTags");
                 });
 #pragma warning restore 612, 618
         }

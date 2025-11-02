@@ -29,16 +29,12 @@ public class GetSnippetByIdQueryHandler : IRequestHandler<GetSnippetByIdQuery, R
     {
         var snippet = await _readDbContext.Snippets
             .AsNoTracking()
+            .Include(s => s.SnippetTags).ThenInclude(st => st.Tag)
+            .Include(s => s.SnippetCollections).ThenInclude(sc => sc.Collection)
             .FirstOrDefaultAsync(s => s.Id == new SnippetId(request.Id), cancellationToken);
 
         if (snippet is null)
             return Result<GetSnippetByIdDto>.Failure($"Snippet with ID {request.Id} not found");
-
-        var collections = await _readDbContext.Collections
-            .AsNoTracking()
-            .Where(c => snippet.CollectionIds.Contains(c.Id))
-            .Select(c => new CollectionSummaryDto(c.Id.Value, c.Name))
-            .ToListAsync(cancellationToken);
 
         return Result<GetSnippetByIdDto>.Success(new GetSnippetByIdDto(
             snippet.Id.Value,
@@ -47,8 +43,8 @@ public class GetSnippetByIdQueryHandler : IRequestHandler<GetSnippetByIdQuery, R
             snippet.Description,
             snippet.Content,
             snippet.Language,
-            collections,
-            snippet.Tags.Select(t => new TagDto(t.Id.Value, t.Name, t.Color)).ToList(),
+            snippet.SnippetCollections.Select(sc => new CollectionSummaryDto(sc.Collection.Id.Value, sc.Collection.Name)).ToList(),
+            snippet.SnippetTags.Select(st => new TagDto(st.Tag.Id.Value, st.Tag.Name, st.Tag.Color)).ToList(),
             snippet.IsFavorite,
             snippet.UsageCount,
             snippet.CreatedAt,

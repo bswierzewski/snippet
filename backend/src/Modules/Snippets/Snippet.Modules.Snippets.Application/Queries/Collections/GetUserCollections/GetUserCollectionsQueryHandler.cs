@@ -40,11 +40,12 @@ public class GetUserCollectionsQueryHandler : IRequestHandler<GetUserCollections
 
         var snippets = await _readDbContext.Snippets
             .AsNoTracking()
-            .Where(s => s.CollectionIds.Any(cId => collectionIds.Contains(cId)))
+            .Include(s => s.SnippetCollections)
+            .Where(s => s.SnippetCollections.Any(sc => collectionIds.Contains(sc.CollectionId)))
             .ToListAsync(cancellationToken);
 
         var snippetCounts = snippets
-            .SelectMany(s => s.CollectionIds, (snippet, collectionId) => collectionId)
+            .SelectMany(s => s.SnippetCollections, (snippet, snippetCollection) => snippetCollection.CollectionId)
             .Where(cId => collectionIds.Contains(cId))
             .GroupBy(cId => cId)
             .ToDictionary(g => g.Key, g => g.Count());

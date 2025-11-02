@@ -2,10 +2,10 @@ using System.Net;
 using Snippet.Modules.Snippets.Application.Abstractions;
 using Snippet.Modules.Snippets.Application.Commands.Collections.CreateCollection;
 using Snippet.Modules.Snippets.Application.Commands.Collections.UpdateCollection;
+using Snippet.Modules.Snippets.Domain.ValueObjects;
 using Snippet.Tests.E2E.Core;
 using Snippet.Tests.E2E.Core.Extensions;
 using Snippet.Tests.E2E.Core.Factories;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -62,8 +62,6 @@ public class CollectionsTests(TestWebApplicationFactory factory) : TestBase(fact
     public async Task GetCollections_WithMultipleCollections_ShouldReturnCorrectCount()
     {
         // Arrange - Create multiple collections
-        var mediator = Services.GetRequiredService<IMediator>();
-
         var commands = new[]
         {
             new CreateCollectionCommand("Collection 1", "Desc 1", "#FF0000", "📁"),
@@ -73,7 +71,7 @@ public class CollectionsTests(TestWebApplicationFactory factory) : TestBase(fact
 
         foreach (var command in commands)
         {
-            await mediator.Send(command);
+            await Client.PostJsonAsync("/api/collections", command);
         }
 
         // Act
@@ -92,16 +90,14 @@ public class CollectionsTests(TestWebApplicationFactory factory) : TestBase(fact
     public async Task GetCollectionById_WithExistingId_ShouldReturnCollection()
     {
         // Arrange
-        var mediator = Services.GetRequiredService<IMediator>();
-
-        var result = await mediator.Send(new CreateCollectionCommand(
+        var createResponse = await Client.PostJsonAsync("/api/collections", new CreateCollectionCommand(
             "Test Collection",
             "Test Description",
             "#FF5733",
             "📁"
         ));
 
-        var collectionId = result.Value;
+        var collectionId = await createResponse.ReadAsJsonAsync<Guid>();
 
         // Act
         var response = await Client.GetAsync($"/api/collections/{collectionId}");
@@ -112,7 +108,7 @@ public class CollectionsTests(TestWebApplicationFactory factory) : TestBase(fact
         // Verify collection exists in database using read context
         var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
         var collection = await readContext.Collections
-            .FirstOrDefaultAsync(c => c.Id.Value == collectionId);
+            .FirstOrDefaultAsync(c => c.Id == new CollectionId(collectionId));
         collection.Should().NotBeNull();
         collection!.Name.Should().Be("Test Collection");
     }
@@ -121,17 +117,16 @@ public class CollectionsTests(TestWebApplicationFactory factory) : TestBase(fact
     public async Task UpdateCollection_WithValidData_ShouldUpdateCollection()
     {
         // Arrange
-        var mediator = Services.GetRequiredService<IMediator>();
         var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
 
-        var createResult = await mediator.Send(new CreateCollectionCommand(
+        var createResponse = await Client.PostJsonAsync("/api/collections", new CreateCollectionCommand(
             "Original Name",
             "Original Description",
             "#000000",
             "📁"
         ));
 
-        var collectionId = createResult.Value;
+        var collectionId = await createResponse.ReadAsJsonAsync<Guid>();
 
         var updateCommand = new UpdateCollectionCommand(
             collectionId,
@@ -149,7 +144,7 @@ public class CollectionsTests(TestWebApplicationFactory factory) : TestBase(fact
 
         // Verify update in database
         var updatedCollection = await readContext.Collections
-            .FirstOrDefaultAsync(c => c.Id.Value == collectionId);
+            .FirstOrDefaultAsync(c => c.Id == new CollectionId(collectionId));
         updatedCollection.Should().NotBeNull();
         updatedCollection!.Name.Should().Be("Updated Name");
         updatedCollection.Description.Should().Be("Updated Description");
@@ -161,21 +156,20 @@ public class CollectionsTests(TestWebApplicationFactory factory) : TestBase(fact
     public async Task DeleteCollection_WithExistingId_ShouldRemoveFromDatabase()
     {
         // Arrange
-        var mediator = Services.GetRequiredService<IMediator>();
         var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
 
-        var result = await mediator.Send(new CreateCollectionCommand(
+        var createResponse = await Client.PostJsonAsync("/api/collections", new CreateCollectionCommand(
             "To Delete Collection",
             "Will be deleted",
             "#FF0000",
             "🗑️"
         ));
 
-        var collectionId = result.Value;
+        var collectionId = await createResponse.ReadAsJsonAsync<Guid>();
 
         // Verify collection exists before deletion
         var collectionBeforeDelete = await readContext.Collections
-            .FirstOrDefaultAsync(c => c.Id.Value == collectionId);
+            .FirstOrDefaultAsync(c => c.Id == new CollectionId(collectionId));
         collectionBeforeDelete.Should().NotBeNull();
 
         // Act - Delete via HTTP
@@ -186,7 +180,7 @@ public class CollectionsTests(TestWebApplicationFactory factory) : TestBase(fact
 
         // Verify collection no longer exists
         var collectionAfterDelete = await readContext.Collections
-            .FirstOrDefaultAsync(c => c.Id.Value == collectionId);
+            .FirstOrDefaultAsync(c => c.Id == new CollectionId(collectionId));
         collectionAfterDelete.Should().BeNull();
 
         var totalCount = await readContext.Collections.CountAsync();

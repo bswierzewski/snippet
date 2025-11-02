@@ -4,14 +4,15 @@ using Snippet.Modules.Snippets.Domain.ValueObjects;
 namespace Snippet.Modules.Snippets.Domain.Aggregates;
 
 /// <summary>
-/// Represents a tag entity that categorizes and labels snippets for organization and filtering.
+/// Represents a tag aggregate root that categorizes and labels snippets for organization and filtering.
+/// Tags are shared across snippets and belong to a user.
 /// </summary>
-public class Tag : Entity<TagId>
+public class Tag : AggregateRoot<TagId>
 {
     /// <summary>
-    /// Gets the identifier of the snippet this tag belongs to.
+    /// Gets the identifier of the user who owns this tag.
     /// </summary>
-    public SnippetId SnippetId { get; private set; } = null!;
+    public Guid UserId { get; private set; }
 
     /// <summary>
     /// Gets the name of the tag.
@@ -29,13 +30,13 @@ public class Tag : Entity<TagId>
     /// Creates a new tag with the specified details.
     /// </summary>
     /// <param name="id">Unique identifier for the tag.</param>
-    /// <param name="snippetId">Identifier of the snippet this tag belongs to.</param>
+    /// <param name="userId">Identifier of the user who owns the tag.</param>
     /// <param name="name">Name of the tag.</param>
     /// <param name="color">Optional color in hexadecimal format.</param>
-    public Tag(TagId id, SnippetId snippetId, string name, string? color = null)
+    public Tag(TagId id, Guid userId, string name, string? color = null)
     {
         Id = id;
-        SnippetId = snippetId;
+        UserId = userId;
         Name = name;
         Color = color;
     }

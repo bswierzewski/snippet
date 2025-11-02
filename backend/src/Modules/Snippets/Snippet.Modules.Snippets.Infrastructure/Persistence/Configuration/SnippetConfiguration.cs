@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Snippet.Modules.Snippets.Domain.Aggregates;
 using Snippet.Modules.Snippets.Domain.Enums;
 using Snippet.Modules.Snippets.Domain.ValueObjects;
 
@@ -74,54 +73,14 @@ public class SnippetConfiguration : IEntityTypeConfiguration<Domain.Aggregates.S
 
         builder.Property(s => s.ModifiedBy);
 
-        // CollectionIds - store as JSON or create join table
-        // Using value conversion to store as JSON array for simplicity
-        builder.Property(s => s.CollectionIds)
-            .HasConversion(
-                ids => System.Text.Json.JsonSerializer.Serialize(ids.Select(id => id.Value).ToList(), (System.Text.Json.JsonSerializerOptions?)null),
-                json => System.Text.Json.JsonSerializer.Deserialize<List<Guid>>(json, (System.Text.Json.JsonSerializerOptions?)null)!
-                    .Select(guid => new CollectionId(guid))
-                    .ToList().AsReadOnly() as IReadOnlyList<CollectionId> ?? new List<CollectionId>().AsReadOnly(),
-                new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<IReadOnlyList<CollectionId>>(
-                    (c1, c2) => c1!.SequenceEqual(c2!),
-                    c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-                    c => c.ToList().AsReadOnly()))
-            .HasColumnType("jsonb")
-            .HasColumnName("CollectionIds");
+        // Configure navigation properties to use backing fields
+        builder.Navigation(s => s.SnippetTags)
+            .HasField("_snippetTags")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
 
-        // Tags - owned entity collection
-        builder.OwnsMany(s => s.Tags, tagsBuilder =>
-        {
-            tagsBuilder.ToTable("Tags");
-
-            tagsBuilder.WithOwner()
-                .HasForeignKey("SnippetId");
-
-            tagsBuilder.HasKey(nameof(Tag.Id), "SnippetId");
-
-            tagsBuilder.Property(t => t.Id)
-                .HasConversion(
-                    id => id.Value,
-                    value => new TagId(value))
-                .ValueGeneratedNever();
-
-            tagsBuilder.Property<SnippetId>("SnippetId")
-                .HasConversion(
-                    id => id.Value,
-                    value => new SnippetId(value));
-
-            tagsBuilder.Property(t => t.Name)
-                .IsRequired()
-                .HasMaxLength(50);
-
-            tagsBuilder.Property(t => t.Color)
-                .HasMaxLength(7); // #RRGGBB format
-
-            tagsBuilder.Ignore(t => t.SnippetId);
-
-            // Index on tag name for search
-            tagsBuilder.HasIndex(t => t.Name);
-        });
+        builder.Navigation(s => s.SnippetCollections)
+            .HasField("_snippetCollections")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
 
         // Indexes for common queries
         builder.HasIndex(s => s.UserId)

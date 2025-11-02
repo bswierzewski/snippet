@@ -152,7 +152,7 @@ public static class SnippetsEndpoints
 
         var result = await mediator.Send(command);
         return result.IsSuccess
-            ? Results.NoContent()
+            ? Results.Ok(result.Value)
             : Results.NotFound(result.Errors);
     }
 

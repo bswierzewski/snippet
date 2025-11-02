@@ -16,4 +16,9 @@ public interface ISnippetsReadDbContext
     /// Gets the queryable collection of collections for read operations.
     /// </summary>
     IQueryable<Collection> Collections { get; }
+
+    /// <summary>
+    /// Gets the queryable collection of tags for read operations.
+    /// </summary>
+    IQueryable<Tag> Tags { get; }
 }

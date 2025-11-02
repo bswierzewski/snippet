@@ -35,7 +35,7 @@ public class GetCollectionByIdQueryHandler : IRequestHandler<GetCollectionByIdQu
 
         var snippetCount = await _readDbContext.Snippets
             .AsNoTracking()
-            .CountAsync(s => s.CollectionIds.Contains(collection.Id), cancellationToken);
+            .CountAsync(s => s.SnippetCollections.Any(sc => sc.CollectionId == collection.Id), cancellationToken);
 
         return Result<CollectionDto>.Success(new CollectionDto(
             collection.Id.Value,

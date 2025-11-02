@@ -21,10 +21,11 @@ public class AddTagCommandHandler : IRequestHandler<AddTagCommand, Result<Guid>>
 
     /// <summary>
     /// Adds a tag to an existing snippet.
+    /// Creates a new tag if it doesn't exist, or reuses an existing tag with the same name for the user.
     /// </summary>
     /// <param name="request">Command containing snippet ID and tag details.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The ID of the created tag.</returns>
+    /// <returns>The ID of the tag (new or existing).</returns>
     public async Task<Result<Guid>> Handle(AddTagCommand request, CancellationToken cancellationToken)
     {
         var snippet = await _writeDbContext.Snippets
@@ -33,13 +34,29 @@ public class AddTagCommandHandler : IRequestHandler<AddTagCommand, Result<Guid>>
         if (snippet is null)
             return Result<Guid>.Failure($"Snippet with ID {request.SnippetId} not found");
 
-        var tagId = new TagId(Guid.NewGuid());
-        var tag = new Tag(tagId, new SnippetId(request.SnippetId), request.TagName, request.Color);
+        // Check if a tag with the same name already exists for this user
+        var existingTag = await _writeDbContext.Tags
+            .FirstOrDefaultAsync(t => t.UserId == snippet.UserId && t.Name == request.TagName, cancellationToken);
 
-        snippet.AddTag(tag);
+        Tag tag;
+        if (existingTag is not null)
+        {
+            // Reuse existing tag
+            tag = existingTag;
+        }
+        else
+        {
+            // Create new tag
+            var tagId = new TagId(Guid.NewGuid());
+            tag = new Tag(tagId, snippet.UserId, request.TagName, request.Color);
+            _writeDbContext.Tags.Add(tag);
+        }
+
+        // Assign tag to snippet (uses domain method that works with Tag object)
+        snippet.AssignTag(tag);
 
         await _writeDbContext.SaveChangesAsync(cancellationToken);
 
-        return Result<Guid>.Success(tagId.Value);
+        return Result<Guid>.Success(tag.Id.Value);
     }
 }

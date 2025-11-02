@@ -1,4 +1,5 @@
-using BuildingBlocks.Domain.Primitives;
+﻿using BuildingBlocks.Domain.Primitives;
+using Snippet.Modules.Snippets.Domain.Entities;
 using Snippet.Modules.Snippets.Domain.Enums;
 using Snippet.Modules.Snippets.Domain.ValueObjects;
 
@@ -9,8 +10,8 @@ namespace Snippet.Modules.Snippets.Domain.Aggregates;
 /// </summary>
 public class Snippet : AggregateRoot<SnippetId>
 {
-    private readonly List<Tag> _tags = new();
-    private readonly List<CollectionId> _collectionIds = new();
+    private readonly List<SnippetTag> _snippetTags = [];
+    private readonly List<SnippetCollection> _snippetCollections = [];
 
     /// <summary>
     /// Gets the identifier of the user who owns this snippet.
@@ -38,11 +39,6 @@ public class Snippet : AggregateRoot<SnippetId>
     public ProgrammingLanguage Language { get; private set; }
 
     /// <summary>
-    /// Gets the read-only collection of collection identifiers this snippet belongs to.
-    /// </summary>
-    public IReadOnlyList<CollectionId> CollectionIds => _collectionIds.AsReadOnly();
-
-    /// <summary>
     /// Gets whether the snippet is marked as favorite.
     /// </summary>
     public bool IsFavorite { get; private set; }
@@ -58,9 +54,14 @@ public class Snippet : AggregateRoot<SnippetId>
     public DateTimeOffset? LastUsedAt { get; private set; }
 
     /// <summary>
-    /// Gets the read-only collection of tags associated with this snippet.
+    /// Gets the read-only collection of snippet-tag relationships.
     /// </summary>
-    public IReadOnlyList<Tag> Tags => _tags.AsReadOnly();
+    public IReadOnlyCollection<SnippetTag> SnippetTags => _snippetTags.AsReadOnly();
+
+    /// <summary>
+    /// Gets the read-only collection of snippet-collection relationships.
+    /// </summary>
+    public IReadOnlyCollection<SnippetCollection> SnippetCollections => _snippetCollections.AsReadOnly();
 
     private Snippet() { }
 
@@ -73,7 +74,7 @@ public class Snippet : AggregateRoot<SnippetId>
     /// <param name="content">Content of the snippet.</param>
     /// <param name="language">Programming language for syntax highlighting.</param>
     /// <param name="description">Optional description of the snippet.</param>
-    /// <param name="collectionIds">Optional collection identifiers.</param>
+    /// <param name="collections">Optional collections to assign.</param>
     public Snippet(
         SnippetId id,
         Guid userId,
@@ -81,7 +82,7 @@ public class Snippet : AggregateRoot<SnippetId>
         string content,
         ProgrammingLanguage language,
         string? description = null,
-        IEnumerable<CollectionId>? collectionIds = null)
+        IEnumerable<Collection>? collections = null)
     {
         Id = id;
         UserId = userId;
@@ -93,8 +94,14 @@ public class Snippet : AggregateRoot<SnippetId>
         UsageCount = 0;
         LastUsedAt = null;
 
-        if (collectionIds is not null)
-            _collectionIds.AddRange(collectionIds);
+        if (collections is not null)
+        {
+            foreach (var collection in collections)
+            {
+                var snippetCollection = new SnippetCollection(id, collection.Id);
+                _snippetCollections.Add(snippetCollection);
+            }
+        }
     }
 
     /// <summary>
@@ -127,55 +134,61 @@ public class Snippet : AggregateRoot<SnippetId>
     }
 
     /// <summary>
-    /// Adds a tag to the snippet.
+    /// Assigns a tag to the snippet.
     /// </summary>
-    /// <param name="tag">Tag to add.</param>
-    public void AddTag(Tag tag)
+    /// <param name="tag">Tag to assign.</param>
+    public void AssignTag(Tag tag)
     {
-        if (_tags.Any(t => t.Name.Equals(tag.Name, StringComparison.OrdinalIgnoreCase)))
-            return;
-
-        _tags.Add(tag);
+        if (!_snippetTags.Any(st => st.TagId == tag.Id))
+        {
+            var snippetTag = new SnippetTag(Id, tag.Id);
+            _snippetTags.Add(snippetTag);
+        }
     }
 
     /// <summary>
-    /// Removes a tag from the snippet by its identifier.
+    /// Removes a tag from the snippet.
     /// </summary>
-    /// <param name="tagId">Identifier of the tag to remove.</param>
-    public void RemoveTag(TagId tagId)
+    /// <param name="tag">Tag to remove.</param>
+    public void RemoveTag(Tag tag)
     {
-        var tag = _tags.FirstOrDefault(t => t.Id == tagId);
-        if (tag != null)
-            _tags.Remove(tag);
+        _snippetTags.RemoveAll(st => st.TagId == tag.Id);
     }
 
     /// <summary>
     /// Adds the snippet to a collection.
     /// </summary>
-    /// <param name="collectionId">Collection identifier to add.</param>
-    public void AddToCollection(CollectionId collectionId)
+    /// <param name="collection">Collection to add.</param>
+    public void AddToCollection(Collection collection)
     {
-        if (!_collectionIds.Contains(collectionId))
-            _collectionIds.Add(collectionId);
+        if (!_snippetCollections.Any(sc => sc.CollectionId == collection.Id))
+        {
+            var snippetCollection = new SnippetCollection(Id, collection.Id);
+            _snippetCollections.Add(snippetCollection);
+        }
     }
 
     /// <summary>
     /// Removes the snippet from a collection.
     /// </summary>
-    /// <param name="collectionId">Collection identifier to remove.</param>
-    public void RemoveFromCollection(CollectionId collectionId)
+    /// <param name="collection">Collection to remove.</param>
+    public void RemoveFromCollection(Collection collection)
     {
-        _collectionIds.Remove(collectionId);
+        _snippetCollections.RemoveAll(sc => sc.CollectionId == collection.Id);
     }
 
     /// <summary>
     /// Updates the snippet's collection assignments.
     /// </summary>
-    /// <param name="collectionIds">New collection identifiers.</param>
-    public void UpdateCollections(IEnumerable<CollectionId> collectionIds)
+    /// <param name="collections">New collections.</param>
+    public void UpdateCollections(IEnumerable<Collection> collections)
     {
-        _collectionIds.Clear();
-        _collectionIds.AddRange(collectionIds);
+        _snippetCollections.Clear();
+        foreach (var collection in collections)
+        {
+            var snippetCollection = new SnippetCollection(Id, collection.Id);
+            _snippetCollections.Add(snippetCollection);
+        }
     }
 
     /// <summary>
@@ -183,7 +196,7 @@ public class Snippet : AggregateRoot<SnippetId>
     /// </summary>
     public void RemoveFromAllCollections()
     {
-        _collectionIds.Clear();
+        _snippetCollections.Clear();
     }
 
     /// <summary>

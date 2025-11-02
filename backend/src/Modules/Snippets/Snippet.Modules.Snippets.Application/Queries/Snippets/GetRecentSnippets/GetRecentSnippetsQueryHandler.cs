@@ -31,30 +31,19 @@ public class GetRecentSnippetsQueryHandler : IRequestHandler<GetRecentSnippetsQu
     {
         var snippets = await _readDbContext.Snippets
             .AsNoTracking()
+            .Include(s => s.SnippetTags).ThenInclude(st => st.Tag)
+            .Include(s => s.SnippetCollections).ThenInclude(sc => sc.Collection)
             .Where(s => s.UserId == _user.Id && s.LastUsedAt != null)
             .OrderByDescending(s => s.LastUsedAt)
             .Take(request.Limit)
             .ToListAsync(cancellationToken);
 
-        var allCollectionIds = snippets
-            .SelectMany(s => s.CollectionIds)
-            .Distinct()
-            .ToList();
-
-        var collections = await _readDbContext.Collections
-            .AsNoTracking()
-            .Where(c => allCollectionIds.Contains(c.Id))
-            .ToDictionaryAsync(c => c.Id, c => c.Name, cancellationToken);
-
         return Result<IEnumerable<SnippetSummaryDto>>.Success(snippets.Select(s => new SnippetSummaryDto(
             s.Id.Value,
             s.Title,
             s.Language,
-            s.CollectionIds
-                .Where(cId => collections.ContainsKey(cId))
-                .Select(cId => new CollectionSummaryDto(cId.Value, collections[cId]))
-                .ToList(),
-            s.Tags.Select(t => new TagSummaryDto(t.Id.Value, t.Name, t.Color)).ToList(),
+            s.SnippetCollections.Select(sc => new CollectionSummaryDto(sc.Collection.Id.Value, sc.Collection.Name)).ToList(),
+            s.SnippetTags.Select(st => new TagSummaryDto(st.Tag.Id.Value, st.Tag.Name, st.Tag.Color)).ToList(),
             s.IsFavorite,
             s.UsageCount,
             s.CreatedAt,

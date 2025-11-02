@@ -7,10 +7,10 @@ using Snippet.Modules.Snippets.Application.Commands.Snippets.CreateSnippet;
 using Snippet.Modules.Snippets.Application.Commands.Snippets.MoveSnippet;
 using Snippet.Modules.Snippets.Application.Commands.Snippets.UpdateSnippetContent;
 using Snippet.Modules.Snippets.Domain.Enums;
+using Snippet.Modules.Snippets.Domain.ValueObjects;
 using Snippet.Tests.E2E.Core;
 using Snippet.Tests.E2E.Core.Extensions;
 using Snippet.Tests.E2E.Core.Factories;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -62,17 +62,18 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
     public async Task CreateSnippet_WithCollections_ShouldAssignToCollections()
     {
         // Arrange
-        var mediator = Services.GetRequiredService<IMediator>();
+        var collection1Response = await Client.PostJsonAsync("/api/collections", new CreateCollectionCommand("Collection 1", null, null, null));
+        var collection1Id = await collection1Response.ReadAsJsonAsync<Guid>();
 
-        var collection1Result = await mediator.Send(new CreateCollectionCommand("Collection 1", null, null, null));
-        var collection2Result = await mediator.Send(new CreateCollectionCommand("Collection 2", null, null, null));
+        var collection2Response = await Client.PostJsonAsync("/api/collections", new CreateCollectionCommand("Collection 2", null, null, null));
+        var collection2Id = await collection2Response.ReadAsJsonAsync<Guid>();
 
         var command = new CreateSnippetCommand(
             "Snippet in Collections",
             "print('hello')",
             ProgrammingLanguage.Python,
             null,
-            new List<Guid> { collection1Result.Value, collection2Result.Value });
+            new List<Guid> { collection1Id, collection2Id });
 
         // Act
         var response = await Client.PostJsonAsync("/api/snippets", command);
@@ -81,9 +82,9 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
-        var snippet = await readContext.Snippets.FirstAsync();
+        var snippet = await readContext.Snippets.Include(s => s.SnippetCollections).ThenInclude(sc => sc.Collection).FirstAsync();
 
-        snippet.CollectionIds.Should().HaveCount(2);
+        snippet.SnippetCollections.Should().HaveCount(2);
     }
 
     #endregion
@@ -102,8 +103,6 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
     public async Task GetSnippets_WithMultipleSnippets_ShouldReturnCorrectCount()
     {
         // Arrange - Create multiple snippets
-        var mediator = Services.GetRequiredService<IMediator>();
-
         var commands = new[]
         {
             new CreateSnippetCommand("Snippet 1", "code1", ProgrammingLanguage.JavaScript, null, null),
@@ -113,7 +112,7 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
 
         foreach (var command in commands)
         {
-            await mediator.Send(command);
+            await Client.PostJsonAsync("/api/snippets", command);
         }
 
         // Act
@@ -132,9 +131,7 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
     public async Task GetSnippetById_WithExistingId_ShouldReturnSnippet()
     {
         // Arrange
-        var mediator = Services.GetRequiredService<IMediator>();
-
-        var result = await mediator.Send(new CreateSnippetCommand(
+        var createResponse = await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
             "Test Snippet",
             "SELECT * FROM Users",
             ProgrammingLanguage.Sql,
@@ -142,7 +139,7 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
             null
         ));
 
-        var snippetId = result.Value;
+        var snippetId = await createResponse.ReadAsJsonAsync<Guid>();
 
         // Act
         var response = await Client.GetAsync($"/api/snippets/{snippetId}");
@@ -153,7 +150,7 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
         // Verify snippet exists in database using read context
         var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
         var snippet = await readContext.Snippets
-            .FirstOrDefaultAsync(s => s.Id.Value == snippetId);
+            .FirstOrDefaultAsync(s => s.Id == new SnippetId(snippetId));
         snippet.Should().NotBeNull();
         snippet!.Title.Should().Be("Test Snippet");
     }
@@ -179,10 +176,9 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
     public async Task UpdateSnippetContent_WithValidData_ShouldUpdateContent()
     {
         // Arrange
-        var mediator = Services.GetRequiredService<IMediator>();
         var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
 
-        var createResult = await mediator.Send(new CreateSnippetCommand(
+        var createResponse = await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
             "Original Snippet",
             "original content",
             ProgrammingLanguage.PlainText,
@@ -190,7 +186,7 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
             null
         ));
 
-        var snippetId = createResult.Value;
+        var snippetId = await createResponse.ReadAsJsonAsync<Guid>();
 
         var updateCommand = new UpdateSnippetContentCommand(
             snippetId,
@@ -205,7 +201,7 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
 
         // Verify update in database
         var updatedSnippet = await readContext.Snippets
-            .FirstOrDefaultAsync(s => s.Id.Value == snippetId);
+            .FirstOrDefaultAsync(s => s.Id == new SnippetId(snippetId));
         updatedSnippet.Should().NotBeNull();
         updatedSnippet!.Content.Should().Be("updated content");
     }
@@ -214,10 +210,9 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
     public async Task ChangeSnippetLanguage_WithValidData_ShouldUpdateLanguage()
     {
         // Arrange
-        var mediator = Services.GetRequiredService<IMediator>();
         var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
 
-        var createResult = await mediator.Send(new CreateSnippetCommand(
+        var createResponse = await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
             "Language Change Test",
             "console.log('test')",
             ProgrammingLanguage.JavaScript,
@@ -225,7 +220,7 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
             null
         ));
 
-        var snippetId = createResult.Value;
+        var snippetId = await createResponse.ReadAsJsonAsync<Guid>();
 
         var changeLanguageCommand = new ChangeSnippetLanguageCommand(
             snippetId,
@@ -240,7 +235,7 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
 
         // Verify update in database
         var updatedSnippet = await readContext.Snippets
-            .FirstOrDefaultAsync(s => s.Id.Value == snippetId);
+            .FirstOrDefaultAsync(s => s.Id == new SnippetId(snippetId));
         updatedSnippet.Should().NotBeNull();
         updatedSnippet!.Language.Should().Be(ProgrammingLanguage.TypeScript);
     }
@@ -253,10 +248,9 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
     public async Task AddTag_WithValidData_ShouldAddTagToSnippet()
     {
         // Arrange
-        var mediator = Services.GetRequiredService<IMediator>();
         var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
 
-        var createResult = await mediator.Send(new CreateSnippetCommand(
+        var createResponse = await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
             "Tag Test Snippet",
             "code",
             ProgrammingLanguage.CSharp,
@@ -264,7 +258,7 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
             null
         ));
 
-        var snippetId = createResult.Value;
+        var snippetId = await createResponse.ReadAsJsonAsync<Guid>();
 
         var addTagCommand = new AddTagCommand(
             snippetId,
@@ -276,24 +270,24 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
         var response = await Client.PostJsonAsync($"/api/snippets/{snippetId}/tags", addTagCommand);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Verify tag added in database
         var snippet = await readContext.Snippets
-            .FirstOrDefaultAsync(s => s.Id.Value == snippetId);
+            .Include(s => s.SnippetTags).ThenInclude(st => st.Tag)
+            .FirstOrDefaultAsync(s => s.Id == new SnippetId(snippetId));
         snippet.Should().NotBeNull();
-        snippet!.Tags.Should().HaveCount(1);
-        snippet.Tags.First().Name.Should().Be("important");
+        snippet!.SnippetTags.Should().HaveCount(1);
+        snippet.SnippetTags.First().Tag.Name.Should().Be("important");
     }
 
     [Fact]
     public async Task RemoveTag_WithExistingTag_ShouldRemoveTag()
     {
         // Arrange
-        var mediator = Services.GetRequiredService<IMediator>();
         var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
 
-        var createResult = await mediator.Send(new CreateSnippetCommand(
+        var createResponse = await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
             "Remove Tag Test",
             "code",
             ProgrammingLanguage.CSharp,
@@ -301,15 +295,15 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
             null
         ));
 
-        var snippetId = createResult.Value;
+        var snippetId = await createResponse.ReadAsJsonAsync<Guid>();
 
-        var addTagResult = await mediator.Send(new AddTagCommand(
+        var addTagResponse = await Client.PostJsonAsync($"/api/snippets/{snippetId}/tags", new AddTagCommand(
             snippetId,
             "temporary",
             null
         ));
 
-        var tagId = addTagResult.Value;
+        var tagId = await addTagResponse.ReadAsJsonAsync<Guid>();
 
         // Act
         var response = await Client.DeleteAsync($"/api/snippets/{snippetId}/tags/{tagId}");
@@ -319,9 +313,10 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
 
         // Verify tag removed
         var snippet = await readContext.Snippets
-            .FirstOrDefaultAsync(s => s.Id.Value == snippetId);
+            .Include(s => s.SnippetTags).ThenInclude(st => st.Tag)
+            .FirstOrDefaultAsync(s => s.Id == new SnippetId(snippetId));
         snippet.Should().NotBeNull();
-        snippet!.Tags.Should().BeEmpty();
+        snippet!.SnippetTags.Should().BeEmpty();
     }
 
     #endregion
@@ -332,10 +327,9 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
     public async Task ToggleFavorite_ShouldToggleSnippetFavoriteStatus()
     {
         // Arrange
-        var mediator = Services.GetRequiredService<IMediator>();
         var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
 
-        var createResult = await mediator.Send(new CreateSnippetCommand(
+        var createResponse = await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
             "Favorite Test",
             "code",
             ProgrammingLanguage.CSharp,
@@ -343,7 +337,7 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
             null
         ));
 
-        var snippetId = createResult.Value;
+        var snippetId = await createResponse.ReadAsJsonAsync<Guid>();
 
         // Act - Toggle to favorite
         var response1 = await Client.PostAsync($"/api/snippets/{snippetId}/favorite", null);
@@ -352,7 +346,7 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
         response1.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         var snippet = await readContext.Snippets
-            .FirstOrDefaultAsync(s => s.Id.Value == snippetId);
+            .FirstOrDefaultAsync(s => s.Id == new SnippetId(snippetId));
         snippet.Should().NotBeNull();
         snippet!.IsFavorite.Should().BeTrue();
 
@@ -363,7 +357,7 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
         response2.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         var snippetAfterToggle = await readContext.Snippets
-            .FirstOrDefaultAsync(s => s.Id.Value == snippetId);
+            .FirstOrDefaultAsync(s => s.Id == new SnippetId(snippetId));
         snippetAfterToggle!.IsFavorite.Should().BeFalse();
     }
 
@@ -371,10 +365,9 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
     public async Task RecordUsage_ShouldUpdateUsageCount()
     {
         // Arrange
-        var mediator = Services.GetRequiredService<IMediator>();
         var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
 
-        var createResult = await mediator.Send(new CreateSnippetCommand(
+        var createResponse = await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
             "Usage Test",
             "code",
             ProgrammingLanguage.CSharp,
@@ -382,7 +375,7 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
             null
         ));
 
-        var snippetId = createResult.Value;
+        var snippetId = await createResponse.ReadAsJsonAsync<Guid>();
 
         // Act
         var response = await Client.PostAsync($"/api/snippets/{snippetId}/usage", null);
@@ -391,7 +384,7 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         var snippet = await readContext.Snippets
-            .FirstOrDefaultAsync(s => s.Id.Value == snippetId);
+            .FirstOrDefaultAsync(s => s.Id == new SnippetId(snippetId));
         snippet.Should().NotBeNull();
         snippet!.UsageCount.Should().Be(1);
     }
@@ -404,25 +397,27 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
     public async Task MoveSnippet_ShouldUpdateCollections()
     {
         // Arrange
-        var mediator = Services.GetRequiredService<IMediator>();
         var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
 
-        var collection1Result = await mediator.Send(new CreateCollectionCommand("Collection 1", null, null, null));
-        var collection2Result = await mediator.Send(new CreateCollectionCommand("Collection 2", null, null, null));
+        var collection1Response = await Client.PostJsonAsync("/api/collections", new CreateCollectionCommand("Collection 1", null, null, null));
+        var collection1Id = await collection1Response.ReadAsJsonAsync<Guid>();
 
-        var snippetResult = await mediator.Send(new CreateSnippetCommand(
+        var collection2Response = await Client.PostJsonAsync("/api/collections", new CreateCollectionCommand("Collection 2", null, null, null));
+        var collection2Id = await collection2Response.ReadAsJsonAsync<Guid>();
+
+        var snippetResponse = await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
             "Move Test",
             "code",
             ProgrammingLanguage.CSharp,
             null,
-            new List<Guid> { collection1Result.Value }
+            new List<Guid> { collection1Id }
         ));
 
-        var snippetId = snippetResult.Value;
+        var snippetId = await snippetResponse.ReadAsJsonAsync<Guid>();
 
         var moveCommand = new MoveSnippetCommand(
             snippetId,
-            new List<Guid> { collection2Result.Value }
+            new List<Guid> { collection2Id }
         );
 
         // Act
@@ -433,10 +428,11 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
 
         // Verify collections updated
         var snippet = await readContext.Snippets
-            .FirstOrDefaultAsync(s => s.Id.Value == snippetId);
+            .Include(s => s.SnippetCollections).ThenInclude(sc => sc.Collection)
+            .FirstOrDefaultAsync(s => s.Id == new SnippetId(snippetId));
         snippet.Should().NotBeNull();
-        snippet!.CollectionIds.Should().HaveCount(1);
-        snippet.CollectionIds.First().Value.Should().Be(collection2Result.Value);
+        snippet!.SnippetCollections.Should().HaveCount(1);
+        snippet.SnippetCollections.First().Collection.Id.Value.Should().Be(collection2Id);
     }
 
     #endregion
@@ -447,10 +443,9 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
     public async Task DeleteSnippet_WithExistingId_ShouldRemoveFromDatabase()
     {
         // Arrange
-        var mediator = Services.GetRequiredService<IMediator>();
         var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
 
-        var result = await mediator.Send(new CreateSnippetCommand(
+        var createResponse = await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
             "To Delete Snippet",
             "will be deleted",
             ProgrammingLanguage.PlainText,
@@ -458,11 +453,11 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
             null
         ));
 
-        var snippetId = result.Value;
+        var snippetId = await createResponse.ReadAsJsonAsync<Guid>();
 
         // Verify snippet exists before deletion
         var snippetBeforeDelete = await readContext.Snippets
-            .FirstOrDefaultAsync(s => s.Id.Value == snippetId);
+            .FirstOrDefaultAsync(s => s.Id == new SnippetId(snippetId));
         snippetBeforeDelete.Should().NotBeNull();
 
         // Act - Delete via HTTP
@@ -473,7 +468,7 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
 
         // Verify snippet no longer exists
         var snippetAfterDelete = await readContext.Snippets
-            .FirstOrDefaultAsync(s => s.Id.Value == snippetId);
+            .FirstOrDefaultAsync(s => s.Id == new SnippetId(snippetId));
         snippetAfterDelete.Should().BeNull();
 
         var totalCount = await readContext.Snippets.CountAsync();
@@ -501,15 +496,18 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
     public async Task GetFavoriteSnippets_ShouldReturnOnlyFavorites()
     {
         // Arrange
-        var mediator = Services.GetRequiredService<IMediator>();
+        var snippet1Response = await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand("Snippet 1", "code1", ProgrammingLanguage.CSharp, null, null));
+        var snippet1Id = await snippet1Response.ReadAsJsonAsync<Guid>();
 
-        var snippet1Result = await mediator.Send(new CreateSnippetCommand("Snippet 1", "code1", ProgrammingLanguage.CSharp, null, null));
-        var snippet2Result = await mediator.Send(new CreateSnippetCommand("Snippet 2", "code2", ProgrammingLanguage.CSharp, null, null));
-        var snippet3Result = await mediator.Send(new CreateSnippetCommand("Snippet 3", "code3", ProgrammingLanguage.CSharp, null, null));
+        var snippet2Response = await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand("Snippet 2", "code2", ProgrammingLanguage.CSharp, null, null));
+        var snippet2Id = await snippet2Response.ReadAsJsonAsync<Guid>();
+
+        var snippet3Response = await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand("Snippet 3", "code3", ProgrammingLanguage.CSharp, null, null));
+        var snippet3Id = await snippet3Response.ReadAsJsonAsync<Guid>();
 
         // Mark snippet 1 and 3 as favorites
-        await Client.PostAsync($"/api/snippets/{snippet1Result.Value}/favorite", null);
-        await Client.PostAsync($"/api/snippets/{snippet3Result.Value}/favorite", null);
+        await Client.PostAsync($"/api/snippets/{snippet1Id}/favorite", null);
+        await Client.PostAsync($"/api/snippets/{snippet3Id}/favorite", null);
 
         // Act
         var response = await Client.GetAsync("/api/snippets/favorites");
@@ -526,11 +524,9 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
     public async Task GetRecentSnippets_ShouldReturnLimitedResults()
     {
         // Arrange
-        var mediator = Services.GetRequiredService<IMediator>();
-
         for (int i = 0; i < 15; i++)
         {
-            await mediator.Send(new CreateSnippetCommand($"Snippet {i}", $"code{i}", ProgrammingLanguage.CSharp, null, null));
+            await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand($"Snippet {i}", $"code{i}", ProgrammingLanguage.CSharp, null, null));
         }
 
         // Act
@@ -544,14 +540,12 @@ public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory
     public async Task GetCollectionSnippets_ShouldReturnSnippetsInCollection()
     {
         // Arrange
-        var mediator = Services.GetRequiredService<IMediator>();
+        var collectionResponse = await Client.PostJsonAsync("/api/collections", new CreateCollectionCommand("Test Collection", null, null, null));
+        var collectionId = await collectionResponse.ReadAsJsonAsync<Guid>();
 
-        var collectionResult = await mediator.Send(new CreateCollectionCommand("Test Collection", null, null, null));
-        var collectionId = collectionResult.Value;
-
-        await mediator.Send(new CreateSnippetCommand("Snippet 1", "code1", ProgrammingLanguage.CSharp, null, new List<Guid> { collectionId }));
-        await mediator.Send(new CreateSnippetCommand("Snippet 2", "code2", ProgrammingLanguage.CSharp, null, new List<Guid> { collectionId }));
-        await mediator.Send(new CreateSnippetCommand("Snippet 3", "code3", ProgrammingLanguage.CSharp, null, null)); // Not in collection
+        await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand("Snippet 1", "code1", ProgrammingLanguage.CSharp, null, new List<Guid> { collectionId }));
+        await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand("Snippet 2", "code2", ProgrammingLanguage.CSharp, null, new List<Guid> { collectionId }));
+        await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand("Snippet 3", "code3", ProgrammingLanguage.CSharp, null, null)); // Not in collection
 
         // Act
         var response = await Client.GetAsync($"/api/snippets/collections/{collectionId}");

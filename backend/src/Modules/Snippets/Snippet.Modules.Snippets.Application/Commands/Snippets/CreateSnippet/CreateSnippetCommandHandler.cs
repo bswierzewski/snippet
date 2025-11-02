@@ -1,6 +1,7 @@
 using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Application.Models;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Snippet.Modules.Snippets.Application.Abstractions;
 using Snippet.Modules.Snippets.Domain.ValueObjects;
 
@@ -12,11 +13,16 @@ namespace Snippet.Modules.Snippets.Application.Commands.Snippets.CreateSnippet;
 public class CreateSnippetCommandHandler : IRequestHandler<CreateSnippetCommand, Result<Guid>>
 {
     private readonly ISnippetsWriteDbContext _writeDbContext;
+    private readonly ISnippetsReadDbContext _readDbContext;
     private readonly IUser _user;
 
-    public CreateSnippetCommandHandler(ISnippetsWriteDbContext writeDbContext, IUser user)
+    public CreateSnippetCommandHandler(
+        ISnippetsWriteDbContext writeDbContext,
+        ISnippetsReadDbContext readDbContext,
+        IUser user)
     {
         _writeDbContext = writeDbContext;
+        _readDbContext = readDbContext;
         _user = user;
     }
 
@@ -29,9 +35,16 @@ public class CreateSnippetCommandHandler : IRequestHandler<CreateSnippetCommand,
     public async Task<Result<Guid>> Handle(CreateSnippetCommand request, CancellationToken cancellationToken)
     {
         var snippetId = new SnippetId(Guid.NewGuid());
-        var collectionIds = request.CollectionIds?
-            .Select(id => new CollectionId(id))
-            .ToList();
+
+        // Fetch collections if provided
+        List<Domain.Aggregates.Collection>? collections = null;
+        if (request.CollectionIds is not null && request.CollectionIds.Any())
+        {
+            var collectionIdObjects = request.CollectionIds.Select(id => new CollectionId(id)).ToList();
+            collections = await _readDbContext.Collections
+                .Where(c => collectionIdObjects.Contains(c.Id))
+                .ToListAsync(cancellationToken);
+        }
 
         var snippet = new Domain.Aggregates.Snippet(
             snippetId,
@@ -40,7 +53,7 @@ public class CreateSnippetCommandHandler : IRequestHandler<CreateSnippetCommand,
             request.Content,
             request.Language,
             request.Description,
-            collectionIds
+            collections
         );
 
         await _writeDbContext.Snippets.AddAsync(snippet, cancellationToken);

@@ -19,6 +19,11 @@ public interface ISnippetsWriteDbContext
     DbSet<Collection> Collections { get; }
 
     /// <summary>
+    /// Gets the collection of tags for write operations.
+    /// </summary>
+    DbSet<Tag> Tags { get; }
+
+    /// <summary>
     /// Saves all pending changes to the database asynchronously.
     /// </summary>
     /// <param name="cancellationToken">Token to cancel the operation</param>

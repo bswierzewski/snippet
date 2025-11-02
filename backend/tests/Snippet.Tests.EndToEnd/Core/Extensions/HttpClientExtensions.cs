@@ -40,6 +40,21 @@ public static class HttpClientExtensions
     }
 
     /// <summary>
+    /// Deserializes the response content as JSON to the specified type.
+    /// </summary>
+    /// <typeparam name="T">The type to deserialize to.</typeparam>
+    /// <param name="response">The HTTP response message.</param>
+    /// <returns>The deserialized object.</returns>
+    public static async Task<T?> ReadAsJsonAsync<T>(this HttpResponseMessage response)
+    {
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<T>(content, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
+    }
+
+    /// <summary>
     /// Adds a JWT Bearer token to the Authorization header of the HTTP client.
     /// </summary>
     /// <param name="client">The HTTP client instance.</param>

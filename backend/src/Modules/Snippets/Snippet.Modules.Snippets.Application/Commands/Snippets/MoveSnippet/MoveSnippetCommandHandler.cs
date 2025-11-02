@@ -12,10 +12,14 @@ namespace Snippet.Modules.Snippets.Application.Commands.Snippets.MoveSnippet;
 public class MoveSnippetCommandHandler : IRequestHandler<MoveSnippetCommand, Result>
 {
     private readonly ISnippetsWriteDbContext _writeDbContext;
+    private readonly ISnippetsReadDbContext _readDbContext;
 
-    public MoveSnippetCommandHandler(ISnippetsWriteDbContext writeDbContext)
+    public MoveSnippetCommandHandler(
+        ISnippetsWriteDbContext writeDbContext,
+        ISnippetsReadDbContext readDbContext)
     {
         _writeDbContext = writeDbContext;
+        _readDbContext = readDbContext;
     }
 
     /// <summary>
@@ -26,16 +30,19 @@ public class MoveSnippetCommandHandler : IRequestHandler<MoveSnippetCommand, Res
     public async Task<Result> Handle(MoveSnippetCommand request, CancellationToken cancellationToken)
     {
         var snippet = await _writeDbContext.Snippets
+            .Include(s => s.SnippetCollections)
             .FirstOrDefaultAsync(s => s.Id == new SnippetId(request.SnippetId), cancellationToken);
 
         if (snippet is null)
             return Result.Failure($"Snippet with ID {request.SnippetId} not found");
 
-        var collectionIds = request.CollectionIds
-            .Select(id => new CollectionId(id))
-            .ToList();
+        // Fetch collections from database
+        var collectionIdObjects = request.CollectionIds.Select(id => new CollectionId(id)).ToList();
+        var collections = await _readDbContext.Collections
+            .Where(c => collectionIdObjects.Contains(c.Id))
+            .ToListAsync(cancellationToken);
 
-        snippet.UpdateCollections(collectionIds);
+        snippet.UpdateCollections(collections);
 
         await _writeDbContext.SaveChangesAsync(cancellationToken);
 

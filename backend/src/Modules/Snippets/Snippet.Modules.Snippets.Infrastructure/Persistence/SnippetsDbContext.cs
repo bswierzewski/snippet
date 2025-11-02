@@ -8,7 +8,7 @@ namespace Snippet.Modules.Snippets.Infrastructure.Persistence;
 /// Database context for Snippets module.
 /// Implements both read and write interfaces for CQRS pattern.
 /// </summary>
-public sealed class SnippetsDbContext : DbContext, ISnippetsReadDbContext, ISnippetsWriteDbContext
+public sealed class SnippetsDbContext(DbContextOptions<SnippetsDbContext> options) : DbContext(options), ISnippetsReadDbContext, ISnippetsWriteDbContext
 {
     /// <summary>
     /// Gets or sets the collection of snippets.
@@ -20,17 +20,20 @@ public sealed class SnippetsDbContext : DbContext, ISnippetsReadDbContext, ISnip
     /// </summary>
     public DbSet<Collection> Collections => Set<Collection>();
 
+    /// <summary>
+    /// Gets or sets the collection of tags.
+    /// </summary>
+    public DbSet<Tag> Tags => Set<Tag>();
+
     // Explicit interface implementations for ISnippetsWriteDbContext
     DbSet<Domain.Aggregates.Snippet> ISnippetsWriteDbContext.Snippets => Snippets;
     DbSet<Collection> ISnippetsWriteDbContext.Collections => Collections;
+    DbSet<Tag> ISnippetsWriteDbContext.Tags => Tags;
 
     // Explicit interface implementations for ISnippetsReadDbContext
     IQueryable<Domain.Aggregates.Snippet> ISnippetsReadDbContext.Snippets => Snippets.AsNoTracking();
     IQueryable<Collection> ISnippetsReadDbContext.Collections => Collections.AsNoTracking();
-    
-    public SnippetsDbContext(DbContextOptions<SnippetsDbContext> options) : base(options)
-    {
-    }
+    IQueryable<Tag> ISnippetsReadDbContext.Tags => Tags.AsNoTracking();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
