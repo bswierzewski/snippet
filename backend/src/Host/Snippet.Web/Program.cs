@@ -10,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Register core services
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddCors();
 
 // OpenAPI for Orval client generation
 builder.Services.AddEndpointsApiExplorer(); // Exposes Minimal API endpoints to OpenAPI
