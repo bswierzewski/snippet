@@ -30,7 +30,11 @@ public class SnippetTag
     public Tag Tag { get; private set; } = null!;
 
     // EF Core constructor
-    private SnippetTag() { }
+    private SnippetTag()
+    {
+        SnippetId = null!;
+        TagId = null!;
+    }
 
     /// <summary>
     /// Creates a new snippet-tag relationship.

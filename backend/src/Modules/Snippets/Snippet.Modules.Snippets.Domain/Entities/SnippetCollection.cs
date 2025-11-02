@@ -30,7 +30,11 @@ public class SnippetCollection
     public Collection Collection { get; private set; } = null!;
 
     // EF Core constructor
-    private SnippetCollection() { }
+    private SnippetCollection()
+    {
+        SnippetId = null!;
+        CollectionId = null!;
+    }
 
     /// <summary>
     /// Creates a new snippet-collection relationship.
