@@ -1,7 +1,7 @@
-﻿using BuildingBlocks.Modules.Users.Infrastructure.Extensions;
-using BuildingBlocks.Modules.Users.Web;
+﻿using BuildingBlocks.Modules.Users.Web;
 using BuildingBlocks.Modules.Users.Web.Endpoints;
 using BuildingBlocks.Modules.Users.Web.Extensions;
+using BuildingBlocks.Modules.Users.Web.Extensions.JwtBearers;
 using Snippet.Modules.Snippets.Infrastructure;
 using Snippet.Web.Endpoints;
 
@@ -20,9 +20,9 @@ builder.Services.AddOpenApi();              // Generates OpenAPI document
 builder.Services.AddUsers(builder.Configuration);
 builder.Services.AddSnippets(builder.Configuration);
 
-// Configure Clerk authentication
-builder.Services.AddClerkOptions(builder.Configuration);
-builder.Services.AddAuthentication().AddClerkJwtBearer();
+// Configure Supabase authentication
+builder.Services.AddSupabaseOptions(builder.Configuration);
+builder.Services.AddAuthentication().AddSupabaseJwtBearer();
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
