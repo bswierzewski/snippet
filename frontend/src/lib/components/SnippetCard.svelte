@@ -14,7 +14,6 @@
 	<div class="flex items-start justify-between mb-3">
 		<div class="flex-1">
 			<h3 class="text-lg font-bold text-gray-900 mb-1">{snippet.title}</h3>
-			<p class="text-sm text-gray-600">{snippet.description || 'Brak opisu'}</p>
 		</div>
 
 		<!-- Badge języka -->
@@ -28,11 +27,6 @@
 		{#each snippet.tags as tag}
 			<span class="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">{tag.name}</span>
 		{/each}
-	</div>
-
-	<!-- Podgląd kodu -->
-	<div class="bg-gray-50 rounded p-4 mb-4">
-		<pre class="text-sm text-gray-800 overflow-x-auto"><code>{snippet.contentPreview}</code></pre>
 	</div>
 
 	<!-- Akcje -->

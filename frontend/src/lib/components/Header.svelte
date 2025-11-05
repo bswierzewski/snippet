@@ -1,4 +1,6 @@
 <script lang="ts">
+	import UserButton from './UserButton.svelte';
+
 	/**
 	 * Komponent nagłówka z wyszukiwaniem, filtrami i akcjami
 	 */
@@ -45,7 +47,7 @@
 			<button class="p-2 rounded-lg hover:bg-gray-100">🌙</button>
 
 			<!-- User menu -->
-			<button class="p-2 rounded-lg hover:bg-gray-100">👤</button>
+			<UserButton />
 		</div>
 	</div>
 </header>

@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { createGetCollections } from '$lib/api/endpoints/collections/collections';
+	import { createGetUserCollections } from '$lib/api/endpoints/collections';
 
 	/**
 	 * Komponent lewego panelu z kolekcjami
 	 */
-	const collectionsQuery = createGetCollections();
+	const collectionsQuery = createGetUserCollections();
 </script>
 
 <aside class="w-64 h-screen border-r border-gray-200 bg-white p-4">
@@ -32,10 +32,10 @@
 			</a>
 
 			<!-- Lista kolekcji -->
-			{#if $collectionsQuery.isLoading}
+			{#if collectionsQuery.isLoading}
 				<p class="text-sm text-gray-500 px-3">Ładowanie...</p>
-			{:else if $collectionsQuery.data}
-				{#each $collectionsQuery.data as collection}
+			{:else if collectionsQuery.data}
+				{#each collectionsQuery.data as collection}
 					<a
 						href="/collections/{collection.id}"
 						class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
@@ -44,7 +44,7 @@
 							<span>📁</span>
 							<span>{collection.name}</span>
 						</div>
-						<span class="text-xs text-gray-500">{collection.snippetsCount}</span>
+						<span class="text-xs text-gray-500">{collection.snippetCount}</span>
 					</a>
 				{/each}
 			{/if}

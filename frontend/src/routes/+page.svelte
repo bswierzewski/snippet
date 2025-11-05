@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createGetUserSnippets } from '$lib/api/endpoints/snippets/snippets';
+	import { createGetUserSnippets } from '$lib/api/endpoints/snippets';
 	import Header from '$lib/components/Header.svelte';
 	import SnippetCard from '$lib/components/SnippetCard.svelte';
 
@@ -13,7 +13,7 @@
 
 	// Filtrowane snippety
 	const filteredSnippets = $derived(
-		$snippetsQuery.data?.filter((snippet) =>
+		snippetsQuery.data?.filter((snippet: any) =>
 			snippet.title.toLowerCase().includes(searchQuery.toLowerCase())
 		) || []
 	);
@@ -25,11 +25,11 @@
 
 	<!-- Lista snippetów -->
 	<div class="flex-1 overflow-auto p-8">
-		{#if $snippetsQuery.isLoading}
+		{#if snippetsQuery.isLoading}
 			<div class="text-center py-12">
 				<p class="text-gray-600">Ładowanie snippetów...</p>
 			</div>
-		{:else if $snippetsQuery.error}
+		{:else if snippetsQuery.error}
 			<div class="text-center py-12">
 				<p class="text-red-500">Błąd podczas ładowania snippetów</p>
 			</div>
