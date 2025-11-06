@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "orval": "orval",
     "orval:watch": "orval --watch"
   },
@@ -27,6 +29,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.0.1",
     "orval": "^7.16.0",
+    "prettier": "^3.6.2",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
