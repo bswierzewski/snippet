@@ -4,8 +4,8 @@
  * Snippet.Web | v1
  * OpenAPI spec version: 1.0.0
  */
-import type { ProgrammingLanguage } from './programmingLanguage';
 import type { CollectionSummaryDto } from './collectionSummaryDto';
+import type { ProgrammingLanguage } from './programmingLanguage';
 import type { TagDto } from './tagDto';
 
 export interface GetSnippetByIdDto {

@@ -6,5 +6,5 @@
  */
 
 export type GetRecentSnippetsParams = {
-limit: number;
+  limit: number;
 };
