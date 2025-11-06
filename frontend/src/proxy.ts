@@ -1,7 +1,7 @@
-import { createClient } from '@/lib/supabase/middleware';
+import { createClient } from '@/lib/supabase/proxy';
 import { type NextRequest, NextResponse } from 'next/server';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { supabase, response } = createClient(request);
 
   // Refresh session if expired - important to call before checking user
@@ -30,11 +30,12 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except:
+     * - api routes
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public folder
+     * - public folder assets
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'
   ]
 };
