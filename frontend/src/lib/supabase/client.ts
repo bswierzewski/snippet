@@ -1,19 +1,14 @@
 import { createBrowserClient } from '@supabase/ssr';
-import type { SupabaseClient } from '@supabase/supabase-js';
 
-// Singleton instance to avoid creating multiple Supabase clients
-// This is critical for performance as we call getSession() on every HTTP request
-let client: SupabaseClient | null = null;
-
+/**
+ * Creates Supabase client for Client Components (browser)
+ *
+ * Note: No singleton pattern here - createBrowserClient handles caching internally
+ * Safe to call multiple times, it will return the same instance automatically
+ */
 export function createClient() {
-    if (client) {
-        return client;
-    }
-
-    client = createBrowserClient(
+    return createBrowserClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
-
-    return client;
 }
