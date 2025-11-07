@@ -11,33 +11,43 @@ import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 
-const loginSchema = z.object({
-  email: z.email('Podaj prawidłowy adres email'),
-  password: z.string().min(1, 'Hasło jest wymagane')
-});
+const registerSchema = z
+  .object({
+    email: z.email('Podaj prawidłowy adres email'),
+    password: z.string().min(8, 'Hasło musi mieć co najmniej 8 znaków'),
+    confirmPassword: z.string().min(1, 'Potwierdź hasło')
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Hasła muszą być takie same',
+    path: ['confirmPassword']
+  });
 
-type LoginFormData = z.infer<typeof loginSchema>;
+type RegisterFormData = z.infer<typeof registerSchema>;
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
   const supabase = createClient();
 
   const form = useForm({
     defaultValues: {
       email: '',
-      password: ''
-    } as LoginFormData,
+      password: '',
+      confirmPassword: ''
+    } as RegisterFormData,
     validators: {
-      onSubmit: loginSchema
+      onSubmit: registerSchema
     },
     onSubmit: async ({ value }) => {
-      const { error } = await supabase.auth.signInWithPassword(value);
+      const { error } = await supabase.auth.signUp({
+        email: value.email,
+        password: value.password
+      });
 
       if (error) {
         toast.error(error.message);
       } else {
-        toast.success('Zalogowano pomyślnie!');
-        router.push('/');
+        toast.success('Konto zostało utworzone! Sprawdź email, aby potwierdzić rejestrację.');
+        router.push('/login');
       }
     }
   });
@@ -46,10 +56,10 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-lg shadow-md p-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">Logowanie</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">Rejestracja</h1>
 
           <form
-            id="login-form"
+            id="register-form"
             onSubmit={(e) => {
               e.preventDefault();
               form.handleSubmit();
@@ -94,7 +104,30 @@ export default function LoginPage() {
                         onChange={(e) => field.handleChange(e.target.value)}
                         onBlur={field.handleBlur}
                         aria-invalid={isInvalid}
-                        autoComplete="current-password"
+                        autoComplete="new-password"
+                      />
+                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    </Field>
+                  );
+                }}
+              </form.Field>
+
+              <form.Field name="confirmPassword">
+                {(field) => {
+                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor="confirmPassword">Potwierdź hasło</FieldLabel>
+                      <Input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type="password"
+                        placeholder="••••••••"
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                        aria-invalid={isInvalid}
+                        autoComplete="new-password"
                       />
                       {isInvalid && <FieldError errors={field.state.meta.errors} />}
                     </Field>
@@ -106,23 +139,23 @@ export default function LoginPage() {
 
           <form.Subscribe selector={(state) => state.isSubmitting}>
             {(isSubmitting) => (
-              <Button type="submit" form="login-form" className="w-full mt-6" disabled={isSubmitting}>
+              <Button type="submit" form="register-form" className="w-full mt-6" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
                     <Spinner className="mr-2" />
-                    Logowanie...
+                    Rejestracja...
                   </>
                 ) : (
-                  'Zaloguj się'
+                  'Zarejestruj się'
                 )}
               </Button>
             )}
           </form.Subscribe>
 
           <p className="mt-4 text-center text-sm text-gray-600">
-            Nie masz konta?{' '}
-            <a href="/register" className="text-blue-600 hover:text-blue-700 font-medium">
-              Zarejestruj się
+            Masz już konto?{' '}
+            <a href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+              Zaloguj się
             </a>
           </p>
         </div>

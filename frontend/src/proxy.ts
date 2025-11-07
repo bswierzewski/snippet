@@ -10,14 +10,15 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getSession();
 
   // If user is not logged in and trying to access protected route, redirect to login
-  if (!session && request.nextUrl.pathname !== '/login') {
+  const publicPaths = ['/login', '/register'];
+  if (!session && !publicPaths.includes(request.nextUrl.pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
   }
 
-  // If user is logged in and trying to access login page, redirect to home
-  if (session && request.nextUrl.pathname === '/login') {
+  // If user is logged in and trying to access auth pages, redirect to home
+  if (session && publicPaths.includes(request.nextUrl.pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = '/';
     return NextResponse.redirect(url);
