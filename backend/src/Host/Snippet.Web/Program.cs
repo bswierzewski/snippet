@@ -47,6 +47,7 @@ app.UseAuthorization();  // 2. Authorization second
 app.MapUsersEndpoints();
 app.MapCollectionsEndpoints();
 app.MapSnippetsEndpoints();
+app.MapLookupDataEndpoints();
 
 app.Run();
 

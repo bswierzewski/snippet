@@ -21,11 +21,13 @@ public static class DependencyInjection
         services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+
             cfg.AddLoggingBehavior()
                .AddUnhandledExceptionBehavior()
                .AddValidationBehavior()
                .AddAuthorizationBehavior()
-               .AddPerformanceMonitoringBehavior();
+               .AddPerformanceMonitoringBehavior()
+               .AddBuildingBlocksHandlers();
         });
 
         // Register FluentValidation validators
