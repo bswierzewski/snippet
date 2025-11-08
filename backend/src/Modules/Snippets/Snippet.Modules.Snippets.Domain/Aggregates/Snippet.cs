@@ -74,6 +74,7 @@ public class Snippet : AggregateRoot<SnippetId>
     /// <param name="content">Content of the snippet.</param>
     /// <param name="language">Programming language for syntax highlighting.</param>
     /// <param name="description">Optional description of the snippet.</param>
+    /// <param name="tags">Optional tags to assign.</param>
     /// <param name="collections">Optional collections to assign.</param>
     public Snippet(
         SnippetId id,
@@ -82,6 +83,7 @@ public class Snippet : AggregateRoot<SnippetId>
         string content,
         ProgrammingLanguage language,
         string? description = null,
+        IEnumerable<Tag>? tags = null,
         IEnumerable<Collection>? collections = null)
     {
         Id = id;
@@ -93,6 +95,15 @@ public class Snippet : AggregateRoot<SnippetId>
         IsFavorite = false;
         UsageCount = 0;
         LastUsedAt = null;
+
+        if (tags is not null)
+        {
+            foreach (var tag in tags)
+            {
+                var snippetTag = new SnippetTag(id, tag.Id);
+                _snippetTags.Add(snippetTag);
+            }
+        }
 
         if (collections is not null)
         {

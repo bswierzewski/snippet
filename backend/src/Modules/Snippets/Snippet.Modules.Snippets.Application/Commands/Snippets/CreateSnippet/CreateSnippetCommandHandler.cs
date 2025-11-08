@@ -36,6 +36,16 @@ public class CreateSnippetCommandHandler : IRequestHandler<CreateSnippetCommand,
     {
         var snippetId = new SnippetId(Guid.NewGuid());
 
+        // Fetch tags if provided
+        List<Domain.Aggregates.Tag>? tags = null;
+        if (request.TagIds is not null && request.TagIds.Any())
+        {
+            var tagIdObjects = request.TagIds.Select(id => new TagId(id)).ToList();
+            tags = await _readDbContext.Tags
+                .Where(t => tagIdObjects.Contains(t.Id))
+                .ToListAsync(cancellationToken);
+        }
+
         // Fetch collections if provided
         List<Domain.Aggregates.Collection>? collections = null;
         if (request.CollectionIds is not null && request.CollectionIds.Any())
@@ -53,6 +63,7 @@ public class CreateSnippetCommandHandler : IRequestHandler<CreateSnippetCommand,
             request.Content,
             request.Language,
             request.Description,
+            tags,
             collections
         );
 

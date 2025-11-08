@@ -11,11 +11,13 @@ namespace Snippet.Modules.Snippets.Application.Commands.Snippets.CreateSnippet;
 /// <param name="Content">Snippet content (code, query, or prompt text).</param>
 /// <param name="Language">Programming language for syntax highlighting.</param>
 /// <param name="Description">Optional description of the snippet.</param>
+/// <param name="TagIds">Optional tag identifiers to categorize the snippet.</param>
 /// <param name="CollectionIds">Optional collection identifiers to organize the snippet.</param>
 public record CreateSnippetCommand(
     string Title,
     string Content,
     ProgrammingLanguage Language,
     string? Description,
+    List<Guid>? TagIds,
     List<Guid>? CollectionIds
 ) : IRequest<Result<Guid>>;
