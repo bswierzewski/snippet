@@ -22,17 +22,14 @@ import type {
 
 import { customInstance } from '../axios-instance';
 import type {
-  AddTagCommand,
-  ChangeSnippetLanguageCommand,
   CreateSnippetCommand,
   Error,
   GetRecentSnippetsParams,
   GetSnippetByIdDto,
-  MoveSnippetCommand,
   SearchSnippetsQuery,
   SearchSnippetsResponse,
   SnippetSummaryDto,
-  UpdateSnippetContentCommand
+  UpdateSnippetCommand
 } from '../models';
 
 export const createSnippet = (createSnippetCommand: CreateSnippetCommand, signal?: AbortSignal) => {
@@ -168,29 +165,29 @@ export function useGetUserSnippets<TData = Awaited<ReturnType<typeof getUserSnip
   return query;
 }
 
-export const updateSnippetContent = (id: string, updateSnippetContentCommand: UpdateSnippetContentCommand) => {
+export const updateSnippet = (id: string, updateSnippetCommand: UpdateSnippetCommand) => {
   return customInstance<void>({
-    url: `/api/snippets/${id}/content`,
+    url: `/api/snippets/${id}`,
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    data: updateSnippetContentCommand
+    data: updateSnippetCommand
   });
 };
 
-export const getUpdateSnippetContentMutationOptions = <TError = Error[], TContext = unknown>(options?: {
+export const getUpdateSnippetMutationOptions = <TError = Error[], TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof updateSnippetContent>>,
+    Awaited<ReturnType<typeof updateSnippet>>,
     TError,
-    { id: string; data: UpdateSnippetContentCommand },
+    { id: string; data: UpdateSnippetCommand },
     TContext
   >;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof updateSnippetContent>>,
+  Awaited<ReturnType<typeof updateSnippet>>,
   TError,
-  { id: string; data: UpdateSnippetContentCommand },
+  { id: string; data: UpdateSnippetCommand },
   TContext
 > => {
-  const mutationKey = ['updateSnippetContent'];
+  const mutationKey = ['updateSnippet'];
   const { mutation: mutationOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -198,341 +195,38 @@ export const getUpdateSnippetContentMutationOptions = <TError = Error[], TContex
     : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof updateSnippetContent>>,
-    { id: string; data: UpdateSnippetContentCommand }
+    Awaited<ReturnType<typeof updateSnippet>>,
+    { id: string; data: UpdateSnippetCommand }
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return updateSnippetContent(id, data);
+    return updateSnippet(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type UpdateSnippetContentMutationResult = NonNullable<Awaited<ReturnType<typeof updateSnippetContent>>>;
-export type UpdateSnippetContentMutationBody = UpdateSnippetContentCommand;
-export type UpdateSnippetContentMutationError = Error[];
+export type UpdateSnippetMutationResult = NonNullable<Awaited<ReturnType<typeof updateSnippet>>>;
+export type UpdateSnippetMutationBody = UpdateSnippetCommand;
+export type UpdateSnippetMutationError = Error[];
 
-export const useUpdateSnippetContent = <TError = Error[], TContext = unknown>(
+export const useUpdateSnippet = <TError = Error[], TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof updateSnippetContent>>,
+      Awaited<ReturnType<typeof updateSnippet>>,
       TError,
-      { id: string; data: UpdateSnippetContentCommand },
+      { id: string; data: UpdateSnippetCommand },
       TContext
     >;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
-  Awaited<ReturnType<typeof updateSnippetContent>>,
+  Awaited<ReturnType<typeof updateSnippet>>,
   TError,
-  { id: string; data: UpdateSnippetContentCommand },
+  { id: string; data: UpdateSnippetCommand },
   TContext
 > => {
-  const mutationOptions = getUpdateSnippetContentMutationOptions(options);
-
-  return useMutation(mutationOptions, queryClient);
-};
-export const changeSnippetLanguage = (id: string, changeSnippetLanguageCommand: ChangeSnippetLanguageCommand) => {
-  return customInstance<void>({
-    url: `/api/snippets/${id}/language`,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    data: changeSnippetLanguageCommand
-  });
-};
-
-export const getChangeSnippetLanguageMutationOptions = <TError = Error[], TContext = unknown>(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof changeSnippetLanguage>>,
-    TError,
-    { id: string; data: ChangeSnippetLanguageCommand },
-    TContext
-  >;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof changeSnippetLanguage>>,
-  TError,
-  { id: string; data: ChangeSnippetLanguageCommand },
-  TContext
-> => {
-  const mutationKey = ['changeSnippetLanguage'];
-  const { mutation: mutationOptions } = options
-    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof changeSnippetLanguage>>,
-    { id: string; data: ChangeSnippetLanguageCommand }
-  > = (props) => {
-    const { id, data } = props ?? {};
-
-    return changeSnippetLanguage(id, data);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type ChangeSnippetLanguageMutationResult = NonNullable<Awaited<ReturnType<typeof changeSnippetLanguage>>>;
-export type ChangeSnippetLanguageMutationBody = ChangeSnippetLanguageCommand;
-export type ChangeSnippetLanguageMutationError = Error[];
-
-export const useChangeSnippetLanguage = <TError = Error[], TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof changeSnippetLanguage>>,
-      TError,
-      { id: string; data: ChangeSnippetLanguageCommand },
-      TContext
-    >;
-  },
-  queryClient?: QueryClient
-): UseMutationResult<
-  Awaited<ReturnType<typeof changeSnippetLanguage>>,
-  TError,
-  { id: string; data: ChangeSnippetLanguageCommand },
-  TContext
-> => {
-  const mutationOptions = getChangeSnippetLanguageMutationOptions(options);
-
-  return useMutation(mutationOptions, queryClient);
-};
-export const addTag = (id: string, addTagCommand: AddTagCommand, signal?: AbortSignal) => {
-  return customInstance<string>({
-    url: `/api/snippets/${id}/tags`,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    data: addTagCommand,
-    signal
-  });
-};
-
-export const getAddTagMutationOptions = <TError = Error[], TContext = unknown>(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof addTag>>,
-    TError,
-    { id: string; data: AddTagCommand },
-    TContext
-  >;
-}): UseMutationOptions<Awaited<ReturnType<typeof addTag>>, TError, { id: string; data: AddTagCommand }, TContext> => {
-  const mutationKey = ['addTag'];
-  const { mutation: mutationOptions } = options
-    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
-
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof addTag>>, { id: string; data: AddTagCommand }> = (
-    props
-  ) => {
-    const { id, data } = props ?? {};
-
-    return addTag(id, data);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type AddTagMutationResult = NonNullable<Awaited<ReturnType<typeof addTag>>>;
-export type AddTagMutationBody = AddTagCommand;
-export type AddTagMutationError = Error[];
-
-export const useAddTag = <TError = Error[], TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof addTag>>,
-      TError,
-      { id: string; data: AddTagCommand },
-      TContext
-    >;
-  },
-  queryClient?: QueryClient
-): UseMutationResult<Awaited<ReturnType<typeof addTag>>, TError, { id: string; data: AddTagCommand }, TContext> => {
-  const mutationOptions = getAddTagMutationOptions(options);
-
-  return useMutation(mutationOptions, queryClient);
-};
-export const removeTag = (id: string, tagId: string) => {
-  return customInstance<void>({ url: `/api/snippets/${id}/tags/${tagId}`, method: 'DELETE' });
-};
-
-export const getRemoveTagMutationOptions = <TError = Error[], TContext = unknown>(options?: {
-  mutation?: UseMutationOptions<Awaited<ReturnType<typeof removeTag>>, TError, { id: string; tagId: string }, TContext>;
-}): UseMutationOptions<Awaited<ReturnType<typeof removeTag>>, TError, { id: string; tagId: string }, TContext> => {
-  const mutationKey = ['removeTag'];
-  const { mutation: mutationOptions } = options
-    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
-
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeTag>>, { id: string; tagId: string }> = (
-    props
-  ) => {
-    const { id, tagId } = props ?? {};
-
-    return removeTag(id, tagId);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type RemoveTagMutationResult = NonNullable<Awaited<ReturnType<typeof removeTag>>>;
-
-export type RemoveTagMutationError = Error[];
-
-export const useRemoveTag = <TError = Error[], TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof removeTag>>,
-      TError,
-      { id: string; tagId: string },
-      TContext
-    >;
-  },
-  queryClient?: QueryClient
-): UseMutationResult<Awaited<ReturnType<typeof removeTag>>, TError, { id: string; tagId: string }, TContext> => {
-  const mutationOptions = getRemoveTagMutationOptions(options);
-
-  return useMutation(mutationOptions, queryClient);
-};
-export const toggleFavorite = (id: string, signal?: AbortSignal) => {
-  return customInstance<void>({ url: `/api/snippets/${id}/favorite`, method: 'POST', signal });
-};
-
-export const getToggleFavoriteMutationOptions = <TError = Error[], TContext = unknown>(options?: {
-  mutation?: UseMutationOptions<Awaited<ReturnType<typeof toggleFavorite>>, TError, { id: string }, TContext>;
-}): UseMutationOptions<Awaited<ReturnType<typeof toggleFavorite>>, TError, { id: string }, TContext> => {
-  const mutationKey = ['toggleFavorite'];
-  const { mutation: mutationOptions } = options
-    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
-
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof toggleFavorite>>, { id: string }> = (props) => {
-    const { id } = props ?? {};
-
-    return toggleFavorite(id);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type ToggleFavoriteMutationResult = NonNullable<Awaited<ReturnType<typeof toggleFavorite>>>;
-
-export type ToggleFavoriteMutationError = Error[];
-
-export const useToggleFavorite = <TError = Error[], TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<Awaited<ReturnType<typeof toggleFavorite>>, TError, { id: string }, TContext>;
-  },
-  queryClient?: QueryClient
-): UseMutationResult<Awaited<ReturnType<typeof toggleFavorite>>, TError, { id: string }, TContext> => {
-  const mutationOptions = getToggleFavoriteMutationOptions(options);
-
-  return useMutation(mutationOptions, queryClient);
-};
-export const recordUsage = (id: string, signal?: AbortSignal) => {
-  return customInstance<void>({ url: `/api/snippets/${id}/usage`, method: 'POST', signal });
-};
-
-export const getRecordUsageMutationOptions = <TError = Error[], TContext = unknown>(options?: {
-  mutation?: UseMutationOptions<Awaited<ReturnType<typeof recordUsage>>, TError, { id: string }, TContext>;
-}): UseMutationOptions<Awaited<ReturnType<typeof recordUsage>>, TError, { id: string }, TContext> => {
-  const mutationKey = ['recordUsage'];
-  const { mutation: mutationOptions } = options
-    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
-
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordUsage>>, { id: string }> = (props) => {
-    const { id } = props ?? {};
-
-    return recordUsage(id);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type RecordUsageMutationResult = NonNullable<Awaited<ReturnType<typeof recordUsage>>>;
-
-export type RecordUsageMutationError = Error[];
-
-export const useRecordUsage = <TError = Error[], TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<Awaited<ReturnType<typeof recordUsage>>, TError, { id: string }, TContext>;
-  },
-  queryClient?: QueryClient
-): UseMutationResult<Awaited<ReturnType<typeof recordUsage>>, TError, { id: string }, TContext> => {
-  const mutationOptions = getRecordUsageMutationOptions(options);
-
-  return useMutation(mutationOptions, queryClient);
-};
-export const moveSnippet = (id: string, moveSnippetCommand: MoveSnippetCommand) => {
-  return customInstance<void>({
-    url: `/api/snippets/${id}/collections`,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    data: moveSnippetCommand
-  });
-};
-
-export const getMoveSnippetMutationOptions = <TError = Error[], TContext = unknown>(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof moveSnippet>>,
-    TError,
-    { id: string; data: MoveSnippetCommand },
-    TContext
-  >;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof moveSnippet>>,
-  TError,
-  { id: string; data: MoveSnippetCommand },
-  TContext
-> => {
-  const mutationKey = ['moveSnippet'];
-  const { mutation: mutationOptions } = options
-    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof moveSnippet>>,
-    { id: string; data: MoveSnippetCommand }
-  > = (props) => {
-    const { id, data } = props ?? {};
-
-    return moveSnippet(id, data);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type MoveSnippetMutationResult = NonNullable<Awaited<ReturnType<typeof moveSnippet>>>;
-export type MoveSnippetMutationBody = MoveSnippetCommand;
-export type MoveSnippetMutationError = Error[];
-
-export const useMoveSnippet = <TError = Error[], TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof moveSnippet>>,
-      TError,
-      { id: string; data: MoveSnippetCommand },
-      TContext
-    >;
-  },
-  queryClient?: QueryClient
-): UseMutationResult<
-  Awaited<ReturnType<typeof moveSnippet>>,
-  TError,
-  { id: string; data: MoveSnippetCommand },
-  TContext
-> => {
-  const mutationOptions = getMoveSnippetMutationOptions(options);
+  const mutationOptions = getUpdateSnippetMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };
@@ -653,6 +347,80 @@ export function useGetSnippetById<TData = Awaited<ReturnType<typeof getSnippetBy
   return query;
 }
 
+export const toggleFavorite = (id: string, signal?: AbortSignal) => {
+  return customInstance<void>({ url: `/api/snippets/${id}/favorite`, method: 'POST', signal });
+};
+
+export const getToggleFavoriteMutationOptions = <TError = Error[], TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof toggleFavorite>>, TError, { id: string }, TContext>;
+}): UseMutationOptions<Awaited<ReturnType<typeof toggleFavorite>>, TError, { id: string }, TContext> => {
+  const mutationKey = ['toggleFavorite'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof toggleFavorite>>, { id: string }> = (props) => {
+    const { id } = props ?? {};
+
+    return toggleFavorite(id);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ToggleFavoriteMutationResult = NonNullable<Awaited<ReturnType<typeof toggleFavorite>>>;
+
+export type ToggleFavoriteMutationError = Error[];
+
+export const useToggleFavorite = <TError = Error[], TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<Awaited<ReturnType<typeof toggleFavorite>>, TError, { id: string }, TContext>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<Awaited<ReturnType<typeof toggleFavorite>>, TError, { id: string }, TContext> => {
+  const mutationOptions = getToggleFavoriteMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+export const recordUsage = (id: string, signal?: AbortSignal) => {
+  return customInstance<void>({ url: `/api/snippets/${id}/usage`, method: 'POST', signal });
+};
+
+export const getRecordUsageMutationOptions = <TError = Error[], TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof recordUsage>>, TError, { id: string }, TContext>;
+}): UseMutationOptions<Awaited<ReturnType<typeof recordUsage>>, TError, { id: string }, TContext> => {
+  const mutationKey = ['recordUsage'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordUsage>>, { id: string }> = (props) => {
+    const { id } = props ?? {};
+
+    return recordUsage(id);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RecordUsageMutationResult = NonNullable<Awaited<ReturnType<typeof recordUsage>>>;
+
+export type RecordUsageMutationError = Error[];
+
+export const useRecordUsage = <TError = Error[], TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<Awaited<ReturnType<typeof recordUsage>>, TError, { id: string }, TContext>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<Awaited<ReturnType<typeof recordUsage>>, TError, { id: string }, TContext> => {
+  const mutationOptions = getRecordUsageMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
 export const getCollectionSnippets = (collectionId: string, signal?: AbortSignal) => {
   return customInstance<SnippetSummaryDto[]>({
     url: `/api/snippets/collections/${collectionId}`,

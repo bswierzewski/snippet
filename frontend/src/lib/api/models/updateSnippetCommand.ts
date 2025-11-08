@@ -6,14 +6,13 @@
  */
 import type { ProgrammingLanguage } from './programmingLanguage';
 
-export interface CreateSnippetCommand {
+export interface UpdateSnippetCommand {
+  id: string;
   title: string;
-  content: string;
-  language: ProgrammingLanguage;
   /** @nullable */
   description: string | null;
-  /** @nullable */
-  tagIds: string[] | null;
-  /** @nullable */
-  collectionIds: string[] | null;
+  content: string;
+  language: ProgrammingLanguage;
+  tagIds: string[];
+  collectionIds: string[];
 }

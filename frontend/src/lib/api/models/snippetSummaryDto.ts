@@ -11,6 +11,9 @@ import type { TagSummaryDto } from './tagSummaryDto';
 export interface SnippetSummaryDto {
   id: string;
   title: string;
+  /** @nullable */
+  description: string | null;
+  content: string;
   language: ProgrammingLanguage;
   collections: CollectionSummaryDto[];
   tags: TagSummaryDto[];
