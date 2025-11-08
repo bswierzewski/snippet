@@ -105,76 +105,18 @@ public class Snippet : AggregateRoot<SnippetId>
     }
 
     /// <summary>
-    /// Updates the snippet's content.
-    /// </summary>
-    /// <param name="content">New content for the snippet.</param>
-    public void UpdateContent(string content)
-    {
-        Content = content;
-    }
-
-    /// <summary>
-    /// Updates the snippet's title and description.
+    /// Updates the snippet with new data.
     /// </summary>
     /// <param name="title">New title for the snippet.</param>
     /// <param name="description">New description for the snippet.</param>
-    public void UpdateDetails(string title, string? description)
+    /// <param name="content">New content for the snippet.</param>
+    /// <param name="language">New programming language.</param>
+    public void Update(string title, string? description, string content, ProgrammingLanguage language)
     {
         Title = title;
         Description = description;
-    }
-
-    /// <summary>
-    /// Changes the programming language of the snippet.
-    /// </summary>
-    /// <param name="language">New programming language.</param>
-    public void ChangeLanguage(ProgrammingLanguage language)
-    {
+        Content = content;
         Language = language;
-    }
-
-    /// <summary>
-    /// Assigns a tag to the snippet.
-    /// </summary>
-    /// <param name="tag">Tag to assign.</param>
-    public void AssignTag(Tag tag)
-    {
-        if (!_snippetTags.Any(st => st.TagId == tag.Id))
-        {
-            var snippetTag = new SnippetTag(Id, tag.Id);
-            _snippetTags.Add(snippetTag);
-        }
-    }
-
-    /// <summary>
-    /// Removes a tag from the snippet.
-    /// </summary>
-    /// <param name="tag">Tag to remove.</param>
-    public void RemoveTag(Tag tag)
-    {
-        _snippetTags.RemoveAll(st => st.TagId == tag.Id);
-    }
-
-    /// <summary>
-    /// Adds the snippet to a collection.
-    /// </summary>
-    /// <param name="collection">Collection to add.</param>
-    public void AddToCollection(Collection collection)
-    {
-        if (!_snippetCollections.Any(sc => sc.CollectionId == collection.Id))
-        {
-            var snippetCollection = new SnippetCollection(Id, collection.Id);
-            _snippetCollections.Add(snippetCollection);
-        }
-    }
-
-    /// <summary>
-    /// Removes the snippet from a collection.
-    /// </summary>
-    /// <param name="collection">Collection to remove.</param>
-    public void RemoveFromCollection(Collection collection)
-    {
-        _snippetCollections.RemoveAll(sc => sc.CollectionId == collection.Id);
     }
 
     /// <summary>
@@ -192,11 +134,17 @@ public class Snippet : AggregateRoot<SnippetId>
     }
 
     /// <summary>
-    /// Removes the snippet from all collections.
+    /// Updates the snippet's tag assignments.
     /// </summary>
-    public void RemoveFromAllCollections()
+    /// <param name="tags">New tags.</param>
+    public void UpdateTags(IEnumerable<Tag> tags)
     {
-        _snippetCollections.Clear();
+        _snippetTags.Clear();
+        foreach (var tag in tags)
+        {
+            var snippetTag = new SnippetTag(Id, tag.Id);
+            _snippetTags.Add(snippetTag);
+        }
     }
 
     /// <summary>

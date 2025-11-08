@@ -1,15 +1,11 @@
 using BuildingBlocks.Application.Models;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Snippet.Modules.Snippets.Application.Commands.Snippets.AddTag;
-using Snippet.Modules.Snippets.Application.Commands.Snippets.ChangeSnippetLanguage;
 using Snippet.Modules.Snippets.Application.Commands.Snippets.CreateSnippet;
 using Snippet.Modules.Snippets.Application.Commands.Snippets.DeleteSnippet;
-using Snippet.Modules.Snippets.Application.Commands.Snippets.MoveSnippet;
 using Snippet.Modules.Snippets.Application.Commands.Snippets.RecordUsage;
-using Snippet.Modules.Snippets.Application.Commands.Snippets.RemoveTag;
 using Snippet.Modules.Snippets.Application.Commands.Snippets.ToggleFavorite;
-using Snippet.Modules.Snippets.Application.Commands.Snippets.UpdateSnippetContent;
+using Snippet.Modules.Snippets.Application.Commands.Snippets.UpdateSnippet;
 using Snippet.Modules.Snippets.Application.Queries.Snippets.GetCollectionSnippets;
 using Snippet.Modules.Snippets.Application.Queries.Snippets.GetFavoriteSnippets;
 using Snippet.Modules.Snippets.Application.Queries.Snippets.GetRecentSnippets;
@@ -40,29 +36,10 @@ public static class SnippetsEndpoints
             .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
             .WithOpenApi();
 
-        group.MapPut("/{id:guid}/content", UpdateSnippetContent)
-            .WithName("UpdateSnippetContent")
+        group.MapPut("/{id:guid}", UpdateSnippet)
+            .WithName("UpdateSnippet")
             .Produces(StatusCodes.Status204NoContent)
             .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
-            .WithOpenApi();
-
-        group.MapPut("/{id:guid}/language", ChangeSnippetLanguage)
-            .WithName("ChangeSnippetLanguage")
-            .Produces(StatusCodes.Status204NoContent)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
-            .WithOpenApi();
-
-        group.MapPost("/{id:guid}/tags", AddTag)
-            .WithName("AddTag")
-            .Produces<Guid>(StatusCodes.Status200OK)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
-            .WithOpenApi();
-
-        group.MapDelete("/{id:guid}/tags/{tagId:guid}", RemoveTag)
-            .WithName("RemoveTag")
-            .Produces(StatusCodes.Status204NoContent)
             .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
             .WithOpenApi();
 
@@ -75,13 +52,6 @@ public static class SnippetsEndpoints
         group.MapPost("/{id:guid}/usage", RecordUsage)
             .WithName("RecordUsage")
             .Produces(StatusCodes.Status204NoContent)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
-            .WithOpenApi();
-
-        group.MapPut("/{id:guid}/collections", MoveSnippet)
-            .WithName("MoveSnippet")
-            .Produces(StatusCodes.Status204NoContent)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
             .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
             .WithOpenApi();
 
@@ -142,9 +112,9 @@ public static class SnippetsEndpoints
             : Results.BadRequest(result.Errors);
     }
 
-    private static async Task<IResult> UpdateSnippetContent(
+    private static async Task<IResult> UpdateSnippet(
         Guid id,
-        [FromBody] UpdateSnippetContentCommand command,
+        [FromBody] UpdateSnippetCommand command,
         IMediator mediator)
     {
         if (id != command.Id)
@@ -153,49 +123,6 @@ public static class SnippetsEndpoints
         }
 
         var result = await mediator.Send(command);
-        return result.IsSuccess
-            ? Results.NoContent()
-            : Results.NotFound(result.Errors);
-    }
-
-    private static async Task<IResult> ChangeSnippetLanguage(
-        Guid id,
-        [FromBody] ChangeSnippetLanguageCommand command,
-        IMediator mediator)
-    {
-        if (id != command.Id)
-        {
-            return Results.BadRequest("Route ID does not match command ID");
-        }
-
-        var result = await mediator.Send(command);
-        return result.IsSuccess
-            ? Results.NoContent()
-            : Results.NotFound(result.Errors);
-    }
-
-    private static async Task<IResult> AddTag(
-        Guid id,
-        [FromBody] AddTagCommand command,
-        IMediator mediator)
-    {
-        if (id != command.SnippetId)
-        {
-            return Results.BadRequest("Route ID does not match command ID");
-        }
-
-        var result = await mediator.Send(command);
-        return result.IsSuccess
-            ? Results.Ok(result.Value)
-            : Results.NotFound(result.Errors);
-    }
-
-    private static async Task<IResult> RemoveTag(
-        Guid id,
-        Guid tagId,
-        IMediator mediator)
-    {
-        var result = await mediator.Send(new RemoveTagCommand(id, tagId));
         return result.IsSuccess
             ? Results.NoContent()
             : Results.NotFound(result.Errors);
@@ -216,22 +143,6 @@ public static class SnippetsEndpoints
         IMediator mediator)
     {
         var result = await mediator.Send(new RecordSnippetUsageCommand(id));
-        return result.IsSuccess
-            ? Results.NoContent()
-            : Results.NotFound(result.Errors);
-    }
-
-    private static async Task<IResult> MoveSnippet(
-        Guid id,
-        [FromBody] MoveSnippetCommand command,
-        IMediator mediator)
-    {
-        if (id != command.SnippetId)
-        {
-            return Results.BadRequest("Route ID does not match command ID");
-        }
-
-        var result = await mediator.Send(command);
         return result.IsSuccess
             ? Results.NoContent()
             : Results.NotFound(result.Errors);

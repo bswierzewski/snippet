@@ -4,17 +4,17 @@ using Microsoft.EntityFrameworkCore;
 using Snippet.Modules.Snippets.Application.Abstractions;
 using Snippet.Modules.Snippets.Domain.ValueObjects;
 
-namespace Snippet.Modules.Snippets.Application.Commands.Snippets.MoveSnippet;
+namespace Snippet.Modules.Snippets.Application.Commands.Snippets.UpdateSnippet;
 
 /// <summary>
-/// Handles updating snippet collection assignments by processing MoveSnippetCommand requests.
+/// Handles updating snippet by processing UpdateSnippetCommand requests.
 /// </summary>
-public class MoveSnippetCommandHandler : IRequestHandler<MoveSnippetCommand, Result>
+public class UpdateSnippetCommandHandler : IRequestHandler<UpdateSnippetCommand, Result>
 {
     private readonly ISnippetsWriteDbContext _writeDbContext;
     private readonly ISnippetsReadDbContext _readDbContext;
 
-    public MoveSnippetCommandHandler(
+    public UpdateSnippetCommandHandler(
         ISnippetsWriteDbContext writeDbContext,
         ISnippetsReadDbContext readDbContext)
     {
@@ -23,20 +23,32 @@ public class MoveSnippetCommandHandler : IRequestHandler<MoveSnippetCommand, Res
     }
 
     /// <summary>
-    /// Updates the collections a snippet belongs to.
+    /// Updates an existing snippet with all provided data.
     /// </summary>
-    /// <param name="request">Command containing snippet ID and target collection IDs.</param>
+    /// <param name="request">Command containing snippet data.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public async Task<Result> Handle(MoveSnippetCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(UpdateSnippetCommand request, CancellationToken cancellationToken)
     {
         var snippet = await _writeDbContext.Snippets
+            .Include(s => s.SnippetTags)
             .Include(s => s.SnippetCollections)
-            .FirstOrDefaultAsync(s => s.Id == new SnippetId(request.SnippetId), cancellationToken);
+            .FirstOrDefaultAsync(s => s.Id == new SnippetId(request.Id), cancellationToken);
 
         if (snippet is null)
-            return Result.Failure($"Snippet with ID {request.SnippetId} not found");
+            return Result.Failure($"Snippet with ID {request.Id} not found");
 
-        // Fetch collections from database
+        // Update basic properties
+        snippet.Update(request.Title, request.Description, request.Content, request.Language);
+
+        // Update tags
+        var tagIdObjects = request.TagIds.Select(id => new TagId(id)).ToList();
+        var tags = await _readDbContext.Tags
+            .Where(t => tagIdObjects.Contains(t.Id))
+            .ToListAsync(cancellationToken);
+
+        snippet.UpdateTags(tags);
+
+        // Update collections
         var collectionIdObjects = request.CollectionIds.Select(id => new CollectionId(id)).ToList();
         var collections = await _readDbContext.Collections
             .Where(c => collectionIdObjects.Contains(c.Id))
