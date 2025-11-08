@@ -39,6 +39,8 @@ public class GetUserSnippetsQueryHandler : IRequestHandler<GetUserSnippetsQuery,
         return Result<IEnumerable<SnippetSummaryDto>>.Success(snippets.Select(s => new SnippetSummaryDto(
             s.Id.Value,
             s.Title,
+            s.Description,
+            s.Content,
             s.Language,
             s.SnippetCollections.Select(sc => new CollectionSummaryDto(sc.Collection.Id.Value, sc.Collection.Name)).ToList(),
             s.SnippetTags.Select(st => new TagSummaryDto(st.Tag.Id.Value, st.Tag.Name, st.Tag.Color)).ToList(),

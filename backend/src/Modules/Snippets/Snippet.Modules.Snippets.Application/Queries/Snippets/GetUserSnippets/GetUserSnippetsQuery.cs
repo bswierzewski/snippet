@@ -14,6 +14,8 @@ public record GetUserSnippetsQuery() : IRequest<Result<IEnumerable<SnippetSummar
 /// </summary>
 /// <param name="Id">Snippet unique identifier.</param>
 /// <param name="Title">Snippet title.</param>
+/// <param name="Description">Optional snippet description.</param>
+/// <param name="Content">Snippet code content.</param>
 /// <param name="Language">Programming language for syntax highlighting.</param>
 /// <param name="Collections">List of collections this snippet belongs to.</param>
 /// <param name="Tags">List of tags associated with the snippet.</param>
@@ -24,6 +26,8 @@ public record GetUserSnippetsQuery() : IRequest<Result<IEnumerable<SnippetSummar
 public record SnippetSummaryDto(
     Guid Id,
     string Title,
+    string? Description,
+    string Content,
     ProgrammingLanguage Language,
     List<CollectionSummaryDto> Collections,
     List<TagSummaryDto> Tags,
