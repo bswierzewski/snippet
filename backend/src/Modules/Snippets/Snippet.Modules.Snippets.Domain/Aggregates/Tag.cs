@@ -31,23 +31,23 @@ public class Tag : AggregateRoot<TagId>
     /// </summary>
     /// <param name="id">Unique identifier for the tag.</param>
     /// <param name="userId">Identifier of the user who owns the tag.</param>
-    /// <param name="name">Name of the tag.</param>
+    /// <param name="name">Name of the tag (will be converted to lowercase).</param>
     /// <param name="color">Optional color in hexadecimal format.</param>
     public Tag(TagId id, Guid userId, string name, string? color = null)
     {
         Id = id;
         UserId = userId;
-        Name = name;
+        Name = name.ToLowerInvariant();
         Color = color;
     }
 
     /// <summary>
     /// Updates the tag's name.
     /// </summary>
-    /// <param name="name">New name for the tag.</param>
+    /// <param name="name">New name for the tag (will be converted to lowercase).</param>
     public void Rename(string name)
     {
-        Name = name;
+        Name = name.ToLowerInvariant();
     }
 
     /// <summary>
