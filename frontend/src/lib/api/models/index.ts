@@ -12,6 +12,7 @@ export * from './collectionSummaryDto';
 export * from './createCollectionCommand';
 export * from './createSnippetCommand';
 export * from './currentUserDto';
+export * from './enumValueDto';
 export * from './error';
 export * from './getRecentSnippetsParams';
 export * from './getSnippetByIdDto';
