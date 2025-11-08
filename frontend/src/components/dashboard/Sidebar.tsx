@@ -71,14 +71,14 @@ export function Sidebar() {
                 <div className="absolute right-2 top-1/2 -translate-y-1/2 hidden group-hover:flex items-center gap-1">
                   <button
                     onClick={(e) => handleEditClick(e, collection)}
-                    className="p-1 hover:bg-gray-300 rounded transition-colors bg-gray-200"
+                    className="p-1 hover:bg-gray-300 rounded transition-colors"
                     aria-label="Edit collection"
                   >
                     <Pencil className="w-3.5 h-3.5 text-gray-600" />
                   </button>
                   <button
                     onClick={(e) => handleDeleteClick(e, collection)}
-                    className="p-1 hover:bg-gray-300 rounded transition-colors bg-gray-200"
+                    className="p-1 hover:bg-gray-300 rounded transition-color"
                     aria-label="Delete collection"
                   >
                     <Trash2 className="w-3.5 h-3.5 text-gray-600" />
