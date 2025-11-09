@@ -1,9 +1,10 @@
+﻿using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
+using Snippet.Tests.E2E.Core.Auth;
 using Snippet.Tests.E2E.Core.Collections;
 using Snippet.Tests.E2E.Core.Extensions;
 using Snippet.Tests.E2E.Core.Factories;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
-using Moq;
 
 namespace Snippet.Tests.E2E.Core;
 
@@ -14,6 +15,9 @@ namespace Snippet.Tests.E2E.Core;
 [Collection(nameof(E2ECollection))]
 public abstract class TestBase : IAsyncLifetime
 {
+    // Auth fixture
+    private static string? _authToken;
+
     // Fields
     private readonly TestWebApplicationFactory _factory;
 
@@ -40,7 +44,19 @@ public abstract class TestBase : IAsyncLifetime
         Client = customizedFactory.CreateClient();
         Services = customizedFactory.Services;
 
+        await EnsureAuthenticatedAsync();
+        Client.WithBearerToken(_authToken!);
+
         await OnInitializeAsync();
+    }
+
+    private static async Task EnsureAuthenticatedAsync()
+    {        
+        if (_authToken is not null)
+            return;
+
+        var tokenProvider = AuthTokenProviderFactory.Create();
+        _authToken = await tokenProvider.GetTokenAsync();
     }
 
     public virtual Task DisposeAsync() => Task.CompletedTask;

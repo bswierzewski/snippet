@@ -1,5 +1,3 @@
-using Snippet.Modules.Snippets.Infrastructure.Persistence;
-using Snippet.Tests.E2E.Core.Extensions;
 using BuildingBlocks.Modules.Users.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -7,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Respawn;
+using Snippet.Modules.Snippets.Infrastructure.Persistence;
+using Snippet.Tests.E2E.Core.Extensions;
 using Testcontainers.PostgreSql;
 
 namespace Snippet.Tests.E2E.Core.Factories;

@@ -2,8 +2,14 @@
 using BuildingBlocks.Modules.Users.Web.Endpoints;
 using BuildingBlocks.Modules.Users.Web.Extensions;
 using BuildingBlocks.Modules.Users.Web.Extensions.JwtBearers;
+using DotNetEnv;
 using Snippet.Modules.Snippets.Infrastructure;
 using Snippet.Web.Endpoints;
+
+// Load environment variables from .env file BEFORE creating builder
+// clobberExistingVars: false ensures Docker/CI/CD environment variables take precedence
+if (File.Exists(".env"))
+    Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 

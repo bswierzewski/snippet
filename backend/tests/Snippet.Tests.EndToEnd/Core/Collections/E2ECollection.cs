@@ -1,5 +1,4 @@
 using Snippet.Tests.E2E.Core.Factories;
-using Xunit;
 
 namespace Snippet.Tests.E2E.Core.Collections
 {

@@ -1,4 +1,6 @@
 using System.Net;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Snippet.Modules.Snippets.Application.Abstractions;
 using Snippet.Modules.Snippets.Application.Commands.Collections.CreateCollection;
 using Snippet.Modules.Snippets.Application.Commands.Collections.UpdateCollection;
@@ -6,8 +8,6 @@ using Snippet.Modules.Snippets.Domain.ValueObjects;
 using Snippet.Tests.E2E.Core;
 using Snippet.Tests.E2E.Core.Extensions;
 using Snippet.Tests.E2E.Core.Factories;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Snippet.Tests.E2E.Modules.Snippets;
 
@@ -15,13 +15,7 @@ namespace Snippet.Tests.E2E.Modules.Snippets;
 /// End-to-end tests for collection management functionality including creation, retrieval, update, and deletion operations.
 /// </summary>
 public class CollectionsTests(TestWebApplicationFactory factory) : TestBase(factory)
-{
-    protected override Task OnInitializeAsync()
-    {
-        Client.WithBearerToken(TestJwtTokens.Default);
-        return Task.CompletedTask;
-    }
-
+{  
     [Fact]
     public async Task GetCollections_ShouldReturnSuccess()
     {
