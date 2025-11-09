@@ -7,6 +7,7 @@ using Snippet.Modules.Snippets.Application.Queries.Tags.GetTags;
 using Snippet.Modules.Snippets.Application.Queries.Tags.GetUserTags;
 using Snippet.Modules.Snippets.Domain.ValueObjects;
 using Snippet.Tests.E2E.Core;
+using Snippet.Tests.E2E.Core.Auth;
 using Snippet.Tests.E2E.Core.Extensions;
 using Snippet.Tests.E2E.Core.Factories;
 
@@ -15,7 +16,7 @@ namespace Snippet.Tests.E2E.Modules.Snippets;
 /// <summary>
 /// End-to-end tests for tag management functionality including creation, retrieval, search, and deletion operations.
 /// </summary>
-public class TagsTests(TestWebApplicationFactory factory) : TestBase(factory)
+public class TagsTests(TestWebApplicationFactory factory, AuthFixture authFixture) : TestBase(factory, authFixture)
 {
     #region Create Tag Tests
 

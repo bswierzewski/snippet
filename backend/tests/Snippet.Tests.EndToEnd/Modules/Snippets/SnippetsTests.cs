@@ -9,6 +9,7 @@ using Snippet.Modules.Snippets.Application.Commands.Tags.CreateTag;
 using Snippet.Modules.Snippets.Domain.Enums;
 using Snippet.Modules.Snippets.Domain.ValueObjects;
 using Snippet.Tests.E2E.Core;
+using Snippet.Tests.E2E.Core.Auth;
 using Snippet.Tests.E2E.Core.Extensions;
 using Snippet.Tests.E2E.Core.Factories;
 
@@ -17,7 +18,7 @@ namespace Snippet.Tests.E2E.Modules.Snippets;
 /// <summary>
 /// End-to-end tests for snippet management functionality including creation, retrieval, update, and deletion operations.
 /// </summary>
-public class SnippetsTests(TestWebApplicationFactory factory) : TestBase(factory)
+public class SnippetsTests(TestWebApplicationFactory factory, AuthFixture authFixture) : TestBase(factory, authFixture)
 {
     #region Create Snippet Tests
 

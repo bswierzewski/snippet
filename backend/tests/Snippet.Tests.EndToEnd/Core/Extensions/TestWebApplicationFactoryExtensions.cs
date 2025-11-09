@@ -1,7 +1,6 @@
-using Snippet.Tests.E2E.Core.Factories;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Snippet.Tests.E2E.Core.Factories;
 
 namespace Snippet.Tests.E2E.Core.Extensions;
 

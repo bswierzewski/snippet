@@ -15,20 +15,19 @@ namespace Snippet.Tests.E2E.Core;
 [Collection(nameof(E2ECollection))]
 public abstract class TestBase : IAsyncLifetime
 {
-    // Auth fixture
-    private static string? _authToken;
-
     // Fields
     private readonly TestWebApplicationFactory _factory;
+    private readonly AuthFixture _authFixture;
 
     // Properties
     protected HttpClient Client { get; private set; } = null!;
     protected IServiceProvider Services { get; private set; } = null!;
 
     // Constructor
-    protected TestBase(TestWebApplicationFactory factory)
+    protected TestBase(TestWebApplicationFactory factory, AuthFixture authFixture)
     {
         _factory = factory;
+        _authFixture = authFixture;
     }
 
     // Public methods (IAsyncLifetime)
@@ -44,19 +43,9 @@ public abstract class TestBase : IAsyncLifetime
         Client = customizedFactory.CreateClient();
         Services = customizedFactory.Services;
 
-        await EnsureAuthenticatedAsync();
-        Client.WithBearerToken(_authToken!);
+        Client.WithBearerToken(_authFixture.AuthToken);
 
         await OnInitializeAsync();
-    }
-
-    private static async Task EnsureAuthenticatedAsync()
-    {        
-        if (_authToken is not null)
-            return;
-
-        var tokenProvider = AuthTokenProviderFactory.Create();
-        _authToken = await tokenProvider.GetTokenAsync();
     }
 
     public virtual Task DisposeAsync() => Task.CompletedTask;
