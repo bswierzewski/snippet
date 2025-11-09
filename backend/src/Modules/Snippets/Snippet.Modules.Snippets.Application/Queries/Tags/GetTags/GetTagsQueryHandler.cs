@@ -23,7 +23,7 @@ public class GetTagsQueryHandler : IRequestHandler<GetTagsQuery, Result<IEnumera
 
     /// <summary>
     /// Searches tags by name with optimal performance.
-    /// Returns up to 20 results ordered by name.
+    /// Returns all matching results ordered by name.
     /// </summary>
     /// <param name="request">Query with optional search term.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
@@ -43,7 +43,6 @@ public class GetTagsQueryHandler : IRequestHandler<GetTagsQuery, Result<IEnumera
 
         var tags = await query
             .OrderBy(t => t.Name)
-            .Take(20)
             .Select(t => new TagSearchDto(
                 t.Id.Value,
                 t.Name
