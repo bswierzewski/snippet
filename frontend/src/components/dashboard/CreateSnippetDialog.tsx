@@ -203,8 +203,7 @@ export function CreateSnippetDialog({ open, onOpenChange }: CreateSnippetDialogP
                       onChange={(e) => field.handleChange(e.target.value)}
                       onBlur={field.handleBlur}
                       aria-invalid={isInvalid}
-                      rows={10}
-                      className="font-mono text-sm"
+                      className="font-mono text-sm h-64 resize-none"
                     />
                     {isInvalid && <FieldError errors={field.state.meta.errors} />}
                   </Field>

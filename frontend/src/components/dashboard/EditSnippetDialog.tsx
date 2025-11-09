@@ -2,7 +2,7 @@
 
 import { useForm } from '@tanstack/react-form';
 import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -44,7 +44,10 @@ type UpdateSnippetFormData = z.infer<typeof updateSnippetSchema>;
 export function EditSnippetDialog({ snippetId, open, onOpenChange }: EditSnippetDialogProps) {
   const queryClient = useQueryClient();
   const { data: snippet, isLoading: isLoadingSnippet } = useGetSnippetById(snippetId || '', {
-    query: { enabled: !!snippetId && open }
+    query: {
+      enabled: !!snippetId && open,
+      refetchOnMount: 'always'
+    }
   });
   const { data: programmingLanguages, isLoading: isLoadingLanguages } = useGetProgrammingLanguageEnumValues();
   const { mutateAsync: updateSnippet } = useUpdateSnippet();
@@ -97,6 +100,21 @@ export function EditSnippetDialog({ snippetId, open, onOpenChange }: EditSnippet
       }
     }
   });
+
+  // Update form and state when snippet changes
+  useEffect(() => {
+    if (snippet) {
+      form.reset({
+        title: snippet.title,
+        description: snippet.description ?? '',
+        language: snippet.language,
+        content: snippet.content
+      });
+      setTags(snippet.tags ?? []);
+      setSelectedCollections(snippet.collections.map((c) => ({ id: c.id, name: c.name })) ?? []);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [snippet]);
 
   const handleCancel = () => {
     onOpenChange(false);
@@ -225,8 +243,7 @@ export function EditSnippetDialog({ snippetId, open, onOpenChange }: EditSnippet
                       onChange={(e) => field.handleChange(e.target.value)}
                       onBlur={field.handleBlur}
                       aria-invalid={isInvalid}
-                      rows={10}
-                      className="font-mono text-sm"
+                      className="font-mono text-sm h-64 resize-none"
                     />
                     {isInvalid && <FieldError errors={field.state.meta.errors} />}
                   </Field>
