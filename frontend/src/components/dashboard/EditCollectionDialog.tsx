@@ -7,7 +7,7 @@ import { useUpdateCollection } from '@/lib/api/endpoints/collections';
 import type { CollectionDto } from '@/lib/api/models';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 
 interface EditCollectionDialogProps {
@@ -73,6 +73,7 @@ export function EditCollectionDialog({ collection, open, onOpenChange }: EditCol
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
           <DialogTitle>Edytuj kolekcję</DialogTitle>
+          <DialogDescription>Zaktualizuj informacje o kolekcji</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">

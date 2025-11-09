@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useCreateCollection } from '@/lib/api/endpoints/collections';
@@ -65,6 +65,7 @@ export function CreateCollectionDialog({ open, onOpenChange }: CreateCollectionD
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
           <DialogTitle>Nowa kolekcja</DialogTitle>
+          <DialogDescription>Utwórz nową kolekcję do organizowania snippetów</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useDeleteCollection } from '@/lib/api/endpoints/collections';
 import { useQueryClient } from '@tanstack/react-query';
@@ -50,12 +50,12 @@ export function DeleteCollectionDialog({ collection, open, onOpenChange }: Delet
       <DialogContent className="sm:max-w-[440px]">
         <DialogHeader>
           <DialogTitle>Usuń kolekcję</DialogTitle>
+          <DialogDescription>
+            Czy na pewno chcesz usunąć kolekcję <strong>{collection.name}</strong>? Ta operacja jest nieodwracalna.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          <p className="text-sm text-gray-600">
-            Czy na pewno chcesz usunąć kolekcję <strong className="text-gray-900">{collection.name}</strong>?
-          </p>
 
           {collection.snippetCount > 0 && (
             <p className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-md p-3">
