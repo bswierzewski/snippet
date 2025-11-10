@@ -53,6 +53,8 @@ jobs:
       # Step 1: Check out the repository's code so the job can access it.
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: true  # Required to fetch BuildingBlocks submodule
 
       # Step 2: Use a path filter to determine if relevant files have changed.
       # This helps to skip building services that have not been modified.
