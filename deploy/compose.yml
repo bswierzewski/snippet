@@ -1,0 +1,80 @@
+services:
+  db:
+    container_name: snippet_db
+    image: postgres:16-alpine
+    restart: always
+    shm_size: 128mb
+    env_file:
+      - ./.env # Loads all variables from the .env file
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - snippet-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    container_name: snippet_backend
+    # Image and tag variables are loaded from the .env file
+    image: ${DOCKER_USERNAME}/snippet-backend:${BACKEND_IMAGE_TAG:-latest}
+    restart: always
+    env_file:
+      - ./.env # Loads all variables from the .env file
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - snippet-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:7000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    container_name: snippet_frontend
+    # Image and tag variables are loaded from the .env file
+    image: ${DOCKER_USERNAME}/snippet-frontend:${FRONTEND_IMAGE_TAG:-latest}
+    restart: always
+    env_file:
+      - ./.env # Loads all variables from the .env file
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - snippet-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  caddy:
+    container_name: snippet_caddy
+    image: caddy:2-alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # Required for HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - snippet-network
+
+networks:
+  snippet-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:
