@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
+
+import { getGetUserCollectionsQueryKey, useCreateCollection } from '@/lib/api/endpoints/collections';
+
+import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { useCreateCollection } from '@/lib/api/endpoints/collections';
-import { useQueryClient } from '@tanstack/react-query';
 
 interface CreateCollectionDialogProps {
   open: boolean;
@@ -20,15 +22,15 @@ export function CreateCollectionDialog({ open, onOpenChange }: CreateCollectionD
     mutation: {
       onSuccess: () => {
         // Refresh the collections list
-        queryClient.invalidateQueries({ queryKey: ['/api/collections'] });
+        queryClient.invalidateQueries({ queryKey: getGetUserCollectionsQueryKey() });
         // Close dialog and reset form
         onOpenChange(false);
         setName('');
       },
       onError: (error) => {
         console.error('Failed to create collection:', error);
-      },
-    },
+      }
+    }
   });
 
   // Reset error when dialog opens
@@ -46,8 +48,8 @@ export function CreateCollectionDialog({ open, onOpenChange }: CreateCollectionD
           name: name.trim(),
           description: null,
           color: null,
-          icon: null,
-        },
+          icon: null
+        }
       });
     }
   };
