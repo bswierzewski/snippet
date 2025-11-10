@@ -43,7 +43,7 @@ public abstract class TestBase : IAsyncLifetime
 
         // Performance optimization: Only create customized factory when needed.
         // Most tests don't need service customization and can use the shared factory,
-        // which avoids re-initializing the application (~10s per test saved).
+        // which avoids re-initializing the application.
         var factory = RequiresServiceCustomization
             ? _factory.WithWebHostBuilder(builder => builder.ConfigureTestServices(OnConfigureServices))
             : _factory;
