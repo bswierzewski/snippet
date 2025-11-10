@@ -18,6 +18,9 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddCors();
 
+// Health checks for Docker and Caddy monitoring
+builder.Services.AddHealthChecks();
+
 // OpenAPI for Orval client generation
 builder.Services.AddEndpointsApiExplorer(); // Exposes Minimal API endpoints to OpenAPI
 builder.Services.AddOpenApi();              // Generates OpenAPI document
@@ -48,6 +51,9 @@ if (app.Environment.IsDevelopment())
 // Middleware pipeline order matters!
 app.UseAuthentication(); // 1. Authentication first
 app.UseAuthorization();  // 2. Authorization second
+
+// Health check endpoint (no authentication required)
+app.MapHealthChecks("/health");
 
 // Map endpoints from modules
 app.MapUsersEndpoints();

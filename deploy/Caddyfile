@@ -14,7 +14,7 @@ yourdomain.com {
 
     # API routes - proxy to backend
     handle /api/* {
-        reverse_proxy backend:8080 {
+        reverse_proxy backend:7000 {
             # Health check
             health_uri /health
             health_interval 30s
@@ -30,7 +30,7 @@ yourdomain.com {
 
     # Health check endpoint
     handle /health {
-        reverse_proxy backend:8080
+        reverse_proxy backend:7000
     }
 
     # All other routes - proxy to frontend
