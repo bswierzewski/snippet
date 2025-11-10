@@ -6,13 +6,12 @@ WORKDIR /src
 COPY Snippet.sln .
 COPY Directory.Packages.props .
 
-# Copy all project files
+# Copy all project files (excluding tests - not needed for production)
 COPY src/ src/
 COPY libs/ libs/
-COPY tests/ tests/
 
-# Restore dependencies
-RUN dotnet restore
+# Restore dependencies (only for production projects)
+RUN dotnet restore src/Host/Snippet.Web/Snippet.Web.csproj
 
 # Build the application
 RUN dotnet build src/Host/Snippet.Web/Snippet.Web.csproj -c Release -o /app/build
