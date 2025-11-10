@@ -11,7 +11,7 @@ internal static class EnvironmentModuleInitializer
 {
     /// <summary>
     /// Loads .env file if it exists. Called automatically by the runtime before module initialization.
-    /// This ensures AUTH_PROVIDER and other environment variables are available for AuthFixture.
+    /// This ensures environment variables are available for AuthFixture.
     /// </summary>
     [ModuleInitializer]
     public static void Initialize()
