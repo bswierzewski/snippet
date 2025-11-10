@@ -25,7 +25,7 @@ public abstract class TestBase : IAsyncLifetime
 
     /// <summary>
     /// Override this property to return true if the test requires service customization via OnConfigureServices.
-    /// When false (default), the shared factory is used for better performance (~95% faster initialization).
+    /// When false (default), the shared factory is used for better performance.
     /// </summary>
     protected virtual bool RequiresServiceCustomization => false;
 
