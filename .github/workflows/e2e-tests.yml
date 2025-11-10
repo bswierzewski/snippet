@@ -1,0 +1,80 @@
+# Workflow name displayed in the GitHub Actions UI.
+name: E2E Tests
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+  # Allows this workflow to be triggered manually from the Actions tab. Useful for debugging.
+  workflow_dispatch:
+
+jobs:
+  e2e-tests:
+    name: Run End-to-End Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the repository's code, including any Git submodules.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      # Step 2: Check if relevant files have changed before proceeding.
+      # This prevents running slow E2E tests for unrelated changes (e.g., frontend or documentation).
+      - name: Check for backend changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - '.github/workflows/e2e-tests.yml'
+
+      # The following steps will only run if the 'backend' filter from the previous step is 'true'.
+
+      - name: Setup .NET
+        if: steps.changes.outputs.backend == 'true'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Restore dependencies
+        if: steps.changes.outputs.backend == 'true'
+        working-directory: ./backend
+        run: dotnet restore
+
+      - name: Build solution
+        if: steps.changes.outputs.backend == 'true'
+        working-directory: ./backend
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run E2E Tests
+        if: steps.changes.outputs.backend == 'true'
+        working-directory: ./backend
+        run: dotnet test tests/Snippet.Tests.EndToEnd/Snippet.Tests.EndToEnd.csproj --no-build --configuration Release --verbosity normal
+        env:
+          DOTNET_ENVIRONMENT: Testing
+
+          # Double-underscore format is used to map environment variables to nested appsettings.json configuration.
+          # This section configures the backend API for token validation during tests.
+          Authentication__Supabase__ProjectUrl: ${{ secrets.SUPABASE_PROJECT_URL }}
+          Authentication__Supabase__Audience: authenticated
+          Authentication__Supabase__JwtSecret: ${{ secrets.SUPABASE_JWT_SECRET }}
+
+          # This section provides credentials for the test client to generate authentication tokens.
+          # The format may be different if the test client has its own configuration mechanism.
+          SUPABASE_URL: ${{ secrets.SUPABASE_PROJECT_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_JWT_SECRET }}
+          SUPABASE_TEST_EMAIL: ${{ secrets.SUPABASE_TEST_EMAIL }}
+          SUPABASE_TEST_PASSWORD: ${{ secrets.SUPABASE_TEST_PASSWORD }}
+
+      # This step provides clear feedback in the logs if the tests were intentionally skipped.
+      - name: Notify if tests were skipped
+        if: steps.changes.outputs.backend == 'false'
+        run: echo "E2E tests were skipped because no changes were detected in the backend."
