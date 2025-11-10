@@ -74,6 +74,13 @@ jobs:
           ConnectionStrings__UsersConnection: "Host=placeholder;Database=placeholder;Username=placeholder;Password=placeholder"
           ConnectionStrings__SnippetsConnection: "Host=placeholder;Database=placeholder;Username=placeholder;Password=placeholder"
 
+          # Logging configuration - reduce verbosity for CI environment
+          # Only show warnings and errors to minimize log output (~85% reduction)
+          Logging__LogLevel__Default: Information
+          Logging__LogLevel__Microsoft.AspNetCore: Warning
+          Logging__LogLevel__Microsoft.EntityFrameworkCore: Warning
+          Logging__LogLevel__BuildingBlocks.Application.Behaviors: Warning
+
           # This section provides credentials for the test client to generate authentication tokens.
           # The format may be different if the test client has its own configuration mechanism.
           SUPABASE_URL: ${{ secrets.SUPABASE_PROJECT_URL }}
