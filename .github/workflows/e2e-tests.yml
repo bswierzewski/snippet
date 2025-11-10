@@ -77,7 +77,7 @@ jobs:
           # This section provides credentials for the test client to generate authentication tokens.
           # The format may be different if the test client has its own configuration mechanism.
           SUPABASE_URL: ${{ secrets.SUPABASE_PROJECT_URL }}
-          SUPABASE_KEY: ${{ secrets.SUPABASE_JWT_SECRET }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
           SUPABASE_TEST_EMAIL: ${{ secrets.SUPABASE_TEST_EMAIL }}
           SUPABASE_TEST_PASSWORD: ${{ secrets.SUPABASE_TEST_PASSWORD }}
 
