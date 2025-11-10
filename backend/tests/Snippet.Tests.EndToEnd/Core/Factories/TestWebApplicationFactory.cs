@@ -1,4 +1,5 @@
 using BuildingBlocks.Modules.Users.Infrastructure.Persistence;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -76,6 +77,12 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncL
             services
                 .ReplaceDbContext<SnippetsDbContext>(connectionString)
                 .ReplaceDbContext<UsersDbContext>(connectionString);
+
+            // Disable automatic Data Protection key generation in tests to reduce initialization overhead.
+            // Tests don't need persistent encryption keys, and this prevents unnecessary file system operations.
+            services.AddDataProtection()
+                .SetApplicationName("E2ETests")
+                .DisableAutomaticKeyGeneration();
         });
     }
 }
