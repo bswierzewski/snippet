@@ -79,7 +79,7 @@ jobs:
           Logging__LogLevel__Default: Information
           Logging__LogLevel__Microsoft.AspNetCore: Warning
           Logging__LogLevel__Microsoft.EntityFrameworkCore: Warning
-          Logging__LogLevel__BuildingBlocks.Application.Behaviors: Warning
+          Logging__LogLevel__BuildingBlocks: Warning
 
           # This section provides credentials for the test client to generate authentication tokens.
           # The format may be different if the test client has its own configuration mechanism.
