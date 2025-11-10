@@ -78,11 +78,11 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncL
                 .ReplaceDbContext<SnippetsDbContext>(connectionString)
                 .ReplaceDbContext<UsersDbContext>(connectionString);
 
-            // Disable automatic Data Protection key generation in tests to reduce initialization overhead.
-            // Tests don't need persistent encryption keys, and this prevents unnecessary file system operations.
+            // Use ephemeral (in-memory) Data Protection keys for tests.
+            // Keys are generated automatically but not persisted, avoiding file system operations
+            // and preventing key ring errors while maintaining encryption functionality.
             services.AddDataProtection()
-                .SetApplicationName("E2ETests")
-                .DisableAutomaticKeyGeneration();
+                .UseEphemeralDataProtectionProvider();
         });
     }
 }
