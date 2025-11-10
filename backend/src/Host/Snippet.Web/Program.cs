@@ -53,7 +53,7 @@ app.UseAuthentication(); // 1. Authentication first
 app.UseAuthorization();  // 2. Authorization second
 
 // Health check endpoint (no authentication required)
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/api/health");
 
 // Map endpoints from modules
 app.MapUsersEndpoints();

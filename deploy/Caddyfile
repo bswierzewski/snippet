@@ -15,11 +15,6 @@ yourdomain.com {
     # API routes - proxy to backend
     handle /api/* {
         reverse_proxy backend:7000 {
-            # Health check
-            health_uri /health
-            health_interval 30s
-            health_timeout 10s
-
             # Headers
             header_up Host {host}
             header_up X-Real-IP {remote}
@@ -28,19 +23,9 @@ yourdomain.com {
         }
     }
 
-    # Health check endpoint
-    handle /health {
-        reverse_proxy backend:7000
-    }
-
     # All other routes - proxy to frontend
     handle /* {
         reverse_proxy frontend:3000 {
-            # Health check
-            health_uri /
-            health_interval 30s
-            health_timeout 10s
-
             # Headers
             header_up Host {host}
             header_up X-Real-IP {remote}

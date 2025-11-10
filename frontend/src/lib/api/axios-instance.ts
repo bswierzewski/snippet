@@ -2,7 +2,9 @@ import { createClient } from '@/lib/supabase/client';
 import Axios, { AxiosRequestConfig } from 'axios';
 
 export const AXIOS_INSTANCE = Axios.create({
-  baseURL: 'http://localhost:7000'
+  // Use relative URL - in production Caddy proxies /api/* to backend
+  // In development, use NEXT_PUBLIC_API_URL env variable or default to localhost
+  baseURL: process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined' ? '' : 'http://localhost:7000')
 });
 
 // Create Supabase client once (singleton) - shared across all requests
