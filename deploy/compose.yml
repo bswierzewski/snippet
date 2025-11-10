@@ -33,6 +33,9 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.scope=snippet"
 
   frontend:
     container_name: snippet_frontend
@@ -51,6 +54,9 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.scope=snippet"
 
   caddy:
     container_name: snippet_caddy
@@ -67,6 +73,39 @@ services:
     depends_on:
       - backend
       - frontend
+    networks:
+      - snippet-network
+
+  watchtower:
+    container_name: snippet_watchtower
+    image: containrrr/watchtower:latest
+    restart: always
+    volumes:
+      # Mount Docker socket to allow Watchtower to control Docker
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      # Check for updates every 5 minutes (300 seconds)
+      - WATCHTOWER_POLL_INTERVAL=${WATCHTOWER_POLL_INTERVAL:-300}
+      # Only update containers with this label (or all if not set)
+      - WATCHTOWER_LABEL_ENABLE=${WATCHTOWER_LABEL_ENABLE:-false}
+      # Clean up old images after updating
+      - WATCHTOWER_CLEANUP=${WATCHTOWER_CLEANUP:-true}
+      # Include stopped containers in updates
+      - WATCHTOWER_INCLUDE_STOPPED=${WATCHTOWER_INCLUDE_STOPPED:-false}
+      # Include restarting containers
+      - WATCHTOWER_INCLUDE_RESTARTING=${WATCHTOWER_INCLUDE_RESTARTING:-true}
+      # Run once and exit (false = continuous monitoring)
+      - WATCHTOWER_RUN_ONCE=${WATCHTOWER_RUN_ONCE:-false}
+      # Notification URL for updates (optional - e.g., Slack, Discord)
+      - WATCHTOWER_NOTIFICATION_URL=${WATCHTOWER_NOTIFICATION_URL:-}
+      # Log level (trace, debug, info, warn, error, fatal, panic)
+      - WATCHTOWER_TRACE=${WATCHTOWER_TRACE:-false}
+      - WATCHTOWER_DEBUG=${WATCHTOWER_DEBUG:-false}
+      # Monitor only specific containers (leave empty to monitor all)
+      - WATCHTOWER_SCOPE=${WATCHTOWER_SCOPE:-snippet}
+    # Optional: Add label-based filtering
+    # labels:
+    #   - "com.centurylinklabs.watchtower.scope=snippet"
     networks:
       - snippet-network
 
