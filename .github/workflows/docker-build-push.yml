@@ -121,6 +121,10 @@ jobs:
           # Use GitHub Actions cache to speed up future builds.
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # Pass build arguments for frontend service
+          build-args: |
+            ${{ matrix.service == 'frontend' && format('NEXT_PUBLIC_SUPABASE_URL={0}', secrets.NEXT_PUBLIC_SUPABASE_URL) || '' }}
+            ${{ matrix.service == 'frontend' && format('NEXT_PUBLIC_SUPABASE_ANON_KEY={0}', secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY) || '' }}
 
       # Step 7: An optional step to provide clear feedback if a build was skipped.
       - name: Notify if build was skipped

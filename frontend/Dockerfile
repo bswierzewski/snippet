@@ -10,6 +10,10 @@ RUN npm ci
 FROM node:20-alpine AS builder
 WORKDIR /app
 
+# Accept build arguments for Supabase configuration
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+
 # Copy dependencies
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -17,6 +21,9 @@ COPY . .
 # Build the application
 # Disable telemetry during build
 ENV NEXT_TELEMETRY_DISABLED=1
+# Make Supabase credentials available during build
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 RUN npm run build
 
 # Production stage
