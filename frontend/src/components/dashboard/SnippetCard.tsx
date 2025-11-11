@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 
 import { useGetProgrammingLanguageEnumValues } from '@/lib/api/endpoints/lookup-data';
 import type { SnippetSummaryDto } from '@/lib/api/models';
+import { CodeBlock } from './CodeBlock';
 
 interface SnippetCardProps {
   snippet: SnippetSummaryDto;
@@ -54,20 +55,20 @@ export function SnippetCard({ snippet, onEdit, onDelete }: SnippetCardProps) {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+    <div className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow">
       {/* Header with title, language and actions */}
       <div className="flex items-start justify-between mb-3">
-        <h3 className="text-lg font-semibold text-gray-900 flex-1">{snippet.title}</h3>
+        <h3 className="text-lg font-semibold text-card-foreground flex-1">{snippet.title}</h3>
         <div className="flex items-center gap-2 ml-4">
-          <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded">
+          <span className="px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded">
             {getLanguageName(snippet.language)}
           </span>
           <button
             onClick={handleCopy}
             className={
               copied
-                ? 'p-1.5 text-green-600 bg-green-50 rounded transition-colors'
-                : 'p-1.5 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded transition-colors'
+                ? 'p-1.5 text-green-600 bg-green-500/10 rounded transition-colors'
+                : 'p-1.5 text-muted-foreground hover:text-green-600 hover:bg-green-500/10 rounded transition-colors'
             }
             aria-label="Copy snippet"
           >
@@ -75,14 +76,14 @@ export function SnippetCard({ snippet, onEdit, onDelete }: SnippetCardProps) {
           </button>
           <button
             onClick={handleEdit}
-            className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+            className="p-1.5 text-muted-foreground hover:text-card-foreground hover:bg-accent rounded transition-colors"
             aria-label="Edit snippet"
           >
             <Edit2 className="w-4 h-4" />
           </button>
           <button
             onClick={handleDelete}
-            className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+            className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors"
             aria-label="Delete snippet"
           >
             <Trash2 className="w-4 h-4" />
@@ -91,8 +92,8 @@ export function SnippetCard({ snippet, onEdit, onDelete }: SnippetCardProps) {
       </div>
 
       {/* Description */}
-      <p className="text-sm text-gray-600 mb-3">
-        {snippet.description || <span className="text-gray-400 italic">Brak opisu</span>}
+      <p className="text-sm text-muted-foreground mb-3">
+        {snippet.description || <span className="text-muted-foreground/60 italic">Brak opisu</span>}
       </p>
 
       {/* Tags */}
@@ -101,47 +102,48 @@ export function SnippetCard({ snippet, onEdit, onDelete }: SnippetCardProps) {
           snippet.tags.map((tag) => (
             <span
               key={tag.id}
-              className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
+              className="px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded"
               style={tag.color ? { backgroundColor: tag.color + '20', color: tag.color } : undefined}
             >
               {tag.name}
             </span>
           ))
         ) : (
-          <span className="px-2 py-1 bg-gray-100 text-gray-400 text-xs rounded italic">Brak tagów</span>
+          <span className="px-2 py-1 bg-secondary text-muted-foreground/60 text-xs rounded italic">Brak tagów</span>
         )}
       </div>
 
       {/* Code preview */}
       <div className="mb-3">
-        <div className="bg-gray-50 rounded-t p-3 border border-gray-200">
-          <pre className="text-xs font-mono text-gray-800 overflow-x-auto whitespace-pre">
-            {isExpanded ? snippet.content : getContentPreview()}
-          </pre>
+        <div className="rounded-t overflow-hidden">
+          <CodeBlock
+            code={isExpanded ? snippet.content : getContentPreview()}
+            language={getLanguageName(snippet.language)}
+          />
         </div>
         {hasMoreLines() && (
           <div
             onClick={() => setIsExpanded(!isExpanded)}
-            className="bg-gray-50 border-t border-x border-b border-gray-300 rounded-b px-3 py-2 flex justify-center items-center gap-1 cursor-pointer hover:bg-gray-100 transition-colors"
+            className="bg-muted border-t border-border rounded-b px-3 py-2 flex justify-center items-center gap-1 cursor-pointer hover:bg-muted/80 transition-colors"
           >
-            <span className="text-xs text-gray-600">{isExpanded ? 'Zwiń' : 'Rozwiń'}</span>
-            <ChevronDown className={`w-3 h-3 text-gray-600 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+            <span className="text-xs text-muted-foreground">{isExpanded ? 'Zwiń' : 'Rozwiń'}</span>
+            <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
           </div>
         )}
       </div>
 
       {/* Collections */}
-      <div className="pt-3 border-t border-gray-100">
-        <p className="text-xs text-gray-500 mb-1">Kolekcje:</p>
+      <div className="pt-3 border-t border-border">
+        <p className="text-xs text-muted-foreground mb-1">Kolekcje:</p>
         <div className="flex flex-wrap gap-2">
           {snippet.collections.length > 0 ? (
             snippet.collections.map((collection) => (
-              <span key={collection.id} className="text-xs text-gray-600">
+              <span key={collection.id} className="text-xs text-muted-foreground">
                 {collection.name}
               </span>
             ))
           ) : (
-            <span className="text-xs text-gray-400 italic">Brak kolekcji</span>
+            <span className="text-xs text-muted-foreground/60 italic">Brak kolekcji</span>
           )}
         </div>
       </div>

@@ -39,28 +39,28 @@ export function AppSidebar() {
 
   return (
     <>
-      <Sidebar collapsible="offcanvas" className="bg-gray-50 border-gray-200">
+      <Sidebar collapsible="offcanvas" className="bg-sidebar border-sidebar-border">
         {/* Logo/Header */}
-        <SidebarHeader className="h-16 flex items-center justify-center border-b border-gray-200">
+        <SidebarHeader className="h-16 flex items-center justify-center border-b border-sidebar-border">
           <div className="flex items-center gap-3">
-            <Feather className="w-8 h-8 text-gray-900" strokeWidth={2.5} />
-            <h1 className="text-3xl font-bold tracking-wider text-gray-900 bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 bg-clip-text text-transparent">
+            <Feather className="w-8 h-8 text-sidebar-foreground" strokeWidth={2.5} />
+            <h1 className="text-3xl font-bold tracking-wider text-sidebar-foreground">
               QUILL
             </h1>
           </div>
         </SidebarHeader>
 
         {/* Sidebar content */}
-        <SidebarContent className="bg-gray-50">
+        <SidebarContent className="bg-sidebar">
           <SidebarGroup>
-            <SidebarGroupLabel className="flex items-center justify-between text-gray-600 font-semibold">
+            <SidebarGroupLabel className="flex items-center justify-between text-sidebar-foreground/70 font-semibold">
               <span>KOLEKCJE</span>
               <button
                 onClick={() => setIsCreateDialogOpen(true)}
-                className="p-1 hover:bg-gray-200 rounded transition-colors"
+                className="p-1 hover:bg-sidebar-accent rounded transition-colors"
                 aria-label="Add new collection"
               >
-                <Plus className="w-4 h-4 text-gray-600" />
+                <Plus className="w-4 h-4 text-sidebar-foreground/70" />
               </button>
             </SidebarGroupLabel>
             <SidebarGroupContent>
@@ -69,23 +69,23 @@ export function AppSidebar() {
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     isActive
-                    className="hover:bg-gray-200 data-[active=true]:bg-gray-200 text-gray-900"
+                    className="hover:bg-sidebar-accent data-[active=true]:bg-sidebar-accent text-sidebar-foreground"
                   >
-                    <Folder className="w-4 h-4 text-gray-600" />
+                    <Folder className="w-4 h-4 text-sidebar-foreground/70" />
                     <span>Wszystkie snippety</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
 
                 {/* User collections */}
                 {isLoading ? (
-                  <div className="px-3 py-2 text-sm text-gray-500">Ładowanie...</div>
+                  <div className="px-3 py-2 text-sm text-muted-foreground">Ładowanie...</div>
                 ) : collections && collections.length > 0 ? (
                   collections.map((collection) => (
                     <SidebarMenuItem key={collection.id} className="group/item relative">
-                      <SidebarMenuButton className="hover:bg-gray-200 text-gray-900">
-                        <Folder className="w-4 h-4 text-gray-600 shrink-0" />
+                      <SidebarMenuButton className="hover:bg-sidebar-accent text-sidebar-foreground">
+                        <Folder className="w-4 h-4 text-sidebar-foreground/70 shrink-0" />
                         <span className="flex-1 truncate">{collection.name}</span>
-                        <span className="text-xs text-gray-500 group-hover/item:opacity-0 shrink-0 w-6 text-right">
+                        <span className="text-xs text-muted-foreground group-hover/item:opacity-0 shrink-0 w-6 text-right">
                           {collection.snippetCount}
                         </span>
                       </SidebarMenuButton>
@@ -94,23 +94,23 @@ export function AppSidebar() {
                       <div className="absolute right-2 top-1/2 -translate-y-1/2 hidden group-hover/item:flex items-center gap-1">
                         <button
                           onClick={(e) => handleEditClick(e, collection)}
-                          className="p-1 hover:bg-gray-300 rounded transition-colors"
+                          className="p-1 hover:bg-sidebar-primary/20 rounded transition-colors"
                           aria-label="Edit collection"
                         >
-                          <Pencil className="w-3.5 h-3.5 text-gray-600" />
+                          <Pencil className="w-3.5 h-3.5 text-sidebar-foreground" />
                         </button>
                         <button
                           onClick={(e) => handleDeleteClick(e, collection)}
-                          className="p-1 hover:bg-gray-300 rounded transition-color"
+                          className="p-1 hover:bg-destructive/20 rounded transition-color"
                           aria-label="Delete collection"
                         >
-                          <Trash2 className="w-3.5 h-3.5 text-gray-600" />
+                          <Trash2 className="w-3.5 h-3.5 text-sidebar-foreground" />
                         </button>
                       </div>
                     </SidebarMenuItem>
                   ))
                 ) : (
-                  <div className="px-3 py-2 text-sm text-gray-500">Brak kolekcji</div>
+                  <div className="px-3 py-2 text-sm text-muted-foreground">Brak kolekcji</div>
                 )}
               </SidebarMenu>
             </SidebarGroupContent>

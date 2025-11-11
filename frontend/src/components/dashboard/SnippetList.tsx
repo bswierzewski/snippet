@@ -27,9 +27,9 @@ export function SnippetList() {
 
   if (isLoading) {
     return (
-      <main className="flex-1 overflow-y-auto bg-gray-50">
+      <main className="flex-1 overflow-y-auto bg-background">
         <div className="p-6">
-          <div className="text-center text-gray-500">Ładowanie...</div>
+          <div className="text-center text-muted-foreground">Ładowanie...</div>
         </div>
       </main>
     );
@@ -37,9 +37,9 @@ export function SnippetList() {
 
   if (error) {
     return (
-      <main className="flex-1 overflow-y-auto bg-gray-50">
+      <main className="flex-1 overflow-y-auto bg-background">
         <div className="p-6">
-          <div className="text-center text-red-500">Wystąpił błąd podczas ładowania snippetów</div>
+          <div className="text-center text-destructive">Wystąpił błąd podczas ładowania snippetów</div>
         </div>
       </main>
     );
@@ -48,13 +48,13 @@ export function SnippetList() {
   // Empty state - no snippets
   if (!snippets || snippets.length === 0) {
     return (
-      <main className="flex-1 overflow-y-auto bg-gray-50">
+      <main className="flex-1 overflow-y-auto bg-background">
         <div className="flex flex-col items-center justify-center min-h-[400px] p-6">
-          <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-            <Code className="w-12 h-12 text-gray-400" />
+          <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mb-4">
+            <Code className="w-12 h-12 text-muted-foreground" />
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Brak snippetów</h2>
-          <p className="text-gray-500 text-center">
+          <h2 className="text-xl font-semibold text-foreground mb-2">Brak snippetów</h2>
+          <p className="text-muted-foreground text-center">
             Zacznij organizować swój kod tworząc pierwszy snippet
           </p>
         </div>
@@ -65,7 +65,7 @@ export function SnippetList() {
   // Display snippets in a list
   return (
     <>
-      <main className="flex-1 overflow-y-auto bg-gray-50">
+      <main className="flex-1 overflow-y-auto bg-background">
         <div className="p-6">
           <div className="flex flex-col gap-4 max-w-5xl mx-auto">
             {snippets.map((snippet) => (
