@@ -38,8 +38,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
 
-      // Refresh router to update server components
-      router.refresh();
+      // Only refresh router for actual auth changes (not initial load)
+      if (event !== 'INITIAL_SESSION') {
+        router.refresh();
+      }
     });
 
     return () => subscription.unsubscribe();
