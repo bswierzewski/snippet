@@ -1,12 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '@/components/providers/auth-provider';
+import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
 import { CreateSnippetDialog } from './CreateSnippetDialog';
 
 export function Navbar() {
-  const { signOut } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const router = useRouter();
+  const supabase = createClient();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.refresh(); // Refresh Server Components - proxy.ts will redirect to /login
+  };
 
   return (
     <>
@@ -28,7 +35,7 @@ export function Navbar() {
             </button>
 
             <button
-              onClick={signOut}
+              onClick={handleSignOut}
               className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
             >
               Wyloguj
