@@ -2,6 +2,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
+# Build arguments for build information
+ARG GIT_COMMIT_SHA=unknown
+ARG BUILD_DATE=unknown
+
 # Copy solution and project files
 COPY Snippet.sln .
 COPY Directory.Packages.props .
@@ -24,6 +28,10 @@ RUN dotnet publish src/Host/Snippet.Web/Snippet.Web.csproj -c Release -o /app/pu
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 
+# Re-declare build arguments for runtime stage
+ARG GIT_COMMIT_SHA=unknown
+ARG BUILD_DATE=unknown
+
 # Install curl for healthcheck
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
@@ -36,5 +44,7 @@ COPY --from=publish /app/publish .
 # Set environment variables
 ENV ASPNETCORE_URLS=http://+:7000
 ENV ASPNETCORE_ENVIRONMENT=Production
+ENV GIT_COMMIT_SHA=${GIT_COMMIT_SHA}
+ENV BUILD_DATE=${BUILD_DATE}
 
 ENTRYPOINT ["dotnet", "Snippet.Web.dll"]

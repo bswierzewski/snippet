@@ -6,6 +6,7 @@
  */
 
 export * from './addTagCommand';
+export * from './buildInfoDto';
 export * from './changeSnippetLanguageCommand';
 export * from './collectionDto';
 export * from './collectionSummaryDto';

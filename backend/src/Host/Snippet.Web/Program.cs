@@ -61,6 +61,7 @@ app.MapCollectionsEndpoints();
 app.MapSnippetsEndpoints();
 app.MapTagsEndpoints();
 app.MapLookupDataEndpoints();
+app.MapVersionEndpoints();
 
 app.Run();
 

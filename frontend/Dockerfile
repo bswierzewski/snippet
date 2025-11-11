@@ -1,5 +1,5 @@
 # Dependencies stage
-FROM node:20-alpine AS deps
+FROM node:25-alpine AS deps
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
@@ -7,12 +7,16 @@ COPY package.json package-lock.json* ./
 RUN npm ci
 
 # Build stage
-FROM node:20-alpine AS builder
+FROM node:25-alpine AS builder
 WORKDIR /app
 
 # Accept build arguments for Supabase configuration
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+# Accept build arguments for build information
+ARG NEXT_PUBLIC_GIT_COMMIT_SHA=unknown
+ARG NEXT_PUBLIC_BUILD_DATE=unknown
 
 # Copy dependencies
 COPY --from=deps /app/node_modules ./node_modules
@@ -24,10 +28,13 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Make Supabase credentials available during build
 ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
+# Make build information available during build (will be embedded in the bundle)
+ENV NEXT_PUBLIC_GIT_COMMIT_SHA=$NEXT_PUBLIC_GIT_COMMIT_SHA
+ENV NEXT_PUBLIC_BUILD_DATE=$NEXT_PUBLIC_BUILD_DATE
 RUN npm run build
 
 # Production stage
-FROM node:20-alpine AS runner
+FROM node:25-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
