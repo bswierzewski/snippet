@@ -123,7 +123,7 @@ export function EditSnippetDialog({ snippetId, open, onOpenChange }: EditSnippet
   if (isLoadingSnippet) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent>
+        <DialogContent className="max-w-[calc(100%-1rem)] p-3 sm:max-w-lg sm:p-6">
           <DialogHeader>
             <DialogTitle>Edytuj snippet</DialogTitle>
             <DialogDescription>Ładowanie danych snippetu...</DialogDescription>
@@ -142,7 +142,7 @@ export function EditSnippetDialog({ snippetId, open, onOpenChange }: EditSnippet
 
   return (
     <Dialog key={snippetId} open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="overflow-y-auto sm:max-w-[50vw]">
+      <DialogContent className="max-h-[90vh] max-w-[calc(100%-1rem)] overflow-y-auto p-3 sm:max-w-[50vw] sm:p-6">
         <DialogHeader>
           <DialogTitle>Edytuj snippet</DialogTitle>
           <DialogDescription>Zaktualizuj informacje o fragmencie kodu</DialogDescription>

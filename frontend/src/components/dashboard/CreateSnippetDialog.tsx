@@ -102,7 +102,7 @@ export function CreateSnippetDialog({ open, onOpenChange }: CreateSnippetDialogP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="overflow-y-auto sm:max-w-[50vw]">
+      <DialogContent className="max-h-[90vh] max-w-[calc(100%-1rem)] overflow-y-auto p-3 sm:max-w-[50vw] sm:p-6">
         <DialogHeader>
           <DialogTitle>Nowy snippet</DialogTitle>
           <DialogDescription>Utwórz nowy fragment kodu z tagami i przypisz go do kolekcji</DialogDescription>

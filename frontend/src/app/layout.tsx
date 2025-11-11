@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'SnippetVault',
+  title: 'Quill',
   description: 'Organize and manage your code snippets'
 };
 

@@ -1,17 +1,17 @@
 'use client';
 
-import { Sidebar } from '@/components/dashboard/Sidebar';
+import { useIsMobile } from '@/hooks/use-mobile';
+
+import { AppSidebar } from '@/components/dashboard/AppSidebar';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="h-screen flex">
-      {/* Left sidebar - full height */}
-      <Sidebar />
+  const isMobile = useIsMobile();
 
-      {/* Main content area (navbar + snippets) */}
-      <div className="flex-1 flex flex-col">
-        {children}
-      </div>
-    </div>
+  return (
+    <SidebarProvider defaultOpen={!isMobile}>
+      <AppSidebar />
+      <SidebarInset className="flex flex-col">{children}</SidebarInset>
+    </SidebarProvider>
   );
 }
