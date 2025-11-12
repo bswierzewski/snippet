@@ -8,7 +8,7 @@ import { z } from 'zod';
 
 import { getGetUserCollectionsQueryKey } from '@/lib/api/endpoints/collections';
 import { useGetProgrammingLanguageEnumValues } from '@/lib/api/endpoints/lookup-data';
-import { getGetUserSnippetsQueryKey, useCreateSnippet } from '@/lib/api/endpoints/snippets';
+import { useCreateSnippet, getSearchSnippetsInfiniteQueryKey } from '@/lib/api/endpoints/snippets';
 import type { ProgrammingLanguage } from '@/lib/api/models';
 
 import { CollectionSelector, type CollectionItem } from '@/components/dashboard/CollectionSelector';
@@ -72,8 +72,8 @@ export function CreateSnippetDialog({ open, onOpenChange }: CreateSnippetDialogP
           }
         });
 
-        // Invalidate queries to refresh lists
-        queryClient.invalidateQueries({ queryKey: getGetUserSnippetsQueryKey() });
+        // Invalidate queries to refresh lists (use prefix to match all search queries)
+        queryClient.invalidateQueries({ queryKey: getSearchSnippetsInfiniteQueryKey().slice(0, 2) });
         queryClient.invalidateQueries({ queryKey: getGetUserCollectionsQueryKey() });
 
         // Show success message

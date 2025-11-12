@@ -3,7 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-import { getGetUserSnippetsQueryKey, useDeleteSnippet } from '@/lib/api/endpoints/snippets';
+import { useDeleteSnippet, getSearchSnippetsInfiniteQueryKey } from '@/lib/api/endpoints/snippets';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -33,8 +33,8 @@ export function DeleteSnippetDialog({ snippetId, snippetTitle, open, onOpenChang
     try {
       await deleteSnippet({ id: snippetId });
 
-      // Invalidate queries to refresh lists
-      queryClient.invalidateQueries({ queryKey: getGetUserSnippetsQueryKey() });
+      // Invalidate queries to refresh lists (use prefix to match all search queries)
+      queryClient.invalidateQueries({ queryKey: getSearchSnippetsInfiniteQueryKey().slice(0, 2) });
 
       // Show success message
       toast.success('Snippet został usunięty');

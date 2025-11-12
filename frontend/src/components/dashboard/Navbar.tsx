@@ -9,7 +9,6 @@ import { CreateSnippetDialog } from './CreateSnippetDialog';
 import { ThemeToggle } from './ThemeToggle';
 import { FilterDialog } from './FilterDialog';
 import { useFilterStore } from '@/lib/store/filterStore';
-import { Badge } from '@/components/ui/badge';
 
 export function Navbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -18,7 +17,7 @@ export function Navbar() {
   const router = useRouter();
   const supabase = createClient();
   const userMenuRef = useRef<HTMLDivElement>(null);
-  const { searchTerm, setSearchTerm, hasActiveFilters, getActiveFilterCount } = useFilterStore();
+  const { searchTerm, setSearchTerm, hasActiveMainFilters } = useFilterStore();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -110,15 +109,7 @@ export function Navbar() {
             className="relative p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors shrink-0"
             aria-label="Open filters"
           >
-            <Filter className={`w-5 h-5 ${hasActiveFilters() ? 'fill-current' : ''}`} />
-            {hasActiveFilters() && (
-              <Badge
-                variant="destructive"
-                className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs"
-              >
-                {getActiveFilterCount()}
-              </Badge>
-            )}
+            <Filter className={`w-5 h-5 ${hasActiveMainFilters() ? 'fill-current' : ''}`} />
           </button>
         </div>
       </header>

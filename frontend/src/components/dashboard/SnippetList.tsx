@@ -7,7 +7,7 @@ import { useFilterStore } from '@/lib/store/filterStore';
 import { Code, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
-import { searchSnippets } from '@/lib/api/endpoints/snippets';
+import { searchSnippets, getSearchSnippetsInfiniteQueryKey } from '@/lib/api/endpoints/snippets';
 import type { SnippetSummaryDto } from '@/lib/api/models';
 import { useInfiniteQuery } from '@tanstack/react-query';
 
@@ -25,6 +25,15 @@ export function SnippetList() {
   // Debounce search term to avoid too many requests
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
+  // Build search query parameters (without pagination for query key)
+  const searchQueryBase = {
+    searchTerm: debouncedSearchTerm || null,
+    tags: selectedTags.length > 0 ? selectedTags : null,
+    languages: selectedLanguages.length > 0 ? selectedLanguages : null,
+    collectionId: selectedCollectionId || null,
+    favoritesOnly: null
+  };
+
   // Fetch snippets with infinite query
   const {
     data,
@@ -35,17 +44,13 @@ export function SnippetList() {
     isFetchingNextPage,
     fetchNextPage
   } = useInfiniteQuery({
-    queryKey: ['snippets', 'search', debouncedSearchTerm, selectedTags, selectedLanguages, selectedCollectionId],
+    queryKey: getSearchSnippetsInfiniteQueryKey({ ...searchQueryBase, pageNumber: 1, pageSize: 5 }),
     queryFn: ({ pageParam = 1, signal }) =>
       searchSnippets(
         {
-          searchTerm: debouncedSearchTerm || null,
-          tags: selectedTags.length > 0 ? selectedTags : null,
-          languages: selectedLanguages.length > 0 ? selectedLanguages : null,
-          collectionId: selectedCollectionId || null,
-          favoritesOnly: null,
+          ...searchQueryBase,
           pageNumber: pageParam as number,
-          pageSize: 20
+          pageSize: 5
         },
         signal
       ),

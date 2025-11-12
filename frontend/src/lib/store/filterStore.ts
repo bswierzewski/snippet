@@ -13,6 +13,7 @@ export interface FilterState {
   setSelectedCollectionId: (collectionId: string | null) => void;
   clearFilters: () => void;
   hasActiveFilters: () => boolean;
+  hasActiveMainFilters: () => boolean; // Only checks tags and languages, not collection
   getActiveFilterCount: () => number;
 }
 
@@ -44,6 +45,14 @@ export const useFilterStore = create<FilterState>((set, get) => ({
       state.selectedTags.length > 0 ||
       state.selectedLanguages.length > 0 ||
       state.selectedCollectionId !== null
+    );
+  },
+
+  hasActiveMainFilters: () => {
+    const state = get();
+    return (
+      state.selectedTags.length > 0 ||
+      state.selectedLanguages.length > 0
     );
   },
 

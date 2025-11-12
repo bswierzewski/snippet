@@ -74,7 +74,11 @@ export function AppSidebar() {
                     onClick={() => setSelectedCollectionId(null)}
                     className="hover:bg-sidebar-accent data-[active=true]:bg-sidebar-accent text-sidebar-foreground"
                   >
-                    <Folder className="w-4 h-4 text-sidebar-foreground/70" />
+                    {selectedCollectionId === null ? (
+                      <FolderOpen className="w-4 h-4 text-sidebar-foreground/70" />
+                    ) : (
+                      <Folder className="w-4 h-4 text-sidebar-foreground/70" />
+                    )}
                     <span>Wszystkie snippety</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

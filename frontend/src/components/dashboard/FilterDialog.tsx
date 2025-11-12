@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useFilterStore } from '@/lib/store/filterStore';
 import { useSearchTags } from '@/lib/api/endpoints/tags';
 import { useGetProgrammingLanguageEnumValues } from '@/lib/api/endpoints/lookup-data';
@@ -26,8 +26,20 @@ interface FilterDialogProps {
 
 export function FilterDialog({ open, onOpenChange }: FilterDialogProps) {
   const { selectedTags, setSelectedTags, selectedLanguages, setSelectedLanguages } = useFilterStore();
+
+  // Local state for temporary selections (applied only on "Gotowe")
+  const [tempSelectedTags, setTempSelectedTags] = useState<string[]>([]);
+  const [tempSelectedLanguages, setTempSelectedLanguages] = useState<number[]>([]);
   const [tagSearchValue, setTagSearchValue] = useState('');
   const debouncedTagSearch = useDebounce(tagSearchValue, 300);
+
+  // Initialize temp state when dialog opens
+  useEffect(() => {
+    if (open) {
+      setTempSelectedTags(selectedTags);
+      setTempSelectedLanguages(selectedLanguages);
+    }
+  }, [open, selectedTags, selectedLanguages]);
 
   // Fetch tags
   const { data: availableTags = [] } = useSearchTags(
@@ -49,35 +61,37 @@ export function FilterDialog({ open, onOpenChange }: FilterDialogProps) {
   // Filter tags - exclude already selected ones
   const filteredTags = useMemo(() => {
     return availableTags
-      .filter((tag) => !selectedTags.includes(tag.name))
+      .filter((tag) => !tempSelectedTags.includes(tag.name))
       .slice(0, 20);
-  }, [availableTags, selectedTags]);
+  }, [availableTags, tempSelectedTags]);
 
   const handleAddTag = (tagName: string) => {
-    setSelectedTags([...selectedTags, tagName]);
+    setTempSelectedTags([...tempSelectedTags, tagName]);
     setTagSearchValue('');
   };
 
   const handleRemoveTag = (tagName: string) => {
-    setSelectedTags(selectedTags.filter((t) => t !== tagName));
+    setTempSelectedTags(tempSelectedTags.filter((t) => t !== tagName));
   };
 
   const handleAddLanguage = (languageValue: number) => {
-    if (!selectedLanguages.includes(languageValue)) {
-      setSelectedLanguages([...selectedLanguages, languageValue]);
+    if (!tempSelectedLanguages.includes(languageValue)) {
+      setTempSelectedLanguages([...tempSelectedLanguages, languageValue]);
     }
   };
 
   const handleRemoveLanguage = (languageValue: number) => {
-    setSelectedLanguages(selectedLanguages.filter((l) => l !== languageValue));
+    setTempSelectedLanguages(tempSelectedLanguages.filter((l) => l !== languageValue));
   };
 
   const handleClear = () => {
-    setSelectedTags([]);
-    setSelectedLanguages([]);
+    setTempSelectedTags([]);
+    setTempSelectedLanguages([]);
   };
 
-  const handleClose = () => {
+  const handleApplyFilters = () => {
+    setSelectedTags(tempSelectedTags);
+    setSelectedLanguages(tempSelectedLanguages);
     onOpenChange(false);
   };
 
@@ -105,9 +119,9 @@ export function FilterDialog({ open, onOpenChange }: FilterDialogProps) {
             />
 
             {/* Selected tags */}
-            {selectedTags.length > 0 && (
+            {tempSelectedTags.length > 0 && (
               <div className="flex flex-wrap gap-2 pb-2">
-                {selectedTags.map((tag) => (
+                {tempSelectedTags.map((tag) => (
                   <button
                     key={tag}
                     onClick={() => handleRemoveTag(tag)}
@@ -143,9 +157,9 @@ export function FilterDialog({ open, onOpenChange }: FilterDialogProps) {
             <FieldLabel>Języki programowania</FieldLabel>
 
             {/* Selected languages */}
-            {selectedLanguages.length > 0 && (
+            {tempSelectedLanguages.length > 0 && (
               <div className="flex flex-wrap gap-2 pb-2">
-                {selectedLanguages.map((langValue) => {
+                {tempSelectedLanguages.map((langValue) => {
                   const lang = availableLanguages.find((l) => l.value === langValue);
                   return (
                     <button
@@ -164,7 +178,7 @@ export function FilterDialog({ open, onOpenChange }: FilterDialogProps) {
             {/* Available languages */}
             <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto p-2 border rounded-lg bg-muted/50">
               {availableLanguages.map((language) => {
-                const isSelected = selectedLanguages.includes(language.value);
+                const isSelected = tempSelectedLanguages.includes(language.value);
                 return (
                   <button
                     key={language.value}
@@ -194,11 +208,11 @@ export function FilterDialog({ open, onOpenChange }: FilterDialogProps) {
           </div>
         </div>
 
-        <DialogFooter className="flex justify-between">
-          <Button variant="outline" onClick={handleClear}>
+        <DialogFooter className="flex gap-3 w-full">
+          <Button variant="outline" onClick={handleClear} className="flex-1">
             Wyczyść filtry
           </Button>
-          <Button onClick={handleClose}>
+          <Button onClick={handleApplyFilters} className="flex-1">
             Gotowe
           </Button>
         </DialogFooter>
