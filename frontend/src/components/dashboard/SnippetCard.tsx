@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, ChevronDown, Copy, Edit2, Trash2 } from 'lucide-react';
+import { Check, Copy, Edit2, Eye, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -12,12 +12,12 @@ interface SnippetCardProps {
   snippet: SnippetSummaryDto;
   onEdit?: (snippetId: string) => void;
   onDelete?: (snippetId: string, snippetTitle: string) => void;
+  onView?: (snippetId: string) => void;
 }
 
-export function SnippetCard({ snippet, onEdit, onDelete }: SnippetCardProps) {
+export function SnippetCard({ snippet, onEdit, onDelete, onView }: SnippetCardProps) {
   const { data: languages } = useGetProgrammingLanguageEnumValues();
   const [copied, setCopied] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
 
   const getLanguageName = (languageValue: number) => {
     const language = languages?.find((lang) => lang.value === languageValue);
@@ -43,15 +43,8 @@ export function SnippetCard({ snippet, onEdit, onDelete }: SnippetCardProps) {
     onDelete?.(snippet.id, snippet.title);
   };
 
-  // Get preview of content (first 5 lines)
-  const getContentPreview = () => {
-    const lines = snippet.content.split('\n');
-    return lines.slice(0, 5).join('\n');
-  };
-
-  const hasMoreLines = () => {
-    const lines = snippet.content.split('\n');
-    return lines.length > 5;
+  const handleView = () => {
+    onView?.(snippet.id);
   };
 
   return (
@@ -63,6 +56,13 @@ export function SnippetCard({ snippet, onEdit, onDelete }: SnippetCardProps) {
           <span className="px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded">
             {getLanguageName(snippet.language)}
           </span>
+          <button
+            onClick={handleView}
+            className="p-1.5 text-muted-foreground hover:text-card-foreground hover:bg-accent rounded transition-colors"
+            aria-label="View snippet"
+          >
+            <Eye className="w-4 h-4" />
+          </button>
           <button
             onClick={handleCopy}
             className={
@@ -113,23 +113,9 @@ export function SnippetCard({ snippet, onEdit, onDelete }: SnippetCardProps) {
         )}
       </div>
 
-      {/* Code preview */}
-      <div className="mb-3">
-        <div className="rounded-t overflow-hidden">
-          <CodeBlock
-            code={isExpanded ? snippet.content : getContentPreview()}
-            language={getLanguageName(snippet.language)}
-          />
-        </div>
-        {hasMoreLines() && (
-          <div
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="bg-muted border-t border-border rounded-b px-3 py-2 flex justify-center items-center gap-1 cursor-pointer hover:bg-muted/80 transition-colors"
-          >
-            <span className="text-xs text-muted-foreground">{isExpanded ? 'Zwiń' : 'Rozwiń'}</span>
-            <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-          </div>
-        )}
+      {/* Code preview with fixed height */}
+      <div className="mb-3 max-h-32 overflow-hidden rounded">
+        <CodeBlock code={snippet.content} language={getLanguageName(snippet.language)} />
       </div>
 
       {/* Collections */}

@@ -2,6 +2,7 @@
 
 import { DeleteSnippetDialog } from './DeleteSnippetDialog';
 import { EditSnippetDialog } from './EditSnippetDialog';
+import { ViewSnippetDialog } from './ViewSnippetDialog';
 import { SnippetCard } from './SnippetCard';
 import { useFilterStore } from '@/lib/store/filterStore';
 import { Code, Loader2 } from 'lucide-react';
@@ -16,6 +17,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 export function SnippetList() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedSnippetId, setSelectedSnippetId] = useState<string | null>(null);
   const [selectedSnippetTitle, setSelectedSnippetTitle] = useState('');
 
@@ -73,6 +75,11 @@ export function SnippetList() {
     setDeleteDialogOpen(true);
   };
 
+  const handleView = (snippetId: string) => {
+    setSelectedSnippetId(snippetId);
+    setViewDialogOpen(true);
+  };
+
   if (initialLoading) {
     return (
       <main className="flex-1 overflow-y-auto bg-background">
@@ -117,7 +124,7 @@ export function SnippetList() {
         <div className="p-6">
           <div className="flex flex-col gap-4 max-w-5xl mx-auto">
             {snippets.map((snippet) => (
-              <SnippetCard key={snippet.id} snippet={snippet} onEdit={handleEdit} onDelete={handleDelete} />
+              <SnippetCard key={snippet.id} snippet={snippet} onEdit={handleEdit} onDelete={handleDelete} onView={handleView} />
             ))}
           </div>
 
@@ -149,6 +156,7 @@ export function SnippetList() {
           )}
         </div>
       </main>
+      <ViewSnippetDialog snippetId={selectedSnippetId} open={viewDialogOpen} onOpenChange={setViewDialogOpen} />
       <EditSnippetDialog snippetId={selectedSnippetId} open={editDialogOpen} onOpenChange={setEditDialogOpen} />
       <DeleteSnippetDialog
         snippetId={selectedSnippetId}
