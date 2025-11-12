@@ -9,6 +9,7 @@ import { CreateSnippetDialog } from './CreateSnippetDialog';
 import { ThemeToggle } from './ThemeToggle';
 import { FilterDialog } from './FilterDialog';
 import { useFilterStore } from '@/lib/store/filterStore';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export function Navbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -18,6 +19,22 @@ export function Navbar() {
   const supabase = createClient();
   const userMenuRef = useRef<HTMLDivElement>(null);
   const { searchTerm, setSearchTerm, hasActiveMainFilters } = useFilterStore();
+
+  // Local state for immediate input updates (prevents freezing)
+  const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
+
+  // Debounce the local search term before updating global store
+  const debouncedLocalSearch = useDebounce(localSearchTerm, 500);
+
+  // Update global store when debounced value changes
+  useEffect(() => {
+    setSearchTerm(debouncedLocalSearch);
+  }, [debouncedLocalSearch, setSearchTerm]);
+
+  // Sync local state with global state if changed externally (e.g., clear filters)
+  useEffect(() => {
+    setLocalSearchTerm(searchTerm);
+  }, [searchTerm]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -97,8 +114,8 @@ export function Navbar() {
             <input
               type="text"
               placeholder="Szukaj snippetów..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={localSearchTerm}
+              onChange={(e) => setLocalSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-input bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
             />
           </div>
