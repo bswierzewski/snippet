@@ -30,7 +30,7 @@ export function SnippetCard({ snippet, onEdit, onDelete }: SnippetCardProps) {
       toast.success('Skopiowano do schowka!');
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
+    } catch {
       toast.error('Nie udało się skopiować');
     }
   };
