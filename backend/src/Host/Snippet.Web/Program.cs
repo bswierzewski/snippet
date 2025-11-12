@@ -4,6 +4,7 @@ using BuildingBlocks.Modules.Users.Web.Extensions;
 using BuildingBlocks.Modules.Users.Web.Extensions.JwtBearers;
 using DotNetEnv;
 using Snippet.Modules.Snippets.Infrastructure;
+using Snippet.Modules.Snippets.Infrastructure.Persistence;
 using Snippet.Web.Endpoints;
 
 // Load environment variables from .env file BEFORE creating builder
@@ -46,6 +47,12 @@ if (app.Environment.IsDevelopment())
         policy.AllowAnyOrigin()
               .AllowAnyMethod()
               .AllowAnyHeader());
+
+    // Seed database in development
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<SnippetsDbContext>();
+    var seeder = new DataSeeder(dbContext);
+    await seeder.SeedAsync();
 }
 
 // Middleware pipeline order matters!

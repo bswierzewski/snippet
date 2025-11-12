@@ -9,6 +9,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Directory.Packages.props = Directory.Packages.props
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{B8E9F5D2-3A4C-4B5E-9F8A-1D2E3F4A5B6C}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\drop-database.ps1 = scripts\drop-database.ps1
+		scripts\README.md = scripts\README.md
+	EndProjectSection
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Host", "Host", "{981C2CF6-E5BB-602A-511C-234B538302B0}"
