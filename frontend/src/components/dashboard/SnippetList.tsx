@@ -13,6 +13,7 @@ import type { SnippetSummaryDto } from '@/lib/api/models';
 import { useInfiniteQuery } from '@tanstack/react-query';
 
 import { useDebounce } from '@/hooks/useDebounce';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 
 export function SnippetList() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -63,6 +64,13 @@ export function SnippetList() {
 
   // Flatten all pages into a single array
   const snippets: SnippetSummaryDto[] = data?.pages.flatMap((page) => page.snippets || []) || [];
+
+  // Set up infinite scroll with Intersection Observer
+  const loaderRef = useInfiniteScroll({
+    onLoadMore: () => fetchNextPage(),
+    isLoading: isFetchingNextPage,
+    hasMore: hasNextPage ?? false
+  });
 
   const handleEdit = (snippetId: string) => {
     setSelectedSnippetId(snippetId);
@@ -128,30 +136,15 @@ export function SnippetList() {
             ))}
           </div>
 
-          {/* Loading indicator for pagination */}
-          {isFetchingNextPage && (
-            <div className="flex justify-center items-center py-6 mt-4">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-            </div>
-          )}
+          {/* Infinite scroll trigger element */}
+          <div ref={loaderRef} className="flex justify-center items-center py-6 mt-4" style={{ minHeight: '40px' }}>
+            {isFetchingNextPage && <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />}
+          </div>
 
           {/* End of list indicator */}
           {!hasNextPage && snippets.length > 0 && (
-            <div className="text-center py-6 mt-4">
+            <div className="text-center py-6">
               <p className="text-muted-foreground text-sm">Koniec listy</p>
-            </div>
-          )}
-
-          {/* Load more button */}
-          {hasNextPage && (
-            <div className="flex justify-center mt-4">
-              <button
-                onClick={() => fetchNextPage()}
-                disabled={isFetchingNextPage}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
-              >
-                {isFetchingNextPage ? 'Ładowanie...' : 'Załaduj więcej'}
-              </button>
             </div>
           )}
         </div>
