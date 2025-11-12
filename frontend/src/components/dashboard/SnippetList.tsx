@@ -1,112 +1,61 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useVirtualizer } from '@tanstack/react-virtual';
-import { useSearchSnippets } from '@/lib/api/endpoints/snippets';
-import { useFilterStore } from '@/lib/store/filterStore';
-import { usePaginationStore } from '@/lib/store/paginationStore';
-import { useDebounce } from '@/hooks/useDebounce';
-import { Code, Loader2 } from 'lucide-react';
-import { SnippetCard } from './SnippetCard';
-import { EditSnippetDialog } from './EditSnippetDialog';
 import { DeleteSnippetDialog } from './DeleteSnippetDialog';
-import type { SnippetSummaryDto } from '@/lib/api/models';
+import { EditSnippetDialog } from './EditSnippetDialog';
+import { SnippetCard } from './SnippetCard';
+import { useFilterStore } from '@/lib/store/filterStore';
+import { Code, Loader2 } from 'lucide-react';
+import { useState } from 'react';
 
-const ESTIMATE_SIZE = 150; // Approximate height of SnippetCard in pixels
+import { searchSnippets } from '@/lib/api/endpoints/snippets';
+import type { SnippetSummaryDto } from '@/lib/api/models';
+import { useInfiniteQuery } from '@tanstack/react-query';
+
+import { useDebounce } from '@/hooks/useDebounce';
 
 export function SnippetList() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedSnippetId, setSelectedSnippetId] = useState<string | null>(null);
   const [selectedSnippetTitle, setSelectedSnippetTitle] = useState('');
-  const [snippets, setSnippets] = useState<SnippetSummaryDto[]>([]);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const parentRef = useRef<HTMLDivElement>(null);
 
   // Get filters from store
   const { searchTerm, selectedTags, selectedLanguages, selectedCollectionId } = useFilterStore();
 
-  // Get pagination state
-  const { currentPage, pageSize, hasMore, isFetching, incrementPage, resetPagination, setTotalItems, setHasMore, setIsFetching } = usePaginationStore();
-
   // Debounce search term to avoid too many requests
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  // Fetch snippets with filters applied
-  const { mutate: searchSnippets, isPending } = useSearchSnippets();
-
-  // Fetch snippets when page or filters change
-  useEffect(() => {
-    setIsFetching(true);
-
-    searchSnippets(
-      {
-        data: {
+  // Fetch snippets with infinite query
+  const {
+    data,
+    isLoading: initialLoading,
+    isError,
+    error,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage
+  } = useInfiniteQuery({
+    queryKey: ['snippets', 'search', debouncedSearchTerm, selectedTags, selectedLanguages, selectedCollectionId],
+    queryFn: ({ pageParam = 1, signal }) =>
+      searchSnippets(
+        {
           searchTerm: debouncedSearchTerm || null,
           tags: selectedTags.length > 0 ? selectedTags : null,
           languages: selectedLanguages.length > 0 ? selectedLanguages : null,
           collectionId: selectedCollectionId || null,
           favoritesOnly: null,
-          pageNumber: currentPage,
-          pageSize: pageSize
-        }
-      },
-      {
-        onSuccess: (data) => {
-          // If it's the first page (filters changed), reset snippets
-          if (currentPage === 1) {
-            setSnippets(data.snippets || []);
-          } else {
-            // Append new snippets to existing ones
-            setSnippets((prev) => [...prev, ...(data.snippets || [])]);
-          }
-
-          // Update total items and hasMore
-          setTotalItems(data.totalCount || 0);
-          setHasMore((currentPage * pageSize) < (data.totalCount || 0));
-
-          setError(null);
-          setInitialLoading(false);
-          setIsFetching(false);
+          pageNumber: pageParam as number,
+          pageSize: 20
         },
-        onError: () => {
-          setError('Wystąpił błąd podczas ładowania snippetów');
-          setInitialLoading(false);
-          setIsFetching(false);
-        }
-      }
-    );
-  }, [debouncedSearchTerm, selectedTags, selectedLanguages, selectedCollectionId, currentPage, pageSize, searchSnippets, setTotalItems, setHasMore, setIsFetching]);
-
-  // Reset pagination when filters change
-  useEffect(() => {
-    resetPagination();
-    setSnippets([]);
-    setError(null);
-  }, [debouncedSearchTerm, selectedTags, selectedLanguages, selectedCollectionId, resetPagination]);
-
-  // Setup virtualizer
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const virtualizer = useVirtualizer({
-    count: snippets.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => ESTIMATE_SIZE,
-    overscan: 10,
+        signal
+      ),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => (lastPage.pageNumber < lastPage.totalPages ? lastPage.pageNumber + 1 : undefined),
+    enabled: true
   });
 
-  const virtualItems = virtualizer.getVirtualItems();
-
-  // Check if we need to load more items
-  useEffect(() => {
-    if (!virtualItems.length) return;
-
-    const lastVirtualItem = virtualItems[virtualItems.length - 1];
-    if (lastVirtualItem && lastVirtualItem.index >= snippets.length - 3 && hasMore && !isFetching && !isPending) {
-      incrementPage();
-    }
-  }, [virtualItems, snippets.length, hasMore, isFetching, isPending, incrementPage]);
+  // Flatten all pages into a single array
+  const snippets: SnippetSummaryDto[] = data?.pages.flatMap((page) => page.snippets || []) || [];
 
   const handleEdit = (snippetId: string) => {
     setSelectedSnippetId(snippetId);
@@ -129,11 +78,13 @@ export function SnippetList() {
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <main className="flex-1 overflow-y-auto bg-background">
         <div className="p-6">
-          <div className="text-center text-destructive">{error}</div>
+          <div className="text-center text-destructive">
+            {error instanceof Error ? error.message : 'Wystąpił błąd podczas ładowania snippetów'}
+          </div>
         </div>
       </main>
     );
@@ -148,59 +99,47 @@ export function SnippetList() {
             <Code className="w-12 h-12 text-muted-foreground" />
           </div>
           <h2 className="text-xl font-semibold text-foreground mb-2">Brak snippetów</h2>
-          <p className="text-muted-foreground text-center">
-            Zacznij organizować swój kod tworząc pierwszy snippet
-          </p>
+          <p className="text-muted-foreground text-center">Zacznij organizować swój kod tworząc pierwszy snippet</p>
         </div>
       </main>
     );
   }
 
-  // Display snippets with virtualizer
+  // Display snippets
   return (
     <>
-      <main ref={parentRef} className="flex-1 overflow-y-auto bg-background">
+      <main className="flex-1 overflow-y-auto bg-background">
         <div className="p-6">
-          <div
-            className="flex flex-col gap-4 max-w-5xl mx-auto"
-            style={{
-              height: `${virtualizer.getTotalSize()}px`,
-              width: '100%',
-              position: 'relative'
-            }}
-          >
-            {virtualItems.map((virtualItem) => (
-              <div
-                key={virtualItem.key}
-                data-index={virtualItem.index}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  transform: `translateY(${virtualItem.start}px)`
-                }}
-              >
-                <SnippetCard
-                  snippet={snippets[virtualItem.index]}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                />
-              </div>
+          <div className="flex flex-col gap-4 max-w-5xl mx-auto">
+            {snippets.map((snippet) => (
+              <SnippetCard key={snippet.id} snippet={snippet} onEdit={handleEdit} onDelete={handleDelete} />
             ))}
           </div>
 
           {/* Loading indicator for pagination */}
-          {isFetching && (
+          {isFetchingNextPage && (
             <div className="flex justify-center items-center py-6 mt-4">
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
           )}
 
           {/* End of list indicator */}
-          {!hasMore && snippets.length > 0 && (
+          {!hasNextPage && snippets.length > 0 && (
             <div className="text-center py-6 mt-4">
               <p className="text-muted-foreground text-sm">Koniec listy</p>
+            </div>
+          )}
+
+          {/* Load more button */}
+          {hasNextPage && (
+            <div className="flex justify-center mt-4">
+              <button
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
+              >
+                {isFetchingNextPage ? 'Ładowanie...' : 'Załaduj więcej'}
+              </button>
             </div>
           )}
         </div>

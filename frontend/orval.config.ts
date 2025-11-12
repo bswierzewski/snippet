@@ -13,6 +13,14 @@ export default defineConfig({
         mutator: {
           path: './src/lib/api/axios-instance.ts',
           name: 'customInstance'
+        },
+        operations: {
+          SearchSnippets: {
+            query: {
+              useInfinite: true,
+              useInfiniteQueryParam: 'pageNumber'
+            }
+          }
         }
       }
     }

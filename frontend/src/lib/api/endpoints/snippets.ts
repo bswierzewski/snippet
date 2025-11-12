@@ -4,16 +4,20 @@
  * Snippet.Web | v1
  * OpenAPI spec version: 1.0.0
  */
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
+  DefinedUseInfiniteQueryResult,
   DefinedUseQueryResult,
+  InfiniteData,
   MutationFunction,
   QueryClient,
   QueryFunction,
   QueryKey,
   UndefinedInitialDataOptions,
+  UseInfiniteQueryOptions,
+  UseInfiniteQueryResult,
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
@@ -682,48 +686,171 @@ export const searchSnippets = (searchSnippetsQuery: SearchSnippetsQuery, signal?
   });
 };
 
-export const getSearchSnippetsMutationOptions = <TError = Error[], TContext = unknown>(options?: {
-  mutation?: UseMutationOptions<
+export const getSearchSnippetsInfiniteQueryKey = (searchSnippetsQuery?: SearchSnippetsQuery) => {
+  return ['infinite', `/api/snippets/search`, searchSnippetsQuery] as const;
+};
+
+export const getSearchSnippetsQueryKey = (searchSnippetsQuery?: SearchSnippetsQuery) => {
+  return [`/api/snippets/search`, searchSnippetsQuery] as const;
+};
+
+export const getSearchSnippetsInfiniteQueryOptions = <
+  TData = InfiniteData<Awaited<ReturnType<typeof searchSnippets>>>,
+  TError = Error[]
+>(
+  searchSnippetsQuery: SearchSnippetsQuery,
+  options?: { query?: Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof searchSnippets>>, TError, TData>> }
+) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getSearchSnippetsInfiniteQueryKey(searchSnippetsQuery);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof searchSnippets>>> = ({ signal }) =>
+    searchSnippets(searchSnippetsQuery, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseInfiniteQueryOptions<
     Awaited<ReturnType<typeof searchSnippets>>,
     TError,
-    { data: SearchSnippetsQuery },
-    TContext
-  >;
-}): UseMutationOptions<Awaited<ReturnType<typeof searchSnippets>>, TError, { data: SearchSnippetsQuery }, TContext> => {
-  const mutationKey = ['searchSnippets'];
-  const { mutation: mutationOptions } = options
-    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
-
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof searchSnippets>>, { data: SearchSnippetsQuery }> = (
-    props
-  ) => {
-    const { data } = props ?? {};
-
-    return searchSnippets(data);
-  };
-
-  return { mutationFn, ...mutationOptions };
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type SearchSnippetsMutationResult = NonNullable<Awaited<ReturnType<typeof searchSnippets>>>;
-export type SearchSnippetsMutationBody = SearchSnippetsQuery;
-export type SearchSnippetsMutationError = Error[];
+export type SearchSnippetsInfiniteQueryResult = NonNullable<Awaited<ReturnType<typeof searchSnippets>>>;
+export type SearchSnippetsInfiniteQueryError = Error[];
 
-export const useSearchSnippets = <TError = Error[], TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof searchSnippets>>,
-      TError,
-      { data: SearchSnippetsQuery },
-      TContext
-    >;
+export function useSearchSnippetsInfinite<
+  TData = InfiniteData<Awaited<ReturnType<typeof searchSnippets>>>,
+  TError = Error[]
+>(
+  searchSnippetsQuery: SearchSnippetsQuery,
+  options: {
+    query: Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof searchSnippets>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof searchSnippets>>,
+          TError,
+          Awaited<ReturnType<typeof searchSnippets>>
+        >,
+        'initialData'
+      >;
   },
   queryClient?: QueryClient
-): UseMutationResult<Awaited<ReturnType<typeof searchSnippets>>, TError, { data: SearchSnippetsQuery }, TContext> => {
-  const mutationOptions = getSearchSnippetsMutationOptions(options);
+): DefinedUseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useSearchSnippetsInfinite<
+  TData = InfiniteData<Awaited<ReturnType<typeof searchSnippets>>>,
+  TError = Error[]
+>(
+  searchSnippetsQuery: SearchSnippetsQuery,
+  options?: {
+    query?: Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof searchSnippets>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof searchSnippets>>,
+          TError,
+          Awaited<ReturnType<typeof searchSnippets>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useSearchSnippetsInfinite<
+  TData = InfiniteData<Awaited<ReturnType<typeof searchSnippets>>>,
+  TError = Error[]
+>(
+  searchSnippetsQuery: SearchSnippetsQuery,
+  options?: { query?: Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof searchSnippets>>, TError, TData>> },
+  queryClient?: QueryClient
+): UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return useMutation(mutationOptions, queryClient);
+export function useSearchSnippetsInfinite<
+  TData = InfiniteData<Awaited<ReturnType<typeof searchSnippets>>>,
+  TError = Error[]
+>(
+  searchSnippetsQuery: SearchSnippetsQuery,
+  options?: { query?: Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof searchSnippets>>, TError, TData>> },
+  queryClient?: QueryClient
+): UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getSearchSnippetsInfiniteQueryOptions(searchSnippetsQuery, options);
+
+  const query = useInfiniteQuery(queryOptions, queryClient) as UseInfiniteQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+export const getSearchSnippetsQueryOptions = <TData = Awaited<ReturnType<typeof searchSnippets>>, TError = Error[]>(
+  searchSnippetsQuery: SearchSnippetsQuery,
+  options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchSnippets>>, TError, TData>> }
+) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getSearchSnippetsQueryKey(searchSnippetsQuery);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof searchSnippets>>> = ({ signal }) =>
+    searchSnippets(searchSnippetsQuery, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof searchSnippets>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
+
+export type SearchSnippetsQueryResult = NonNullable<Awaited<ReturnType<typeof searchSnippets>>>;
+export type SearchSnippetsQueryError = Error[];
+
+export function useSearchSnippets<TData = Awaited<ReturnType<typeof searchSnippets>>, TError = Error[]>(
+  searchSnippetsQuery: SearchSnippetsQuery,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchSnippets>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof searchSnippets>>,
+          TError,
+          Awaited<ReturnType<typeof searchSnippets>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useSearchSnippets<TData = Awaited<ReturnType<typeof searchSnippets>>, TError = Error[]>(
+  searchSnippetsQuery: SearchSnippetsQuery,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchSnippets>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof searchSnippets>>,
+          TError,
+          Awaited<ReturnType<typeof searchSnippets>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useSearchSnippets<TData = Awaited<ReturnType<typeof searchSnippets>>, TError = Error[]>(
+  searchSnippetsQuery: SearchSnippetsQuery,
+  options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchSnippets>>, TError, TData>> },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+export function useSearchSnippets<TData = Awaited<ReturnType<typeof searchSnippets>>, TError = Error[]>(
+  searchSnippetsQuery: SearchSnippetsQuery,
+  options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchSnippets>>, TError, TData>> },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getSearchSnippetsQueryOptions(searchSnippetsQuery, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
