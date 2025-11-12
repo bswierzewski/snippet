@@ -7,6 +7,9 @@ import { Filter, Search, User, Plus } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { CreateSnippetDialog } from './CreateSnippetDialog';
 import { ThemeToggle } from './ThemeToggle';
+import { FilterDialog } from './FilterDialog';
+import { useFilterStore } from '@/lib/store/filterStore';
+import { Badge } from '@/components/ui/badge';
 
 export function Navbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -15,6 +18,7 @@ export function Navbar() {
   const router = useRouter();
   const supabase = createClient();
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const { searchTerm, setSearchTerm, hasActiveFilters, getActiveFilterCount } = useFilterStore();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -94,6 +98,8 @@ export function Navbar() {
             <input
               type="text"
               placeholder="Szukaj snippetów..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-input bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
             />
           </div>
@@ -101,15 +107,24 @@ export function Navbar() {
           {/* Filter button */}
           <button
             onClick={() => setIsFilterDialogOpen(true)}
-            className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors shrink-0"
+            className="relative p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors shrink-0"
             aria-label="Open filters"
           >
-            <Filter className="w-5 h-5" />
+            <Filter className={`w-5 h-5 ${hasActiveFilters() ? 'fill-current' : ''}`} />
+            {hasActiveFilters() && (
+              <Badge
+                variant="destructive"
+                className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs"
+              >
+                {getActiveFilterCount()}
+              </Badge>
+            )}
           </button>
         </div>
       </header>
 
       <CreateSnippetDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
+      <FilterDialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen} />
     </>
   );
 }

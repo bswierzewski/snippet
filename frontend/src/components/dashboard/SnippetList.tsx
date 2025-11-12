@@ -1,18 +1,46 @@
 'use client';
 
-import { useState } from 'react';
-import { useGetUserSnippets } from '@/lib/api/endpoints/snippets';
+import { useState, useEffect } from 'react';
+import { useSearchSnippets } from '@/lib/api/endpoints/snippets';
+import { useFilterStore } from '@/lib/store/filterStore';
+import { useDebounce } from '@/hooks/useDebounce';
 import { Code } from 'lucide-react';
 import { SnippetCard } from './SnippetCard';
 import { EditSnippetDialog } from './EditSnippetDialog';
 import { DeleteSnippetDialog } from './DeleteSnippetDialog';
 
 export function SnippetList() {
-  const { data: snippets, isLoading, error } = useGetUserSnippets();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedSnippetId, setSelectedSnippetId] = useState<string | null>(null);
   const [selectedSnippetTitle, setSelectedSnippetTitle] = useState('');
+
+  // Get filters from store
+  const { searchTerm, selectedTags, selectedLanguages, selectedCollectionId } = useFilterStore();
+
+  // Debounce search term to avoid too many requests
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  // Fetch snippets with filters applied
+  const { mutate: searchSnippets, data: searchResults, isPending: isLoading } = useSearchSnippets();
+
+  // Trigger search whenever filters change
+  useEffect(() => {
+    searchSnippets({
+      data: {
+        searchTerm: debouncedSearchTerm || null,
+        tags: selectedTags.length > 0 ? selectedTags : null,
+        languages: selectedLanguages.length > 0 ? selectedLanguages : null,
+        collectionId: selectedCollectionId || null,
+        favoritesOnly: null,
+        pageNumber: 1,
+        pageSize: 50
+      }
+    });
+  }, [debouncedSearchTerm, selectedTags, selectedLanguages, selectedCollectionId, searchSnippets]);
+
+  const snippets = searchResults?.snippets || [];
+  const error = null;
 
   const handleEdit = (snippetId: string) => {
     setSelectedSnippetId(snippetId);
