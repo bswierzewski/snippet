@@ -1,7 +1,6 @@
 using BuildingBlocks.Modules.Users.Infrastructure.Persistence;
 using BuildingBlocks.Tests.EndToEnd.Extensions;
 using BuildingBlocks.Tests.EndToEnd.Factories;
-using BuildingBlocks.Tests.EndToEnd.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Snippet.Modules.Snippets.Infrastructure.Persistence;
 
@@ -30,29 +29,5 @@ public class SnippetTestWebApplicationFactory : TestWebApplicationFactory<Progra
         services
             .ReplaceDbContext<SnippetsDbContext>(connectionString)
             .ReplaceDbContext<UsersDbContext>(connectionString);
-    }
-
-    /// <summary>
-    /// Configures authentication options from environment variables.
-    /// </summary>
-    protected override void OnConfigureServices(IServiceCollection services)
-    {
-        services.Configure<AuthOptions>(authOptions =>
-        {
-            authOptions.Provider = Environment.GetEnvironmentVariable("AUTH_PROVIDER") ?? "";
-
-            authOptions.Supabase = new SupabaseAuthOptions
-            {
-                Url = Environment.GetEnvironmentVariable("SUPABASE_URL") ?? "",
-                Key = Environment.GetEnvironmentVariable("SUPABASE_KEY") ?? "",
-                TestEmail = Environment.GetEnvironmentVariable("SUPABASE_TEST_EMAIL") ?? "",
-                TestPassword = Environment.GetEnvironmentVariable("SUPABASE_TEST_PASSWORD") ?? ""
-            };
-
-            authOptions.Clerk = new ClerkAuthOptions
-            {
-                TestToken = Environment.GetEnvironmentVariable("CLERK_TEST_TOKEN") ?? ""
-            };
-        });
     }
 }

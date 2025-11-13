@@ -1,5 +1,4 @@
 using BuildingBlocks.Tests.EndToEnd;
-using BuildingBlocks.Tests.EndToEnd.Auth;
 
 namespace Snippet.Tests.EndToEnd;
 
@@ -8,19 +7,14 @@ namespace Snippet.Tests.EndToEnd;
 /// Ensures all Snippet E2E tests run sequentially using the Snippet-configured test factory.
 /// </summary>
 [CollectionDefinition(nameof(SnippetE2ECollection))]
-public class SnippetE2ECollection :
-    ICollectionFixture<SnippetTestWebApplicationFactory>,
-    ICollectionFixture<AuthFixture>
+public class SnippetE2ECollection : ICollectionFixture<SnippetTestWebApplicationFactory>
 {
 }
 
 /// <summary>
-/// Base class for Snippet E2E tests with pre-configured factory and auth fixture.
+/// Base class for Snippet E2E tests with pre-configured factory.
+/// Individual test classes can override OnInitializeAsync to configure authentication.
 /// </summary>
-public abstract class SnippetTestBase : TestBase
+public abstract class SnippetTestBase(SnippetTestWebApplicationFactory factory) : TestBase(factory)
 {
-    protected SnippetTestBase(SnippetTestWebApplicationFactory factory, AuthFixture authFixture)
-        : base(factory, authFixture)
-    {
-    }
 }

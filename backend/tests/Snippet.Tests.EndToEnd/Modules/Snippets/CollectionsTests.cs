@@ -1,13 +1,12 @@
 using System.Net;
+using BuildingBlocks.Tests.EndToEnd.Auth;
+using BuildingBlocks.Tests.EndToEnd.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Snippet.Modules.Snippets.Application.Abstractions;
 using Snippet.Modules.Snippets.Application.Commands.Collections.CreateCollection;
 using Snippet.Modules.Snippets.Application.Commands.Collections.UpdateCollection;
 using Snippet.Modules.Snippets.Domain.ValueObjects;
-using BuildingBlocks.Tests.EndToEnd;
-using BuildingBlocks.Tests.EndToEnd.Auth;
-using BuildingBlocks.Tests.EndToEnd.Extensions;
 
 namespace Snippet.Tests.EndToEnd.Modules.Snippets;
 
@@ -15,8 +14,23 @@ namespace Snippet.Tests.EndToEnd.Modules.Snippets;
 /// End-to-end tests for collection management functionality including creation, retrieval, update, and deletion operations.
 /// </summary>
 [Collection(nameof(SnippetE2ECollection))]
-public class CollectionsTests(SnippetTestWebApplicationFactory factory, AuthFixture authFixture) : SnippetTestBase(factory, authFixture)
-{  
+public class CollectionsTests(SnippetTestWebApplicationFactory factory) : SnippetTestBase(factory)
+{
+    /// <summary>
+    /// Configures authentication for collection tests.
+    /// Gets auth provider from DI and applies token to HTTP client.
+    /// </summary>
+    protected override async Task OnInitializeAsync()
+    {
+        var authProvider = Services.GetRequiredService<IAuthTokenProvider>();
+        var token = await authProvider.GetTokenAsync();
+
+        if (!string.IsNullOrEmpty(token))
+            Client.WithBearerToken(token);
+
+        await base.OnInitializeAsync();
+    }
+
     [Fact]
     public async Task GetCollections_ShouldReturnSuccess()
     {

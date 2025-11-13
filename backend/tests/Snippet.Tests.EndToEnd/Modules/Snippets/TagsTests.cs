@@ -1,4 +1,6 @@
 using System.Net;
+using BuildingBlocks.Tests.EndToEnd.Auth;
+using BuildingBlocks.Tests.EndToEnd.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Snippet.Modules.Snippets.Application.Abstractions;
@@ -6,9 +8,6 @@ using Snippet.Modules.Snippets.Application.Commands.Tags.CreateTag;
 using Snippet.Modules.Snippets.Application.Queries.Tags.GetTags;
 using Snippet.Modules.Snippets.Application.Queries.Tags.GetUserTags;
 using Snippet.Modules.Snippets.Domain.ValueObjects;
-using BuildingBlocks.Tests.EndToEnd;
-using BuildingBlocks.Tests.EndToEnd.Auth;
-using BuildingBlocks.Tests.EndToEnd.Extensions;
 
 namespace Snippet.Tests.EndToEnd.Modules.Snippets;
 
@@ -16,8 +15,23 @@ namespace Snippet.Tests.EndToEnd.Modules.Snippets;
 /// End-to-end tests for tag management functionality including creation, retrieval, search, and deletion operations.
 /// </summary>
 [Collection(nameof(SnippetE2ECollection))]
-public class TagsTests(SnippetTestWebApplicationFactory factory, AuthFixture authFixture) : SnippetTestBase(factory, authFixture)
+public class TagsTests(SnippetTestWebApplicationFactory factory) : SnippetTestBase(factory)
 {
+    /// <summary>
+    /// Configures authentication for tag tests.
+    /// Gets auth provider from DI and applies token to HTTP client.
+    /// </summary>
+    protected override async Task OnInitializeAsync()
+    {
+        var authProvider = Services.GetRequiredService<IAuthTokenProvider>();
+        var token = await authProvider.GetTokenAsync();
+
+        if (!string.IsNullOrEmpty(token))
+            Client.WithBearerToken(token);
+
+        await base.OnInitializeAsync();
+    }
+
     #region Create Tag Tests
 
     [Fact]

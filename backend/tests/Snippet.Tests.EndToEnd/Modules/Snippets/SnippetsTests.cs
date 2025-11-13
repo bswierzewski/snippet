@@ -1,4 +1,6 @@
 using System.Net;
+using BuildingBlocks.Tests.EndToEnd.Auth;
+using BuildingBlocks.Tests.EndToEnd.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Snippet.Modules.Snippets.Application.Abstractions;
@@ -8,9 +10,6 @@ using Snippet.Modules.Snippets.Application.Commands.Snippets.UpdateSnippet;
 using Snippet.Modules.Snippets.Application.Commands.Tags.CreateTag;
 using Snippet.Modules.Snippets.Domain.Enums;
 using Snippet.Modules.Snippets.Domain.ValueObjects;
-using BuildingBlocks.Tests.EndToEnd;
-using BuildingBlocks.Tests.EndToEnd.Auth;
-using BuildingBlocks.Tests.EndToEnd.Extensions;
 
 namespace Snippet.Tests.EndToEnd.Modules.Snippets;
 
@@ -18,8 +17,23 @@ namespace Snippet.Tests.EndToEnd.Modules.Snippets;
 /// End-to-end tests for snippet management functionality including creation, retrieval, update, and deletion operations.
 /// </summary>
 [Collection(nameof(SnippetE2ECollection))]
-public class SnippetsTests(SnippetTestWebApplicationFactory factory, AuthFixture authFixture) : SnippetTestBase(factory, authFixture)
+public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTestBase(factory)
 {
+    /// <summary>
+    /// Configures authentication for snippet tests.
+    /// Gets auth provider from DI and applies token to HTTP client.
+    /// </summary>
+    protected override async Task OnInitializeAsync()
+    {
+        var authProvider = Services.GetRequiredService<IAuthTokenProvider>();
+        var token = await authProvider.GetTokenAsync();
+
+        if (!string.IsNullOrEmpty(token))
+            Client.WithBearerToken(token);
+
+        await base.OnInitializeAsync();
+    }
+
     #region Create Snippet Tests
 
     [Fact]
