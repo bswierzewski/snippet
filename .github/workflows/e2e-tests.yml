@@ -50,7 +50,7 @@ jobs:
         if: steps.changes.outputs.backend == 'true'
         run: |
           echo "Loading environment variables..."
-          echo "${{ vars.ENV_FILE }}" | grep -v '^#' | grep -v '^$' | grep '=' >> $GITHUB_ENV
+          echo "${{ vars.ENV_FILE }}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^#' | grep -v '^$' | grep '=' >> $GITHUB_ENV
           echo "Environment variables loaded successfully"
 
       - name: Setup .NET
