@@ -45,9 +45,19 @@ jobs:
       # - Logging configuration
       # - Test user credentials
       # These variables are exported to $GITHUB_ENV to be available in subsequent steps.
+      # Comments (lines starting with #) and empty lines are filtered out.
       - name: Load environment variables
         if: steps.changes.outputs.backend == 'true'
-        run: echo "${{ vars.ENV_FILE }}" >> $GITHUB_ENV
+        run: |
+          echo "Loading environment variables..."
+          echo "${{ vars.ENV_FILE }}" | grep -v '^#' | grep -v '^$' | grep '=' >> $GITHUB_ENV
+          echo "Environment variables loaded successfully"
+
+      - name: Verify loaded variables
+        if: steps.changes.outputs.backend == 'true'
+        run: |
+          echo "Loaded variable names (values hidden for security):"
+          echo "${{ vars.ENV_FILE }}" | grep -v '^#' | grep -v '^$' | grep '=' | cut -d'=' -f1
 
       - name: Setup .NET
         if: steps.changes.outputs.backend == 'true'
