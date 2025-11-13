@@ -50,14 +50,21 @@ jobs:
         if: steps.changes.outputs.backend == 'true'
         run: |
           echo "Loading environment variables..."
-          echo "${{ vars.ENV_FILE }}" | grep -v '^#' | grep -v '^$' | grep '=' >> $GITHUB_ENV
+          echo "${{ vars.ENV_FILE }}" | sed 's/^[[:space:]]*//' | grep -v '^#' | grep -v '^$' | grep '=' >> $GITHUB_ENV
           echo "Environment variables loaded successfully"
 
       - name: Verify loaded variables
         if: steps.changes.outputs.backend == 'true'
         run: |
           echo "Loaded variable names (values hidden for security):"
-          echo "${{ vars.ENV_FILE }}" | grep -v '^#' | grep -v '^$' | grep '=' | cut -d'=' -f1
+          echo "${{ vars.ENV_FILE }}" | sed 's/^[[:space:]]*//' | grep -v '^#' | grep -v '^$' | grep '=' | cut -d'=' -f1
+          echo ""
+          echo "Verifying critical variables are set in environment:"
+          echo "AUTHENTICATION__PROVIDER: ${AUTHENTICATION__PROVIDER:-NOT SET}"
+          echo "AUTHENTICATION__SUPABASE__URL (first 30 chars): ${AUTHENTICATION__SUPABASE__URL:0:30}"
+          echo "AUTHENTICATION__SUPABASE__PROJECTURL (first 30 chars): ${AUTHENTICATION__SUPABASE__PROJECTURL:0:30}"
+          echo "AUTHENTICATION__SUPABASE__KEY: ${AUTHENTICATION__SUPABASE__KEY:+SET}"
+          echo "AUTHENTICATION__SUPABASE__JWTSECRET: ${AUTHENTICATION__SUPABASE__JWTSECRET:+SET}"
 
       - name: Setup .NET
         if: steps.changes.outputs.backend == 'true'
