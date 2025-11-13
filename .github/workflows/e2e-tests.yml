@@ -62,13 +62,13 @@ jobs:
           DOTNET_ENVIRONMENT: Testing
 
           # Specifies which authentication provider to use for tests
-          AUTH_PROVIDER: supabase
+          AUTH_PROVIDER: Supabase
 
           # Double-underscore format is used to map environment variables to nested appsettings.json configuration.
           # This section configures the backend API for token validation during tests.
-          Authentication__Supabase__ProjectUrl: ${{ secrets.SUPABASE_PROJECT_URL }}
-          Authentication__Supabase__Audience: authenticated
-          Authentication__Supabase__JwtSecret: ${{ secrets.SUPABASE_JWT_SECRET }}
+          AUTHENTICATION__SUPABASE__PROJECTURL: ${{ secrets.AUTHENTICATION__SUPABASE__PROJECTURL }}
+          AUTHENTICATION__SUPABASE__AUDIENCE: authenticated
+          AUTHENTICATION__SUPABASE__JWTSECRET: ${{ secrets.AUTHENTICATION__SUPABASE__JWTSECRET }}
 
           # Placeholder connection strings - will be replaced by TestWebApplicationFactory with testcontainers
           ConnectionStrings__UsersConnection: "Host=placeholder;Database=placeholder;Username=placeholder;Password=placeholder"
@@ -83,10 +83,10 @@ jobs:
 
           # This section provides credentials for the test client to generate authentication tokens.
           # The format may be different if the test client has its own configuration mechanism.
-          SUPABASE_URL: ${{ secrets.SUPABASE_PROJECT_URL }}
-          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-          SUPABASE_TEST_EMAIL: ${{ secrets.SUPABASE_TEST_EMAIL }}
-          SUPABASE_TEST_PASSWORD: ${{ secrets.SUPABASE_TEST_PASSWORD }}
+          AUTHENTICATION__SUPABASE__URL: ${{ secrets.AUTHENTICATION__SUPABASE__URL }}
+          AUTHENTICATION__SUPABASE__KEY: ${{ secrets.AUTHENTICATION__SUPABASE__KEY }}
+          AUTHENTICATION__SUPABASE__TESTEMAIL: ${{ secrets.AUTHENTICATION__SUPABASE__TESTEMAIL }}
+          AUTHENTICATION__SUPABASE__TESTPASSWORD: ${{ secrets.AUTHENTICATION__SUPABASE__TESTPASSWORD }}
 
       # This step provides clear feedback in the logs if the tests were intentionally skipped.
       - name: Notify if tests were skipped
