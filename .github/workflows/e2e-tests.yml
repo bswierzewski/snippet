@@ -38,16 +38,16 @@ jobs:
 
       # The following steps will only run if the 'backend' filter from the previous step is 'true'.
 
-      # Step 3: Create .env file from GitHub Variables.
+      # Step 3: Load environment variables from GitHub Variables.
       # The ENV_FILE variable contains all environment variables needed for E2E tests:
       # - Authentication provider configuration (Supabase/Clerk/None)
       # - Database connection strings (replaced by TestWebApplicationFactory with testcontainers)
       # - Logging configuration
       # - Test user credentials
-      - name: Create .env file
+      # These variables are exported to $GITHUB_ENV to be available in subsequent steps.
+      - name: Load environment variables
         if: steps.changes.outputs.backend == 'true'
-        working-directory: ./backend
-        run: echo "${{ vars.ENV_FILE }}" > .env
+        run: echo "${{ vars.ENV_FILE }}" >> $GITHUB_ENV
 
       - name: Setup .NET
         if: steps.changes.outputs.backend == 'true'
