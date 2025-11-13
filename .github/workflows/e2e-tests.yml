@@ -82,6 +82,15 @@ jobs:
         working-directory: ./backend
         run: dotnet build --no-restore --configuration Release
 
+      - name: Verify environment before tests
+        if: steps.changes.outputs.backend == 'true'
+        run: |
+          echo "Environment variables available for tests:"
+          echo "AUTHENTICATION__PROVIDER: ${AUTHENTICATION__PROVIDER:-NOT SET}"
+          echo "AUTHENTICATION__SUPABASE__URL: ${AUTHENTICATION__SUPABASE__URL:-NOT SET}"
+          echo "AUTHENTICATION__SUPABASE__KEY: ${AUTHENTICATION__SUPABASE__KEY:+SET}"
+          printenv | grep AUTHENTICATION__ || echo "No AUTHENTICATION__ variables found"
+
       - name: Run E2E Tests
         if: steps.changes.outputs.backend == 'true'
         working-directory: ./backend
