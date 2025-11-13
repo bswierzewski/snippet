@@ -12,7 +12,6 @@ import { searchSnippets, getSearchSnippetsInfiniteQueryKey } from '@/lib/api/end
 import type { SnippetSummaryDto } from '@/lib/api/models';
 import { useInfiniteQuery } from '@tanstack/react-query';
 
-import { useDebounce } from '@/hooks/useDebounce';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 
 export function SnippetList() {
@@ -25,12 +24,9 @@ export function SnippetList() {
   // Get filters from store
   const { searchTerm, selectedTags, selectedLanguages, selectedCollectionId } = useFilterStore();
 
-  // Debounce search term to avoid too many requests
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
-
   // Build search query parameters (without pagination for query key)
   const searchQueryBase = {
-    searchTerm: debouncedSearchTerm || null,
+    searchTerm: searchTerm || null,
     tags: selectedTags.length > 0 ? selectedTags : null,
     languages: selectedLanguages.length > 0 ? selectedLanguages : null,
     collectionId: selectedCollectionId || null,
