@@ -44,6 +44,11 @@
     <ProjectReference Include="..\..\libs\BuildingBlocks\src\BuildingBlocks.Modules\Users\BuildingBlocks.Modules.Users.Web\BuildingBlocks.Modules.Users.Web.csproj" />
   </ItemGroup>
 
+  <!-- BuildingBlocks E2E Tests Infrastructure -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\libs\BuildingBlocks\tests\BuildingBlocks.Tests.EndToEnd\BuildingBlocks.Tests.EndToEnd.csproj" />
+  </ItemGroup>
+
   <ItemGroup>
     <Using Include="Xunit" />
     <Using Include="FluentAssertions" />
