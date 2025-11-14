@@ -50,17 +50,6 @@ jobs:
           echo "${{ vars.ENV_FILE }}" > .env
           echo ".env file created successfully in $(pwd)"
 
-      # --- NOWY KROK DIAGNOSTYCZNY ---
-      # Step 4: Display the content of the created .env file for debugging purposes.
-      # This helps verify that the variables have been written correctly before tests are run.
-      - name: Display .env file content for diagnostics
-        if: steps.changes.outputs.backend == 'true'
-        working-directory: ./backend
-        run: |
-          echo "--- Start of .env file content ---"
-          cat .env
-          echo "---- End of .env file content ----"
-
       - name: Setup .NET
         if: steps.changes.outputs.backend == 'true'
         uses: actions/setup-dotnet@v4
@@ -86,6 +75,7 @@ jobs:
       - name: Notify if tests were skipped
         if: steps.changes.outputs.backend == 'false'
         run: echo "E2E tests were skipped because no changes were detected in the backend."
+
 
 
 
