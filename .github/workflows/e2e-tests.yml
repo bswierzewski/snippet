@@ -38,7 +38,7 @@ jobs:
 
       # The following steps will only run if the 'backend' filter from the previous step is 'true'.
 
-      # Step 3: Create a .env file from a GitHub Secret.
+      # Step 3: Create a .env file from a GitHub Variables.
       # This approach creates a physical .env file that the application can load.
       # NOTE: This requires the .NET test project to be configured to read .env files
       # (e.g., using the DotNetEnv NuGet package).
@@ -46,8 +46,8 @@ jobs:
         if: steps.changes.outputs.backend == 'true'
         working-directory: ./backend
         run: |
-          echo "Creating .env file from secret..."
-          echo "${{ secrets.ENV_FILE }}" > .env
+          echo "Creating .env file from variables..."
+          echo "${{ vars.ENV_FILE }}" > .env
           echo ".env file created successfully in $(pwd)"
 
       - name: Setup .NET
@@ -75,4 +75,5 @@ jobs:
       - name: Notify if tests were skipped
         if: steps.changes.outputs.backend == 'false'
         run: echo "E2E tests were skipped because no changes were detected in the backend."
+
 
