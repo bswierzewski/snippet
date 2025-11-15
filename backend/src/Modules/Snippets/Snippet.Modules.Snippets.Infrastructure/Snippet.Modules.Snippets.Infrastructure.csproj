@@ -10,6 +10,10 @@
     <ProjectReference Include="..\Snippet.Modules.Snippets.Application\Snippet.Modules.Snippets.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup Label="Shared References">
+    <ProjectReference Include="..\..\..\Shared\Snippet.Shared\Snippet.Shared.csproj" />
+  </ItemGroup>
+
   <ItemGroup Label="BuildingBlocks References">
     <ProjectReference Include="..\..\..\..\libs\BuildingBlocks\src\BuildingBlocks.Infrastructure\BuildingBlocks.Infrastructure.csproj" />
   </ItemGroup>
