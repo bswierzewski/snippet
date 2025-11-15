@@ -38,20 +38,17 @@ jobs:
 
       # The following steps will only run if the 'backend' filter from the previous step is 'true'.
 
-      # Step 3: Load environment variables from GitHub Variables.
-      # The ENV_FILE variable contains all environment variables needed for E2E tests:
-      # - Authentication provider configuration (Supabase/Clerk/None)
-      # - Database connection strings (replaced by TestWebApplicationFactory with testcontainers)
-      # - Logging configuration
-      # - Test user credentials
-      # These variables are exported to $GITHUB_ENV to be available in subsequent steps.
-      # Comments (lines starting with #) and empty lines are filtered out.
-      - name: Load environment variables
+      # Step 3: Create a .env file from a GitHub Variables.
+      # This approach creates a physical .env file that the application can load.
+      # NOTE: This requires the .NET test project to be configured to read .env files
+      # (e.g., using the DotNetEnv NuGet package).
+      - name: Create .env file for tests
         if: steps.changes.outputs.backend == 'true'
+        working-directory: ./backend
         run: |
-          echo "Loading environment variables..."
-          echo "${{ vars.ENV_FILE }}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^#' | grep -v '^$' | grep '=' >> $GITHUB_ENV
-          echo "Environment variables loaded successfully"
+          echo "Creating .env file from variables..."
+          echo "${{ vars.ENV_FILE }}" > .env
+          echo ".env file created successfully in $(pwd)"
 
       - name: Setup .NET
         if: steps.changes.outputs.backend == 'true'
