@@ -53,10 +53,10 @@ export default function RegisterPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">Rejestracja</h1>
+        <div className="bg-card rounded-lg shadow-md border p-8">
+          <h1 className="text-2xl font-bold text-foreground mb-6 text-center">Rejestracja</h1>
 
           <form
             id="register-form"
@@ -152,9 +152,9 @@ export default function RegisterPage() {
             )}
           </form.Subscribe>
 
-          <p className="mt-4 text-center text-sm text-gray-600">
+          <p className="mt-4 text-center text-sm text-muted-foreground">
             Masz już konto?{' '}
-            <a href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+            <a href="/login" className="text-primary hover:text-primary/80 font-medium transition-colors">
               Zaloguj się
             </a>
           </p>

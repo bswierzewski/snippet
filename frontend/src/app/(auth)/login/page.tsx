@@ -43,10 +43,10 @@ export default function LoginPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">Logowanie</h1>
+        <div className="bg-card rounded-lg shadow-md border p-8">
+          <h1 className="text-2xl font-bold text-foreground mb-6 text-center">Logowanie</h1>
 
           <form
             id="login-form"
@@ -119,9 +119,9 @@ export default function LoginPage() {
             )}
           </form.Subscribe>
 
-          <p className="mt-4 text-center text-sm text-gray-600">
+          <p className="mt-4 text-center text-sm text-muted-foreground">
             Nie masz konta?{' '}
-            <a href="/register" className="text-blue-600 hover:text-blue-700 font-medium">
+            <a href="/register" className="text-primary hover:text-primary/80 font-medium transition-colors">
               Zarejestruj się
             </a>
           </p>
