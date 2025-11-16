@@ -2,12 +2,8 @@
 
 Biblioteka współdzielona zawierająca kod używany przez wszystkie projekty w rozwiązaniu Snippet (z wyjątkiem projektów Domain).
 
-## Zawartość
-
-### Options
-Klasy konfiguracyjne (Options) używane do odczytu i walidacji konfiguracji aplikacji.
-
 ### Planowane dodatki
+
 - **Contracts**: Kontrakty komunikacji między modułami
 - **Api**: Wspólne interfejsy API do komunikacji międzymodułowej
 - **Extensions**: Metody rozszerzające współdzielone między projektami
