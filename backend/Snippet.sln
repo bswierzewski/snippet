@@ -69,8 +69,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{C8E429
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Snippet.Shared", "src\Shared\Snippet.Shared\Snippet.Shared.csproj", "{BFD6819F-DB31-4DF1-BB29-7BB1A51CD84F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildingBlocks.Shared", "libs\BuildingBlocks\src\BuildingBlocks.Shared\BuildingBlocks.Shared.csproj", "{B33F7E9B-C0BF-459D-9219-2727813A9C17}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -261,18 +259,6 @@ Global
 		{BFD6819F-DB31-4DF1-BB29-7BB1A51CD84F}.Release|x64.Build.0 = Release|Any CPU
 		{BFD6819F-DB31-4DF1-BB29-7BB1A51CD84F}.Release|x86.ActiveCfg = Release|Any CPU
 		{BFD6819F-DB31-4DF1-BB29-7BB1A51CD84F}.Release|x86.Build.0 = Release|Any CPU
-		{B33F7E9B-C0BF-459D-9219-2727813A9C17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B33F7E9B-C0BF-459D-9219-2727813A9C17}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B33F7E9B-C0BF-459D-9219-2727813A9C17}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{B33F7E9B-C0BF-459D-9219-2727813A9C17}.Debug|x64.Build.0 = Debug|Any CPU
-		{B33F7E9B-C0BF-459D-9219-2727813A9C17}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{B33F7E9B-C0BF-459D-9219-2727813A9C17}.Debug|x86.Build.0 = Debug|Any CPU
-		{B33F7E9B-C0BF-459D-9219-2727813A9C17}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B33F7E9B-C0BF-459D-9219-2727813A9C17}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B33F7E9B-C0BF-459D-9219-2727813A9C17}.Release|x64.ActiveCfg = Release|Any CPU
-		{B33F7E9B-C0BF-459D-9219-2727813A9C17}.Release|x64.Build.0 = Release|Any CPU
-		{B33F7E9B-C0BF-459D-9219-2727813A9C17}.Release|x86.ActiveCfg = Release|Any CPU
-		{B33F7E9B-C0BF-459D-9219-2727813A9C17}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -302,6 +288,5 @@ Global
 		{8355FB38-D7FD-4C3A-B6C1-2B7DB706B4DF} = {F940A540-E5F9-3539-9E37-B92A92CA8241}
 		{C8E42992-5E42-0C2B-DBFE-AA848D06431C} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{BFD6819F-DB31-4DF1-BB29-7BB1A51CD84F} = {C8E42992-5E42-0C2B-DBFE-AA848D06431C}
-		{B33F7E9B-C0BF-459D-9219-2727813A9C17} = {98C39F20-EB26-4170-CBBA-59FF23A7D7AC}
 	EndGlobalSection
 EndGlobal
