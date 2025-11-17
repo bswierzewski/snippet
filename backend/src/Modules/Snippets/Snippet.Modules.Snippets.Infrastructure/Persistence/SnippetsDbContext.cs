@@ -35,6 +35,10 @@ public sealed class SnippetsDbContext(DbContextOptions<SnippetsDbContext> option
     IQueryable<Collection> ISnippetsReadDbContext.Collections => Collections.AsNoTracking();
     IQueryable<Tag> ISnippetsReadDbContext.Tags => Tags.AsNoTracking();
 
+    /// <summary>
+    /// Configures the model and relationships for the Snippets module entities.
+    /// </summary>
+    /// <param name="modelBuilder">The model builder.</param>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Apply entity configurations from this assembly

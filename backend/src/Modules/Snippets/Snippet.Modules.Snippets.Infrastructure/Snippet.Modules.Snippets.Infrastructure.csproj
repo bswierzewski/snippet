@@ -16,6 +16,7 @@
 
   <ItemGroup Label="BuildingBlocks References">
     <ProjectReference Include="..\..\..\..\libs\BuildingBlocks\src\BuildingBlocks.Infrastructure\BuildingBlocks.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\..\libs\BuildingBlocks\src\BuildingBlocks.Core\BuildingBlocks.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup Label="Package References">

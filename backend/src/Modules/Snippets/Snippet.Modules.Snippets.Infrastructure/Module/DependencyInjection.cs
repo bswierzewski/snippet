@@ -3,7 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Snippet.Modules.Snippets.Application.Abstractions;
+using Snippet.Modules.Snippets.Infrastructure.Options;
 using Snippet.Modules.Snippets.Infrastructure.Persistence;
 
 namespace Snippet.Modules.Snippets.Infrastructure.Module;
@@ -14,6 +16,10 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        // Register database options from configuration
+        services.Configure<SnippetsDatabaseOptions>(
+            configuration.GetSection(SnippetsDatabaseOptions.SectionName));
+
         // Register migration service for automatic database migrations
         services.AddMigrationService<SnippetsDbContext>();
 
@@ -25,10 +31,9 @@ public static class DependencyInjection
         // Register DbContext with PostgreSQL and interceptors
         services.AddDbContext<SnippetsDbContext>((sp, options) =>
         {
-            var connectionString = configuration.GetConnectionString("SnippetsConnection")
-                ?? throw new InvalidOperationException("SnippetsConnection string is not configured");
+            var dbOptions = sp.GetRequiredService<IOptions<SnippetsDatabaseOptions>>().Value;
 
-            options.UseNpgsql(connectionString)
+            options.UseNpgsql(dbOptions.ConnectionString)
                    .AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
         });
 
