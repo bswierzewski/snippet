@@ -39,14 +39,9 @@
     <ProjectReference Include="..\..\src\Modules\Snippets\Snippet.Modules.Snippets.Infrastructure\Snippet.Modules.Snippets.Infrastructure.csproj" />
   </ItemGroup>
 
-  <!-- BuildingBlocks Users module reference -->
+  <!-- NuGet Shared packages -->
   <ItemGroup>
-    <ProjectReference Include="..\..\libs\BuildingBlocks\src\BuildingBlocks.Modules\Users\BuildingBlocks.Modules.Users.Web\BuildingBlocks.Modules.Users.Web.csproj" />
-  </ItemGroup>
-
-  <!-- BuildingBlocks E2E Tests Infrastructure -->
-  <ItemGroup>
-    <ProjectReference Include="..\..\libs\BuildingBlocks\tests\BuildingBlocks.Tests.EndToEnd\BuildingBlocks.Tests.EndToEnd.csproj" />
+    <PackageReference Include="Shared.Infrastructure.Tests" />
   </ItemGroup>
 
   <ItemGroup>

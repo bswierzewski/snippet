@@ -17,10 +17,9 @@
     <ProjectReference Include="..\..\Shared\Snippet.Shared\Snippet.Shared.csproj" />
   </ItemGroup>
 
-	<ItemGroup Label="BuildingBlocks References">
-    <ProjectReference Include="..\..\..\libs\BuildingBlocks\src\BuildingBlocks.Application\BuildingBlocks.Application.csproj" />
-    <ProjectReference Include="..\..\..\libs\BuildingBlocks\src\BuildingBlocks.Infrastructure\BuildingBlocks.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\..\libs\BuildingBlocks\src\BuildingBlocks.Modules\Users\BuildingBlocks.Modules.Users.Web\BuildingBlocks.Modules.Users.Web.csproj" />
+	<ItemGroup Label="NuGet Package References">
+    <PackageReference Include="Shared.Infrastructure" />
+    <PackageReference Include="Shared.Users" />
   </ItemGroup>
 
   <ItemGroup Label="Local Module References">

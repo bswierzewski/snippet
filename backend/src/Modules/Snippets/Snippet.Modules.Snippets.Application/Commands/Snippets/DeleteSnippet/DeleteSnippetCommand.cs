@@ -1,4 +1,4 @@
-using BuildingBlocks.Application.Models;
+using Shared.Infrastructure.Models;
 using MediatR;
 
 namespace Snippet.Modules.Snippets.Application.Commands.Snippets.DeleteSnippet;

@@ -1,4 +1,5 @@
-using BuildingBlocks.Application.Models;
+using Shared.Abstractions.Authorization;
+using Shared.Infrastructure.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Snippet.Modules.Snippets.Application.Abstractions;

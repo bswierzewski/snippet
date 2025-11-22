@@ -1,4 +1,4 @@
-using BuildingBlocks.Domain.Primitives;
+using Shared.Abstractions.Primitives;
 using Snippet.Modules.Snippets.Domain.ValueObjects;
 
 namespace Snippet.Modules.Snippets.Domain.Aggregates;

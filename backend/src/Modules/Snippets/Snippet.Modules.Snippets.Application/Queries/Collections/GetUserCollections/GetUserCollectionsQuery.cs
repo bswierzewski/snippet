@@ -1,4 +1,4 @@
-using BuildingBlocks.Application.Models;
+using Shared.Infrastructure.Models;
 using MediatR;
 using Snippet.Modules.Snippets.Application.Queries.Collections.GetCollectionById;
 

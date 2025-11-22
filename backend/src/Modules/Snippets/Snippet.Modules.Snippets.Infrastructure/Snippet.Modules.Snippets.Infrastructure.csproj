@@ -14,13 +14,11 @@
     <ProjectReference Include="..\..\..\Shared\Snippet.Shared\Snippet.Shared.csproj" />
   </ItemGroup>
 
-  <ItemGroup Label="BuildingBlocks References">
-    <ProjectReference Include="..\..\..\..\libs\BuildingBlocks\src\BuildingBlocks.Infrastructure\BuildingBlocks.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\..\..\libs\BuildingBlocks\src\BuildingBlocks.Core\BuildingBlocks.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Label="Package References">
+  <ItemGroup Label="NuGet Package References">
+    <PackageReference Include="Shared.Abstractions" />
+    <PackageReference Include="Shared.Infrastructure" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
   </ItemGroup>
 

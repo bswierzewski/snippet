@@ -6,8 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup Label="BuildingBlocks References">
-    <ProjectReference Include="..\..\..\..\libs\BuildingBlocks\src\BuildingBlocks.Domain\BuildingBlocks.Domain.csproj" />
+  <ItemGroup Label="NuGet Package References">
+    <PackageReference Include="Shared.Abstractions" />
   </ItemGroup>
 
 </Project>

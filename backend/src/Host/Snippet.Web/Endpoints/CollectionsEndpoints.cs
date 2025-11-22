@@ -1,4 +1,4 @@
-using BuildingBlocks.Application.Models;
+using Shared.Infrastructure.Models;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Snippet.Modules.Snippets.Application.Commands.Collections.CreateCollection;

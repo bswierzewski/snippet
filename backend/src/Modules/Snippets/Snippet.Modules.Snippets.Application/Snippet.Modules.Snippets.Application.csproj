@@ -14,12 +14,12 @@
     <ProjectReference Include="..\..\..\Shared\Snippet.Shared\Snippet.Shared.csproj" />
   </ItemGroup>
 
-  <ItemGroup Label="BuildingBlocks References">
-    <ProjectReference Include="..\..\..\..\libs\BuildingBlocks\src\BuildingBlocks.Application\BuildingBlocks.Application.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Label="Package References">
+  <ItemGroup Label="NuGet Package References">
+    <PackageReference Include="Shared.Abstractions" />
+    <PackageReference Include="Shared.Infrastructure" />
     <PackageReference Include="MediatR" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
   </ItemGroup>
 
 </Project>

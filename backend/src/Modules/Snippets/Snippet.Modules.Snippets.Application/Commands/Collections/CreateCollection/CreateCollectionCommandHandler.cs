@@ -1,5 +1,5 @@
-using BuildingBlocks.Application.Abstractions;
-using BuildingBlocks.Application.Models;
+using Shared.Abstractions.Authorization;
+using Shared.Infrastructure.Models;
 using MediatR;
 using Snippet.Modules.Snippets.Application.Abstractions;
 using Snippet.Modules.Snippets.Domain.Aggregates;
