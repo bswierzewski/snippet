@@ -1,8 +1,7 @@
 using System.Net;
-using BuildingBlocks.Tests.EndToEnd.Auth;
-using BuildingBlocks.Tests.EndToEnd.Extensions;
+using Shared.Infrastructure.Tests.Core;
+using Shared.Infrastructure.Tests.Extensions.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Snippet.Modules.Snippets.Application.Abstractions;
 using Snippet.Modules.Snippets.Application.Commands.Collections.CreateCollection;
 using Snippet.Modules.Snippets.Application.Commands.Snippets.CreateSnippet;
@@ -16,22 +15,21 @@ namespace Snippet.Tests.EndToEnd.Modules.Snippets;
 /// <summary>
 /// End-to-end tests for snippet management functionality including creation, retrieval, update, and deletion operations.
 /// </summary>
-[Collection(nameof(SnippetE2ECollection))]
-public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTestBase(factory)
+[Collection("Snippet")]
+public class SnippetsTests
 {
-    /// <summary>
-    /// Configures authentication for snippet tests.
-    /// Gets auth provider from DI and applies token to HTTP client.
-    /// </summary>
-    protected override async Task OnInitializeAsync()
+    private readonly TestContext _context;
+
+    public SnippetsTests(SnippetTestFixture fixture)
     {
-        var authProvider = Services.GetRequiredService<IAuthTokenProvider>();
-        var token = await authProvider.GetTokenAsync();
+        _context = fixture.Context;
+    }
 
-        if (!string.IsNullOrEmpty(token))
-            Client.WithBearerToken(token);
-
-        await base.OnInitializeAsync();
+    private async Task SetupAuthAsync()
+    {
+        await _context.ResetDatabaseAsync();
+        var token = _context.GenerateUserToken("test@example.com");
+        _context.Client.WithBearerToken(token);
     }
 
     #region Create Snippet Tests
@@ -40,6 +38,8 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
     public async Task CreateSnippet_WithValidData_ShouldCreateAndReturnSnippet()
     {
         // Arrange
+        await SetupAuthAsync();
+
         var command = new CreateSnippetCommand(
             "Test Snippet",
             "Console.WriteLine(\"Hello World\");",
@@ -49,13 +49,13 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
             null);
 
         // Act
-        var response = await Client.PostJsonAsync("/api/snippets", command);
+        var response = await _context.Client.PostJsonAsync("/api/snippets", command);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Verify in database using read context
-        var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
+        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
         var snippetsCount = await readContext.Snippets.CountAsync();
         snippetsCount.Should().Be(1);
 
@@ -70,10 +70,12 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
     public async Task CreateSnippet_WithCollections_ShouldAssignToCollections()
     {
         // Arrange
-        var collection1Response = await Client.PostJsonAsync("/api/collections", new CreateCollectionCommand("Collection 1", null, null, null));
+        await SetupAuthAsync();
+
+        var collection1Response = await _context.Client.PostJsonAsync("/api/collections", new CreateCollectionCommand("Collection 1", null, null, null));
         var collection1Id = await collection1Response.ReadAsJsonAsync<Guid>();
 
-        var collection2Response = await Client.PostJsonAsync("/api/collections", new CreateCollectionCommand("Collection 2", null, null, null));
+        var collection2Response = await _context.Client.PostJsonAsync("/api/collections", new CreateCollectionCommand("Collection 2", null, null, null));
         var collection2Id = await collection2Response.ReadAsJsonAsync<Guid>();
 
         var command = new CreateSnippetCommand(
@@ -85,12 +87,12 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
             new List<Guid> { collection1Id, collection2Id });
 
         // Act
-        var response = await Client.PostJsonAsync("/api/snippets", command);
+        var response = await _context.Client.PostJsonAsync("/api/snippets", command);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
+        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
         var snippet = await readContext.Snippets.Include(s => s.SnippetCollections).ThenInclude(sc => sc.Collection).FirstAsync();
 
         snippet.SnippetCollections.Should().HaveCount(2);
@@ -103,7 +105,10 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
     [Fact]
     public async Task GetSnippets_ShouldReturnSuccess()
     {
-        var response = await Client.GetAsync("/api/snippets");
+        // Arrange
+        await SetupAuthAsync();
+
+        var response = await _context.Client.GetAsync("/api/snippets");
 
         response.IsSuccessStatusCode.Should().BeTrue();
     }
@@ -111,7 +116,9 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
     [Fact]
     public async Task GetSnippets_WithMultipleSnippets_ShouldReturnCorrectCount()
     {
-        // Arrange - Create multiple snippets
+        // Arrange
+        await SetupAuthAsync();
+
         var commands = new[]
         {
             new CreateSnippetCommand("Snippet 1", "code1", ProgrammingLanguage.JavaScript, null, null, null),
@@ -121,17 +128,17 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
 
         foreach (var command in commands)
         {
-            await Client.PostJsonAsync("/api/snippets", command);
+            await _context.Client.PostJsonAsync("/api/snippets", command);
         }
 
         // Act
-        var response = await Client.GetAsync("/api/snippets");
+        var response = await _context.Client.GetAsync("/api/snippets");
 
         // Assert
         response.IsSuccessStatusCode.Should().BeTrue();
 
         // Verify database count using read context
-        var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
+        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
         var snippetsCount = await readContext.Snippets.CountAsync();
         snippetsCount.Should().Be(3);
     }
@@ -140,7 +147,9 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
     public async Task GetSnippetById_WithExistingId_ShouldReturnSnippet()
     {
         // Arrange
-        var createResponse = await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
+        await SetupAuthAsync();
+
+        var createResponse = await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
             "Test Snippet",
             "SELECT * FROM Users",
             ProgrammingLanguage.Sql,
@@ -152,13 +161,13 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
         var snippetId = await createResponse.ReadAsJsonAsync<Guid>();
 
         // Act
-        var response = await Client.GetAsync($"/api/snippets/{snippetId}");
+        var response = await _context.Client.GetAsync($"/api/snippets/{snippetId}");
 
         // Assert
         response.IsSuccessStatusCode.Should().BeTrue();
 
         // Verify snippet exists in database using read context
-        var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
+        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
         var snippet = await readContext.Snippets
             .FirstOrDefaultAsync(s => s.Id == new SnippetId(snippetId));
         snippet.Should().NotBeNull();
@@ -169,10 +178,12 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
     public async Task GetSnippetById_WithNonExistingId_ShouldReturnNotFound()
     {
         // Arrange
+        await SetupAuthAsync();
+
         var nonExistingId = Guid.NewGuid();
 
         // Act
-        var response = await Client.GetAsync($"/api/snippets/{nonExistingId}");
+        var response = await _context.Client.GetAsync($"/api/snippets/{nonExistingId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -186,9 +197,11 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
     public async Task UpdateSnippetContent_WithValidData_ShouldUpdateContent()
     {
         // Arrange
-        var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
+        await SetupAuthAsync();
 
-        var createResponse = await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
+        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
+
+        var createResponse = await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
             "Original Snippet",
             "original content",
             ProgrammingLanguage.PlainText,
@@ -210,7 +223,7 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
         );
 
         // Act
-        var response = await Client.PutJsonAsync($"/api/snippets/{snippetId}", updateCommand);
+        var response = await _context.Client.PutJsonAsync($"/api/snippets/{snippetId}", updateCommand);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -226,9 +239,11 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
     public async Task ChangeSnippetLanguage_WithValidData_ShouldUpdateLanguage()
     {
         // Arrange
-        var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
+        await SetupAuthAsync();
 
-        var createResponse = await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
+        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
+
+        var createResponse = await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
             "Language Change Test",
             "console.log('test')",
             ProgrammingLanguage.JavaScript,
@@ -250,7 +265,7 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
         );
 
         // Act
-        var response = await Client.PutJsonAsync($"/api/snippets/{snippetId}", changeLanguageCommand);
+        var response = await _context.Client.PutJsonAsync($"/api/snippets/{snippetId}", changeLanguageCommand);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -270,17 +285,19 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
     public async Task AddTag_WithValidData_ShouldAddTagToSnippet()
     {
         // Arrange
-        var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
+        await SetupAuthAsync();
+
+        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
 
         // Create a tag first
-        var createTagResponse = await Client.PostJsonAsync("/api/tags", new CreateTagCommand(
+        var createTagResponse = await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand(
             "important",
             "#FF0000"
         ));
         var tagId = await createTagResponse.ReadAsJsonAsync<Guid>();
 
         // Create snippet without tags
-        var createResponse = await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
+        var createResponse = await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
             "Tag Test Snippet",
             "code",
             ProgrammingLanguage.CSharp,
@@ -303,7 +320,7 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
         );
 
         // Act
-        var response = await Client.PutJsonAsync($"/api/snippets/{snippetId}", updateCommand);
+        var response = await _context.Client.PutJsonAsync($"/api/snippets/{snippetId}", updateCommand);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -321,17 +338,19 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
     public async Task RemoveTag_WithExistingTag_ShouldRemoveTag()
     {
         // Arrange
-        var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
+        await SetupAuthAsync();
+
+        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
 
         // Create a tag
-        var createTagResponse = await Client.PostJsonAsync("/api/tags", new CreateTagCommand(
+        var createTagResponse = await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand(
             "temporary",
             null
         ));
         var tagId = await createTagResponse.ReadAsJsonAsync<Guid>();
 
         // Create snippet with tag
-        var createResponse = await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
+        var createResponse = await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
             "Remove Tag Test",
             "code",
             ProgrammingLanguage.CSharp,
@@ -354,7 +373,7 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
         );
 
         // Act
-        var response = await Client.PutJsonAsync($"/api/snippets/{snippetId}", updateCommand);
+        var response = await _context.Client.PutJsonAsync($"/api/snippets/{snippetId}", updateCommand);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -375,9 +394,11 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
     public async Task ToggleFavorite_ShouldToggleSnippetFavoriteStatus()
     {
         // Arrange
-        var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
+        await SetupAuthAsync();
 
-        var createResponse = await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
+        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
+
+        var createResponse = await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
             "Favorite Test",
             "code",
             ProgrammingLanguage.CSharp,
@@ -389,7 +410,7 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
         var snippetId = await createResponse.ReadAsJsonAsync<Guid>();
 
         // Act - Toggle to favorite
-        var response1 = await Client.PostAsync($"/api/snippets/{snippetId}/favorite", null);
+        var response1 = await _context.Client.PostAsync($"/api/snippets/{snippetId}/favorite", null);
 
         // Assert
         response1.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -400,7 +421,7 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
         snippet!.IsFavorite.Should().BeTrue();
 
         // Act - Toggle back
-        var response2 = await Client.PostAsync($"/api/snippets/{snippetId}/favorite", null);
+        var response2 = await _context.Client.PostAsync($"/api/snippets/{snippetId}/favorite", null);
 
         // Assert
         response2.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -414,9 +435,11 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
     public async Task RecordUsage_ShouldUpdateUsageCount()
     {
         // Arrange
-        var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
+        await SetupAuthAsync();
 
-        var createResponse = await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
+        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
+
+        var createResponse = await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
             "Usage Test",
             "code",
             ProgrammingLanguage.CSharp,
@@ -428,7 +451,7 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
         var snippetId = await createResponse.ReadAsJsonAsync<Guid>();
 
         // Act
-        var response = await Client.PostAsync($"/api/snippets/{snippetId}/usage", null);
+        var response = await _context.Client.PostAsync($"/api/snippets/{snippetId}/usage", null);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -447,15 +470,17 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
     public async Task MoveSnippet_ShouldUpdateCollections()
     {
         // Arrange
-        var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
+        await SetupAuthAsync();
 
-        var collection1Response = await Client.PostJsonAsync("/api/collections", new CreateCollectionCommand("Collection 1", null, null, null));
+        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
+
+        var collection1Response = await _context.Client.PostJsonAsync("/api/collections", new CreateCollectionCommand("Collection 1", null, null, null));
         var collection1Id = await collection1Response.ReadAsJsonAsync<Guid>();
 
-        var collection2Response = await Client.PostJsonAsync("/api/collections", new CreateCollectionCommand("Collection 2", null, null, null));
+        var collection2Response = await _context.Client.PostJsonAsync("/api/collections", new CreateCollectionCommand("Collection 2", null, null, null));
         var collection2Id = await collection2Response.ReadAsJsonAsync<Guid>();
 
-        var snippetResponse = await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
+        var snippetResponse = await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
             "Move Test",
             "code",
             ProgrammingLanguage.CSharp,
@@ -477,7 +502,7 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
         );
 
         // Act
-        var response = await Client.PutJsonAsync($"/api/snippets/{snippetId}", moveCommand);
+        var response = await _context.Client.PutJsonAsync($"/api/snippets/{snippetId}", moveCommand);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -499,9 +524,11 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
     public async Task DeleteSnippet_WithExistingId_ShouldRemoveFromDatabase()
     {
         // Arrange
-        var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
+        await SetupAuthAsync();
 
-        var createResponse = await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
+        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
+
+        var createResponse = await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
             "To Delete Snippet",
             "will be deleted",
             ProgrammingLanguage.PlainText,
@@ -518,7 +545,7 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
         snippetBeforeDelete.Should().NotBeNull();
 
         // Act - Delete via HTTP
-        var response = await Client.DeleteAsync($"/api/snippets/{snippetId}");
+        var response = await _context.Client.DeleteAsync($"/api/snippets/{snippetId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -536,10 +563,12 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
     public async Task DeleteSnippet_WithNonExistingId_ShouldReturnNotFound()
     {
         // Arrange
+        await SetupAuthAsync();
+
         var nonExistingId = Guid.NewGuid();
 
         // Act
-        var response = await Client.DeleteAsync($"/api/snippets/{nonExistingId}");
+        var response = await _context.Client.DeleteAsync($"/api/snippets/{nonExistingId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -553,26 +582,28 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
     public async Task GetFavoriteSnippets_ShouldReturnOnlyFavorites()
     {
         // Arrange
-        var snippet1Response = await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand("Snippet 1", "code1", ProgrammingLanguage.CSharp, null, null, null));
+        await SetupAuthAsync();
+
+        var snippet1Response = await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand("Snippet 1", "code1", ProgrammingLanguage.CSharp, null, null, null));
         var snippet1Id = await snippet1Response.ReadAsJsonAsync<Guid>();
 
-        var snippet2Response = await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand("Snippet 2", "code2", ProgrammingLanguage.CSharp, null, null, null));
+        var snippet2Response = await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand("Snippet 2", "code2", ProgrammingLanguage.CSharp, null, null, null));
         var snippet2Id = await snippet2Response.ReadAsJsonAsync<Guid>();
 
-        var snippet3Response = await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand("Snippet 3", "code3", ProgrammingLanguage.CSharp, null, null, null));
+        var snippet3Response = await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand("Snippet 3", "code3", ProgrammingLanguage.CSharp, null, null, null));
         var snippet3Id = await snippet3Response.ReadAsJsonAsync<Guid>();
 
         // Mark snippet 1 and 3 as favorites
-        await Client.PostAsync($"/api/snippets/{snippet1Id}/favorite", null);
-        await Client.PostAsync($"/api/snippets/{snippet3Id}/favorite", null);
+        await _context.Client.PostAsync($"/api/snippets/{snippet1Id}/favorite", null);
+        await _context.Client.PostAsync($"/api/snippets/{snippet3Id}/favorite", null);
 
         // Act
-        var response = await Client.GetAsync("/api/snippets/favorites");
+        var response = await _context.Client.GetAsync("/api/snippets/favorites");
 
         // Assert
         response.IsSuccessStatusCode.Should().BeTrue();
 
-        var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
+        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
         var favoriteCount = await readContext.Snippets.CountAsync(s => s.IsFavorite);
         favoriteCount.Should().Be(2);
     }
@@ -581,13 +612,15 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
     public async Task GetRecentSnippets_ShouldReturnLimitedResults()
     {
         // Arrange
+        await SetupAuthAsync();
+
         for (int i = 0; i < 15; i++)
         {
-            await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand($"Snippet {i}", $"code{i}", ProgrammingLanguage.CSharp, null, null, null));
+            await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand($"Snippet {i}", $"code{i}", ProgrammingLanguage.CSharp, null, null, null));
         }
 
         // Act
-        var response = await Client.GetAsync("/api/snippets/recent?limit=5");
+        var response = await _context.Client.GetAsync("/api/snippets/recent?limit=5");
 
         // Assert
         response.IsSuccessStatusCode.Should().BeTrue();
@@ -597,15 +630,17 @@ public class SnippetsTests(SnippetTestWebApplicationFactory factory) : SnippetTe
     public async Task GetCollectionSnippets_ShouldReturnSnippetsInCollection()
     {
         // Arrange
-        var collectionResponse = await Client.PostJsonAsync("/api/collections", new CreateCollectionCommand("Test Collection", null, null, null));
+        await SetupAuthAsync();
+
+        var collectionResponse = await _context.Client.PostJsonAsync("/api/collections", new CreateCollectionCommand("Test Collection", null, null, null));
         var collectionId = await collectionResponse.ReadAsJsonAsync<Guid>();
 
-        await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand("Snippet 1", "code1", ProgrammingLanguage.CSharp, null, null, new List<Guid> { collectionId }));
-        await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand("Snippet 2", "code2", ProgrammingLanguage.CSharp, null, null, new List<Guid> { collectionId }));
-        await Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand("Snippet 3", "code3", ProgrammingLanguage.CSharp, null, null, null)); // Not in collection
+        await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand("Snippet 1", "code1", ProgrammingLanguage.CSharp, null, null, new List<Guid> { collectionId }));
+        await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand("Snippet 2", "code2", ProgrammingLanguage.CSharp, null, null, new List<Guid> { collectionId }));
+        await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand("Snippet 3", "code3", ProgrammingLanguage.CSharp, null, null, null)); // Not in collection
 
         // Act
-        var response = await Client.GetAsync($"/api/snippets/collections/{collectionId}");
+        var response = await _context.Client.GetAsync($"/api/snippets/collections/{collectionId}");
 
         // Assert
         response.IsSuccessStatusCode.Should().BeTrue();

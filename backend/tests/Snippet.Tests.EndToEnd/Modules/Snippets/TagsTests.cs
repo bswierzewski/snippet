@@ -1,8 +1,7 @@
 using System.Net;
-using BuildingBlocks.Tests.EndToEnd.Auth;
-using BuildingBlocks.Tests.EndToEnd.Extensions;
+using Shared.Infrastructure.Tests.Core;
+using Shared.Infrastructure.Tests.Extensions.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Snippet.Modules.Snippets.Application.Abstractions;
 using Snippet.Modules.Snippets.Application.Commands.Tags.CreateTag;
 using Snippet.Modules.Snippets.Application.Queries.Tags.GetTags;
@@ -14,22 +13,21 @@ namespace Snippet.Tests.EndToEnd.Modules.Snippets;
 /// <summary>
 /// End-to-end tests for tag management functionality including creation, retrieval, search, and deletion operations.
 /// </summary>
-[Collection(nameof(SnippetE2ECollection))]
-public class TagsTests(SnippetTestWebApplicationFactory factory) : SnippetTestBase(factory)
+[Collection("Snippet")]
+public class TagsTests
 {
-    /// <summary>
-    /// Configures authentication for tag tests.
-    /// Gets auth provider from DI and applies token to HTTP client.
-    /// </summary>
-    protected override async Task OnInitializeAsync()
+    private readonly TestContext _context;
+
+    public TagsTests(SnippetTestFixture fixture)
     {
-        var authProvider = Services.GetRequiredService<IAuthTokenProvider>();
-        var token = await authProvider.GetTokenAsync();
+        _context = fixture.Context;
+    }
 
-        if (!string.IsNullOrEmpty(token))
-            Client.WithBearerToken(token);
-
-        await base.OnInitializeAsync();
+    private async Task SetupAuthAsync()
+    {
+        await _context.ResetDatabaseAsync();
+        var token = _context.GenerateUserToken("test@example.com");
+        _context.Client.WithBearerToken(token);
     }
 
     #region Create Tag Tests
@@ -37,6 +35,8 @@ public class TagsTests(SnippetTestWebApplicationFactory factory) : SnippetTestBa
     [Fact]
     public async Task CreateTag_WithValidData_ShouldCreateAndReturnTagId()
     {
+        await SetupAuthAsync();
+
         // Arrange
         var command = new CreateTagCommand(
             "ImportantTag",
@@ -44,7 +44,7 @@ public class TagsTests(SnippetTestWebApplicationFactory factory) : SnippetTestBa
         );
 
         // Act
-        var response = await Client.PostJsonAsync("/api/tags", command);
+        var response = await _context.Client.PostJsonAsync("/api/tags", command);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -53,7 +53,7 @@ public class TagsTests(SnippetTestWebApplicationFactory factory) : SnippetTestBa
         tagId.Should().NotBeEmpty();
 
         // Verify in database
-        var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
+        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
         var tag = await readContext.Tags.FirstOrDefaultAsync(t => t.Id == new TagId(tagId));
         tag.Should().NotBeNull();
         tag!.Name.Should().Be("importanttag"); // Tags are stored in lowercase
@@ -63,6 +63,8 @@ public class TagsTests(SnippetTestWebApplicationFactory factory) : SnippetTestBa
     [Fact]
     public async Task CreateTag_WithoutColor_ShouldCreateTagWithNullColor()
     {
+        await SetupAuthAsync();
+
         // Arrange
         var command = new CreateTagCommand(
             "SimpleTag",
@@ -70,14 +72,14 @@ public class TagsTests(SnippetTestWebApplicationFactory factory) : SnippetTestBa
         );
 
         // Act
-        var response = await Client.PostJsonAsync("/api/tags", command);
+        var response = await _context.Client.PostJsonAsync("/api/tags", command);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var tagId = await response.ReadAsJsonAsync<Guid>();
 
-        var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
+        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
         var tag = await readContext.Tags.FirstOrDefaultAsync(t => t.Id == new TagId(tagId));
         tag.Should().NotBeNull();
         tag!.Color.Should().BeNull();
@@ -86,13 +88,15 @@ public class TagsTests(SnippetTestWebApplicationFactory factory) : SnippetTestBa
     [Fact]
     public async Task CreateTag_WithDuplicateName_ShouldHandleGracefully()
     {
+        await SetupAuthAsync();
+
         // Arrange
         var command1 = new CreateTagCommand("DuplicateTag", "#FF0000");
         var command2 = new CreateTagCommand("duplicatetag", "#00FF00"); // Same name, different case
 
         // Act
-        var response1 = await Client.PostJsonAsync("/api/tags", command1);
-        var response2 = await Client.PostJsonAsync("/api/tags", command2);
+        var response1 = await _context.Client.PostJsonAsync("/api/tags", command1);
+        var response2 = await _context.Client.PostJsonAsync("/api/tags", command2);
 
         // Assert
         response1.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -107,8 +111,10 @@ public class TagsTests(SnippetTestWebApplicationFactory factory) : SnippetTestBa
     [Fact]
     public async Task GetUserTags_WithNoTags_ShouldReturnEmptyList()
     {
+        await SetupAuthAsync();
+
         // Act
-        var response = await Client.GetAsync("/api/tags");
+        var response = await _context.Client.GetAsync("/api/tags");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -121,13 +127,15 @@ public class TagsTests(SnippetTestWebApplicationFactory factory) : SnippetTestBa
     [Fact]
     public async Task GetUserTags_WithMultipleTags_ShouldReturnAllUserTags()
     {
+        await SetupAuthAsync();
+
         // Arrange - Create multiple tags
-        var tag1Response = await Client.PostJsonAsync("/api/tags", new CreateTagCommand("Tag1", "#FF0000"));
-        var tag2Response = await Client.PostJsonAsync("/api/tags", new CreateTagCommand("Tag2", "#00FF00"));
-        var tag3Response = await Client.PostJsonAsync("/api/tags", new CreateTagCommand("Tag3", null));
+        var tag1Response = await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Tag1", "#FF0000"));
+        var tag2Response = await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Tag2", "#00FF00"));
+        var tag3Response = await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Tag3", null));
 
         // Act
-        var response = await Client.GetAsync("/api/tags");
+        var response = await _context.Client.GetAsync("/api/tags");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -145,15 +153,17 @@ public class TagsTests(SnippetTestWebApplicationFactory factory) : SnippetTestBa
     [Fact]
     public async Task GetUserTags_ShouldIncludeSnippetCount()
     {
+        await SetupAuthAsync();
+
         // Arrange - Create tag and assign to snippet
-        var tagResponse = await Client.PostJsonAsync("/api/tags", new CreateTagCommand("CountedTag", null));
+        var tagResponse = await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("CountedTag", null));
         var tagId = await tagResponse.ReadAsJsonAsync<Guid>();
 
         // Create snippet with tag (using AddTag endpoint from SnippetsTests)
         // Note: This requires snippet creation - adjust based on your workflow
 
         // Act
-        var response = await Client.GetAsync("/api/tags");
+        var response = await _context.Client.GetAsync("/api/tags");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -171,13 +181,15 @@ public class TagsTests(SnippetTestWebApplicationFactory factory) : SnippetTestBa
     [Fact]
     public async Task SearchTags_WithoutSearchTerm_ShouldReturnAllTags()
     {
+        await SetupAuthAsync();
+
         // Arrange
-        await Client.PostJsonAsync("/api/tags", new CreateTagCommand("Alpha", null));
-        await Client.PostJsonAsync("/api/tags", new CreateTagCommand("Beta", null));
-        await Client.PostJsonAsync("/api/tags", new CreateTagCommand("Gamma", null));
+        await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Alpha", null));
+        await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Beta", null));
+        await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Gamma", null));
 
         // Act
-        var response = await Client.GetAsync("/api/tags/search");
+        var response = await _context.Client.GetAsync("/api/tags/search");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -190,13 +202,15 @@ public class TagsTests(SnippetTestWebApplicationFactory factory) : SnippetTestBa
     [Fact]
     public async Task SearchTags_WithSearchTerm_ShouldReturnMatchingTags()
     {
+        await SetupAuthAsync();
+
         // Arrange
-        await Client.PostJsonAsync("/api/tags", new CreateTagCommand("JavaScript", null));
-        await Client.PostJsonAsync("/api/tags", new CreateTagCommand("Java", null));
-        await Client.PostJsonAsync("/api/tags", new CreateTagCommand("Python", null));
+        await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("JavaScript", null));
+        await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Java", null));
+        await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Python", null));
 
         // Act
-        var response = await Client.GetAsync("/api/tags/search?searchTerm=java");
+        var response = await _context.Client.GetAsync("/api/tags/search?searchTerm=java");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -212,11 +226,13 @@ public class TagsTests(SnippetTestWebApplicationFactory factory) : SnippetTestBa
     [Fact]
     public async Task SearchTags_WithNonMatchingTerm_ShouldReturnEmptyList()
     {
+        await SetupAuthAsync();
+
         // Arrange
-        await Client.PostJsonAsync("/api/tags", new CreateTagCommand("Tag1", null));
+        await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Tag1", null));
 
         // Act
-        var response = await Client.GetAsync("/api/tags/search?searchTerm=nonexistent");
+        var response = await _context.Client.GetAsync("/api/tags/search?searchTerm=nonexistent");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -229,13 +245,15 @@ public class TagsTests(SnippetTestWebApplicationFactory factory) : SnippetTestBa
     [Fact]
     public async Task SearchTags_IsCaseInsensitive()
     {
+        await SetupAuthAsync();
+
         // Arrange
-        await Client.PostJsonAsync("/api/tags", new CreateTagCommand("ImportantTag", null));
+        await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("ImportantTag", null));
 
         // Act - Search with different cases
-        var response1 = await Client.GetAsync("/api/tags/search?searchTerm=IMPORTANT");
-        var response2 = await Client.GetAsync("/api/tags/search?searchTerm=important");
-        var response3 = await Client.GetAsync("/api/tags/search?searchTerm=ImPoRtAnT");
+        var response1 = await _context.Client.GetAsync("/api/tags/search?searchTerm=IMPORTANT");
+        var response2 = await _context.Client.GetAsync("/api/tags/search?searchTerm=important");
+        var response3 = await _context.Client.GetAsync("/api/tags/search?searchTerm=ImPoRtAnT");
 
         // Assert
         response1.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -258,17 +276,19 @@ public class TagsTests(SnippetTestWebApplicationFactory factory) : SnippetTestBa
     [Fact]
     public async Task DeleteTag_WithExistingTag_ShouldRemoveFromDatabase()
     {
+        await SetupAuthAsync();
+
         // Arrange
-        var createResponse = await Client.PostJsonAsync("/api/tags", new CreateTagCommand("ToDelete", "#FF0000"));
+        var createResponse = await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("ToDelete", "#FF0000"));
         var tagId = await createResponse.ReadAsJsonAsync<Guid>();
 
         // Verify tag exists
-        var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
+        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
         var tagBeforeDelete = await readContext.Tags.FirstOrDefaultAsync(t => t.Id == new TagId(tagId));
         tagBeforeDelete.Should().NotBeNull();
 
         // Act
-        var response = await Client.DeleteAsync($"/api/tags/{tagId}");
+        var response = await _context.Client.DeleteAsync($"/api/tags/{tagId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -281,11 +301,13 @@ public class TagsTests(SnippetTestWebApplicationFactory factory) : SnippetTestBa
     [Fact]
     public async Task DeleteTag_WithNonExistingTag_ShouldReturnNotFound()
     {
+        await SetupAuthAsync();
+
         // Arrange
         var nonExistingId = Guid.NewGuid();
 
         // Act
-        var response = await Client.DeleteAsync($"/api/tags/{nonExistingId}");
+        var response = await _context.Client.DeleteAsync($"/api/tags/{nonExistingId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -294,22 +316,24 @@ public class TagsTests(SnippetTestWebApplicationFactory factory) : SnippetTestBa
     [Fact]
     public async Task DeleteTag_MultipleSequentialDeletes_ShouldWork()
     {
+        await SetupAuthAsync();
+
         // Arrange
-        var tag1Response = await Client.PostJsonAsync("/api/tags", new CreateTagCommand("Delete1", null));
+        var tag1Response = await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Delete1", null));
         var tag1Id = await tag1Response.ReadAsJsonAsync<Guid>();
 
-        var tag2Response = await Client.PostJsonAsync("/api/tags", new CreateTagCommand("Delete2", null));
+        var tag2Response = await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Delete2", null));
         var tag2Id = await tag2Response.ReadAsJsonAsync<Guid>();
 
         // Act
-        var response1 = await Client.DeleteAsync($"/api/tags/{tag1Id}");
-        var response2 = await Client.DeleteAsync($"/api/tags/{tag2Id}");
+        var response1 = await _context.Client.DeleteAsync($"/api/tags/{tag1Id}");
+        var response2 = await _context.Client.DeleteAsync($"/api/tags/{tag2Id}");
 
         // Assert
         response1.StatusCode.Should().Be(HttpStatusCode.NoContent);
         response2.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
+        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
         var remainingTags = await readContext.Tags.CountAsync();
         remainingTags.Should().Be(0);
     }
@@ -321,29 +345,31 @@ public class TagsTests(SnippetTestWebApplicationFactory factory) : SnippetTestBa
     [Fact]
     public async Task TagLifecycle_CreateSearchAndDelete_ShouldWorkEndToEnd()
     {
+        await SetupAuthAsync();
+
         // Create
-        var createResponse = await Client.PostJsonAsync("/api/tags", new CreateTagCommand("Lifecycle", "#123456"));
+        var createResponse = await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Lifecycle", "#123456"));
         createResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var tagId = await createResponse.ReadAsJsonAsync<Guid>();
 
         // Search
-        var searchResponse = await Client.GetAsync("/api/tags/search?searchTerm=life");
+        var searchResponse = await _context.Client.GetAsync("/api/tags/search?searchTerm=life");
         searchResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var searchResults = await searchResponse.ReadAsJsonAsync<IEnumerable<TagSearchDto>>();
         searchResults.Should().Contain(t => t.Id == tagId);
 
         // Get User Tags
-        var getUserTagsResponse = await Client.GetAsync("/api/tags");
+        var getUserTagsResponse = await _context.Client.GetAsync("/api/tags");
         getUserTagsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var userTags = await getUserTagsResponse.ReadAsJsonAsync<IEnumerable<TagDto>>();
         userTags.Should().Contain(t => t.Id == tagId);
 
         // Delete
-        var deleteResponse = await Client.DeleteAsync($"/api/tags/{tagId}");
+        var deleteResponse = await _context.Client.DeleteAsync($"/api/tags/{tagId}");
         deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Verify deletion
-        var searchAfterDelete = await Client.GetAsync("/api/tags/search?searchTerm=life");
+        var searchAfterDelete = await _context.Client.GetAsync("/api/tags/search?searchTerm=life");
         var searchResultsAfterDelete = await searchAfterDelete.ReadAsJsonAsync<IEnumerable<TagSearchDto>>();
         searchResultsAfterDelete.Should().NotContain(t => t.Id == tagId);
     }

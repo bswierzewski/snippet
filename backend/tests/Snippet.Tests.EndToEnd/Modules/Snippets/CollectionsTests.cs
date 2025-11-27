@@ -1,8 +1,7 @@
 using System.Net;
-using BuildingBlocks.Tests.EndToEnd.Auth;
-using BuildingBlocks.Tests.EndToEnd.Extensions;
+using Shared.Infrastructure.Tests.Core;
+using Shared.Infrastructure.Tests.Extensions.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Snippet.Modules.Snippets.Application.Abstractions;
 using Snippet.Modules.Snippets.Application.Commands.Collections.CreateCollection;
 using Snippet.Modules.Snippets.Application.Commands.Collections.UpdateCollection;
@@ -13,28 +12,29 @@ namespace Snippet.Tests.EndToEnd.Modules.Snippets;
 /// <summary>
 /// End-to-end tests for collection management functionality including creation, retrieval, update, and deletion operations.
 /// </summary>
-[Collection(nameof(SnippetE2ECollection))]
-public class CollectionsTests(SnippetTestWebApplicationFactory factory) : SnippetTestBase(factory)
+[Collection("Snippet")]
+public class CollectionsTests
 {
-    /// <summary>
-    /// Configures authentication for collection tests.
-    /// Gets auth provider from DI and applies token to HTTP client.
-    /// </summary>
-    protected override async Task OnInitializeAsync()
+    private readonly TestContext _context;
+
+    public CollectionsTests(SnippetTestFixture fixture)
     {
-        var authProvider = Services.GetRequiredService<IAuthTokenProvider>();
-        var token = await authProvider.GetTokenAsync();
+        _context = fixture.Context;
+    }
 
-        if (!string.IsNullOrEmpty(token))
-            Client.WithBearerToken(token);
-
-        await base.OnInitializeAsync();
+    private async Task SetupAuthAsync()
+    {
+        await _context.ResetDatabaseAsync();
+        var token = _context.GenerateUserToken("test@example.com");
+        _context.Client.WithBearerToken(token);
     }
 
     [Fact]
     public async Task GetCollections_ShouldReturnSuccess()
     {
-        var response = await Client.GetAsync("/api/collections");
+        await SetupAuthAsync();
+
+        var response = await _context.Client.GetAsync("/api/collections");
 
         response.IsSuccessStatusCode.Should().BeTrue();
     }
@@ -42,6 +42,8 @@ public class CollectionsTests(SnippetTestWebApplicationFactory factory) : Snippe
     [Fact]
     public async Task CreateCollection_WithValidData_ShouldCreateAndReturnCollection()
     {
+        await SetupAuthAsync();
+
         // Arrange
         var command = new CreateCollectionCommand(
             "Test Collection",
@@ -50,13 +52,13 @@ public class CollectionsTests(SnippetTestWebApplicationFactory factory) : Snippe
             "📁");
 
         // Act
-        var response = await Client.PostJsonAsync("/api/collections", command);
+        var response = await _context.Client.PostJsonAsync("/api/collections", command);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Verify in database using read context
-        var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
+        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
         var collectionsCount = await readContext.Collections.CountAsync();
         collectionsCount.Should().Be(1);
 
@@ -70,6 +72,8 @@ public class CollectionsTests(SnippetTestWebApplicationFactory factory) : Snippe
     [Fact]
     public async Task GetCollections_WithMultipleCollections_ShouldReturnCorrectCount()
     {
+        await SetupAuthAsync();
+
         // Arrange - Create multiple collections
         var commands = new[]
         {
@@ -80,17 +84,17 @@ public class CollectionsTests(SnippetTestWebApplicationFactory factory) : Snippe
 
         foreach (var command in commands)
         {
-            await Client.PostJsonAsync("/api/collections", command);
+            await _context.Client.PostJsonAsync("/api/collections", command);
         }
 
         // Act
-        var response = await Client.GetAsync("/api/collections");
+        var response = await _context.Client.GetAsync("/api/collections");
 
         // Assert
         response.IsSuccessStatusCode.Should().BeTrue();
 
         // Verify database count using read context
-        var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
+        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
         var collectionsCount = await readContext.Collections.CountAsync();
         collectionsCount.Should().Be(3);
     }
@@ -98,8 +102,10 @@ public class CollectionsTests(SnippetTestWebApplicationFactory factory) : Snippe
     [Fact]
     public async Task GetCollectionById_WithExistingId_ShouldReturnCollection()
     {
+        await SetupAuthAsync();
+
         // Arrange
-        var createResponse = await Client.PostJsonAsync("/api/collections", new CreateCollectionCommand(
+        var createResponse = await _context.Client.PostJsonAsync("/api/collections", new CreateCollectionCommand(
             "Test Collection",
             "Test Description",
             "#FF5733",
@@ -109,13 +115,13 @@ public class CollectionsTests(SnippetTestWebApplicationFactory factory) : Snippe
         var collectionId = await createResponse.ReadAsJsonAsync<Guid>();
 
         // Act
-        var response = await Client.GetAsync($"/api/collections/{collectionId}");
+        var response = await _context.Client.GetAsync($"/api/collections/{collectionId}");
 
         // Assert
         response.IsSuccessStatusCode.Should().BeTrue();
 
         // Verify collection exists in database using read context
-        var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
+        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
         var collection = await readContext.Collections
             .FirstOrDefaultAsync(c => c.Id == new CollectionId(collectionId));
         collection.Should().NotBeNull();
@@ -125,10 +131,12 @@ public class CollectionsTests(SnippetTestWebApplicationFactory factory) : Snippe
     [Fact]
     public async Task UpdateCollection_WithValidData_ShouldUpdateCollection()
     {
-        // Arrange
-        var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
+        await SetupAuthAsync();
 
-        var createResponse = await Client.PostJsonAsync("/api/collections", new CreateCollectionCommand(
+        // Arrange
+        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
+
+        var createResponse = await _context.Client.PostJsonAsync("/api/collections", new CreateCollectionCommand(
             "Original Name",
             "Original Description",
             "#000000",
@@ -146,7 +154,7 @@ public class CollectionsTests(SnippetTestWebApplicationFactory factory) : Snippe
         );
 
         // Act
-        var response = await Client.PutJsonAsync($"/api/collections/{collectionId}", updateCommand);
+        var response = await _context.Client.PutJsonAsync($"/api/collections/{collectionId}", updateCommand);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -164,10 +172,12 @@ public class CollectionsTests(SnippetTestWebApplicationFactory factory) : Snippe
     [Fact]
     public async Task DeleteCollection_WithExistingId_ShouldRemoveFromDatabase()
     {
-        // Arrange
-        var readContext = Services.GetRequiredService<ISnippetsReadDbContext>();
+        await SetupAuthAsync();
 
-        var createResponse = await Client.PostJsonAsync("/api/collections", new CreateCollectionCommand(
+        // Arrange
+        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
+
+        var createResponse = await _context.Client.PostJsonAsync("/api/collections", new CreateCollectionCommand(
             "To Delete Collection",
             "Will be deleted",
             "#FF0000",
@@ -182,7 +192,7 @@ public class CollectionsTests(SnippetTestWebApplicationFactory factory) : Snippe
         collectionBeforeDelete.Should().NotBeNull();
 
         // Act - Delete via HTTP
-        var response = await Client.DeleteAsync($"/api/collections/{collectionId}");
+        var response = await _context.Client.DeleteAsync($"/api/collections/{collectionId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -199,11 +209,13 @@ public class CollectionsTests(SnippetTestWebApplicationFactory factory) : Snippe
     [Fact]
     public async Task GetCollectionById_WithNonExistingId_ShouldReturnNotFound()
     {
+        await SetupAuthAsync();
+
         // Arrange
         var nonExistingId = Guid.NewGuid();
 
         // Act
-        var response = await Client.GetAsync($"/api/collections/{nonExistingId}");
+        var response = await _context.Client.GetAsync($"/api/collections/{nonExistingId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -212,11 +224,13 @@ public class CollectionsTests(SnippetTestWebApplicationFactory factory) : Snippe
     [Fact]
     public async Task DeleteCollection_WithNonExistingId_ShouldReturnNotFound()
     {
+        await SetupAuthAsync();
+
         // Arrange
         var nonExistingId = Guid.NewGuid();
 
         // Act
-        var response = await Client.DeleteAsync($"/api/collections/{nonExistingId}");
+        var response = await _context.Client.DeleteAsync($"/api/collections/{nonExistingId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);

@@ -1,4 +1,3 @@
-using Shared.Abstractions.Authorization;
 using Shared.Infrastructure.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

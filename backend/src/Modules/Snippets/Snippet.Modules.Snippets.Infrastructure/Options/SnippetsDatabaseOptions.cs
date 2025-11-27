@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using BuildingBlocks.Core.Abstractions;
-using BuildingBlocks.Core.Attributes;
+using Shared.Abstractions.Options;
 
 namespace Snippet.Modules.Snippets.Infrastructure.Options;
 
@@ -18,6 +17,5 @@ public class SnippetsDatabaseOptions : IOptions
     /// Gets or sets the PostgreSQL connection string for Snippets database.
     /// </summary>
     [Required(ErrorMessage = "ConnectionString is required")]
-    [EnvVariable(Description = "PostgreSQL connection string for Snippets module", Sensitive = true)]
     public string ConnectionString { get; set; } = null!;
 }

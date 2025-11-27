@@ -1,11 +1,8 @@
-﻿using BuildingBlocks.Modules.Users.Web;
-using BuildingBlocks.Modules.Users.Web.Endpoints;
-using BuildingBlocks.Modules.Users.Web.Extensions;
-using BuildingBlocks.Modules.Users.Web.Extensions.JwtBearers;
-using DotNetEnv;
-using Snippet.Modules.Snippets.Infrastructure;
+﻿using DotNetEnv;
+using Shared.Abstractions.Modules;
+using Shared.Infrastructure.Modules;
+using Shared.Users.Infrastructure.Extensions.JwtBearers;
 using Snippet.Modules.Snippets.Infrastructure.Persistence;
-using Snippet.Web.Endpoints;
 
 // Load environment variables from .env file BEFORE creating builder
 // clobberExistingVars: false ensures Docker/CI/CD environment variables take precedence
@@ -26,13 +23,18 @@ builder.Services.AddHealthChecks();
 builder.Services.AddEndpointsApiExplorer(); // Exposes Minimal API endpoints to OpenAPI
 builder.Services.AddOpenApi();              // Generates OpenAPI document
 
-// Add Modules
-builder.Services.AddUsers(builder.Configuration);
-builder.Services.AddSnippets(builder.Configuration);
+// Load and register all modules
+// Auto-discovers IModule implementations from all loaded assemblies
+var modules = ModuleLoader.LoadModules();
 
-// Configure Supabase authentication
-builder.Services.AddSupabaseOptions(builder.Configuration);
-builder.Services.AddAuthentication().AddSupabaseJwtBearer();
+builder.Services.AddSingleton<IReadOnlyCollection<IModule>>(modules.AsReadOnly());
+
+builder.Services.RegisterModules(modules, builder.Configuration);
+
+// Configure authentication - JWT from Users module
+builder.Services.AddAuthentication()
+    .AddTestJwtBearer();
+
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
@@ -62,15 +64,14 @@ app.UseAuthorization();  // 2. Authorization second
 // Health check endpoint (no authentication required)
 app.MapHealthChecks("/api/health");
 
-// Map endpoints from modules
-app.MapUsersEndpoints();
-app.MapCollectionsEndpoints();
-app.MapSnippetsEndpoints();
-app.MapTagsEndpoints();
-app.MapLookupDataEndpoints();
-app.MapVersionEndpoints();
+// Configure modules middleware pipeline
+// Modules configure their own middleware and endpoints
+app.UseModules(modules, builder.Configuration);
 
-app.Run();
+// Initialize all modules (run migrations, seed data, etc.)
+await app.Services.InitializeModules(modules);
+
+await app.RunAsync();
 
 // Make the Program class accessible for integration tests
 public partial class Program { }

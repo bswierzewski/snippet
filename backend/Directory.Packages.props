@@ -4,10 +4,10 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Shared Packages from GitHub - Range constraints for prerelease compatibility -->
-    <PackageVersion Include="Shared.Abstractions" Version="1.0.0-build.2" />
-    <PackageVersion Include="Shared.Infrastructure" Version="1.0.0-build.2" />
-    <PackageVersion Include="Shared.Infrastructure.Tests" Version="1.0.0-build.2" />
-    <PackageVersion Include="Shared.Users" Version="1.0.0-build.2" />
+    <PackageVersion Include="Shared.Abstractions" Version="1.0.0-build.23" />
+    <PackageVersion Include="Shared.Infrastructure" Version="1.0.0-build.23" />
+    <PackageVersion Include="Shared.Infrastructure.Tests" Version="1.0.0-build.23" />
+    <PackageVersion Include="Shared.Users" Version="1.0.0-build.23" />
 
     <!-- DotNetEnv -->
     <PackageVersion Include="DotNetEnv" Version="3.1.1" />
