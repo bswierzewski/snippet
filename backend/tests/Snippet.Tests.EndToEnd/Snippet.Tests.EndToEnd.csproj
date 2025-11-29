@@ -43,7 +43,9 @@
 	<ItemGroup>
 		<PackageReference Include="Shared.Abstractions" />
 		<PackageReference Include="Shared.Infrastructure.Tests" />
-		<PackageReference Include="Shared.Users" />
+		<PackageReference Include="Shared.Users.Domain" />
+		<PackageReference Include="Shared.Users.Application" />
+		<PackageReference Include="Shared.Users.Infrastructure" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -1,10 +1,13 @@
+using Microsoft.Extensions.DependencyInjection;
+using Shared.Infrastructure.Extensions;
+using Shared.Infrastructure.Tests.Authentication;
 using Shared.Infrastructure.Tests.Core;
 
 namespace Snippet.Tests.EndToEnd;
 
 /// <summary>
 /// Test fixture for Snippet module end-to-end tests.
-/// Provides shared test infrastructure with PostgreSQL container.
+/// Provides shared test infrastructure with PostgreSQL container and test authentication.
 /// Uses the Snippet.Web project as the test host.
 /// </summary>
 public class SnippetTestFixture : IAsyncLifetime
@@ -15,6 +18,14 @@ public class SnippetTestFixture : IAsyncLifetime
     {
         Context = await TestContext.CreateBuilder<Program>()
             .WithPostgreSql()
+            .WithServices((services, configuration) =>
+            {
+                // Register test user credentials from appsettings
+                services.ConfigureOptions<TestUserOptions>(configuration);
+
+                // Register Supabase token provider for authentication
+                services.AddSingleton<ITokenProvider, SupabaseTokenProvider>();
+            })
             .BuildAsync();
     }
 

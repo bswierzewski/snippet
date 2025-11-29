@@ -2,12 +2,19 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <SharedVersion>1.0.0-build.29</SharedVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <!-- Shared Packages from GitHub - Range constraints for prerelease compatibility -->
-    <PackageVersion Include="Shared.Abstractions" Version="1.0.0-build.23" />
-    <PackageVersion Include="Shared.Infrastructure" Version="1.0.0-build.23" />
-    <PackageVersion Include="Shared.Infrastructure.Tests" Version="1.0.0-build.23" />
-    <PackageVersion Include="Shared.Users" Version="1.0.0-build.23" />
+    <PackageVersion Include="Shared.Abstractions" Version="$(SharedVersion)" />
+    <PackageVersion Include="Shared.Infrastructure" Version="$(SharedVersion)" />
+    <PackageVersion Include="Shared.Infrastructure.Tests" Version="$(SharedVersion)" />
+    <PackageVersion Include="Shared.Users.Domain" Version="$(SharedVersion)" />
+    <PackageVersion Include="Shared.Users.Application" Version="$(SharedVersion)" />
+    <PackageVersion Include="Shared.Users.Infrastructure" Version="$(SharedVersion)" />
 
     <!-- DotNetEnv -->
     <PackageVersion Include="DotNetEnv" Version="3.1.1" />

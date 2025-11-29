@@ -66,7 +66,13 @@ jobs:
           username: ${{ github.actor }} # GitHub username from the workflow context.
           password: ${{ secrets.GITHUB_TOKEN }} # GitHub token automatically provided by Actions.
 
-      # Step 4: Automatically generate tags and labels for the Docker image.
+      # Step 4: Create .env file from environment variables
+      - name: Create .env file
+        run: |
+          echo "${{ vars.ENV_FILE }}" > ./backend/.env
+          echo "${{ secrets.ENV_FILE }}" >> ./backend/.env
+
+      # Step 5: Automatically generate tags and labels for the Docker image.
       - name: Extract metadata (tags, labels)
         id: meta # Assign an ID to reference its outputs.
         uses: docker/metadata-action@v5
@@ -80,7 +86,7 @@ jobs:
             type=sha,prefix={{branch}}- # Tag with branch and short commit SHA (e.g., 'main-a1b2c3d')
             type=raw,value=latest,enable={{is_default_branch}} # Tag 'latest' only for the default branch (usually 'main')
 
-      # Step 5: Build the Docker image and push it to the registry.
+      # Step 6: Build the Docker image and push it to the registry.
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -100,3 +106,7 @@ jobs:
           build-args: |
             GIT_COMMIT_SHA=${{ github.sha }}
             BUILD_DATE=${{ github.event.head_commit.timestamp }}
+
+      # Step 7: Remove .env file after build
+      - name: Remove .env file
+        run: rm -f ./backend/.env

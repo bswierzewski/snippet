@@ -1,4 +1,7 @@
 using System.Net;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Shared.Infrastructure.Tests.Authentication;
 using Shared.Infrastructure.Tests.Core;
 using Shared.Infrastructure.Tests.Extensions.Http;
 using Microsoft.EntityFrameworkCore;
@@ -14,28 +17,33 @@ namespace Snippet.Tests.EndToEnd.Modules.Snippets;
 /// End-to-end tests for tag management functionality including creation, retrieval, search, and deletion operations.
 /// </summary>
 [Collection("Snippet")]
-public class TagsTests
+public class TagsTests : IAsyncLifetime
 {
     private readonly TestContext _context;
+    private TestUserOptions _testUser = null!;
 
     public TagsTests(SnippetTestFixture fixture)
     {
         _context = fixture.Context;
     }
 
-    private async Task SetupAuthAsync()
+    public async Task InitializeAsync()
     {
-        await _context.ResetDatabaseAsync();
-        var token = _context.GenerateUserToken("test@example.com");
-        _context.Client.WithBearerToken(token);
+        _testUser = _context.Services.GetRequiredService<IOptions<TestUserOptions>>().Value;
+        await Task.CompletedTask;
     }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     #region Create Tag Tests
 
     [Fact]
     public async Task CreateTag_WithValidData_ShouldCreateAndReturnTagId()
     {
-        await SetupAuthAsync();
+        // Setup
+        await _context.ResetDatabaseAsync();
+        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        _context.Client.WithBearerToken(token);
 
         // Arrange
         var command = new CreateTagCommand(
@@ -63,7 +71,10 @@ public class TagsTests
     [Fact]
     public async Task CreateTag_WithoutColor_ShouldCreateTagWithNullColor()
     {
-        await SetupAuthAsync();
+        // Setup
+        await _context.ResetDatabaseAsync();
+        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        _context.Client.WithBearerToken(token);
 
         // Arrange
         var command = new CreateTagCommand(
@@ -88,7 +99,10 @@ public class TagsTests
     [Fact]
     public async Task CreateTag_WithDuplicateName_ShouldHandleGracefully()
     {
-        await SetupAuthAsync();
+        // Setup
+        await _context.ResetDatabaseAsync();
+        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        _context.Client.WithBearerToken(token);
 
         // Arrange
         var command1 = new CreateTagCommand("DuplicateTag", "#FF0000");
@@ -111,7 +125,10 @@ public class TagsTests
     [Fact]
     public async Task GetUserTags_WithNoTags_ShouldReturnEmptyList()
     {
-        await SetupAuthAsync();
+        // Setup
+        await _context.ResetDatabaseAsync();
+        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        _context.Client.WithBearerToken(token);
 
         // Act
         var response = await _context.Client.GetAsync("/api/tags");
@@ -127,7 +144,10 @@ public class TagsTests
     [Fact]
     public async Task GetUserTags_WithMultipleTags_ShouldReturnAllUserTags()
     {
-        await SetupAuthAsync();
+        // Setup
+        await _context.ResetDatabaseAsync();
+        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        _context.Client.WithBearerToken(token);
 
         // Arrange - Create multiple tags
         var tag1Response = await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Tag1", "#FF0000"));
@@ -153,7 +173,10 @@ public class TagsTests
     [Fact]
     public async Task GetUserTags_ShouldIncludeSnippetCount()
     {
-        await SetupAuthAsync();
+        // Setup
+        await _context.ResetDatabaseAsync();
+        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        _context.Client.WithBearerToken(token);
 
         // Arrange - Create tag and assign to snippet
         var tagResponse = await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("CountedTag", null));
@@ -181,7 +204,10 @@ public class TagsTests
     [Fact]
     public async Task SearchTags_WithoutSearchTerm_ShouldReturnAllTags()
     {
-        await SetupAuthAsync();
+        // Setup
+        await _context.ResetDatabaseAsync();
+        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        _context.Client.WithBearerToken(token);
 
         // Arrange
         await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Alpha", null));
@@ -202,7 +228,10 @@ public class TagsTests
     [Fact]
     public async Task SearchTags_WithSearchTerm_ShouldReturnMatchingTags()
     {
-        await SetupAuthAsync();
+        // Setup
+        await _context.ResetDatabaseAsync();
+        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        _context.Client.WithBearerToken(token);
 
         // Arrange
         await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("JavaScript", null));
@@ -226,7 +255,10 @@ public class TagsTests
     [Fact]
     public async Task SearchTags_WithNonMatchingTerm_ShouldReturnEmptyList()
     {
-        await SetupAuthAsync();
+        // Setup
+        await _context.ResetDatabaseAsync();
+        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        _context.Client.WithBearerToken(token);
 
         // Arrange
         await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Tag1", null));
@@ -245,7 +277,10 @@ public class TagsTests
     [Fact]
     public async Task SearchTags_IsCaseInsensitive()
     {
-        await SetupAuthAsync();
+        // Setup
+        await _context.ResetDatabaseAsync();
+        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        _context.Client.WithBearerToken(token);
 
         // Arrange
         await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("ImportantTag", null));
@@ -276,7 +311,10 @@ public class TagsTests
     [Fact]
     public async Task DeleteTag_WithExistingTag_ShouldRemoveFromDatabase()
     {
-        await SetupAuthAsync();
+        // Setup
+        await _context.ResetDatabaseAsync();
+        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        _context.Client.WithBearerToken(token);
 
         // Arrange
         var createResponse = await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("ToDelete", "#FF0000"));
@@ -301,7 +339,10 @@ public class TagsTests
     [Fact]
     public async Task DeleteTag_WithNonExistingTag_ShouldReturnNotFound()
     {
-        await SetupAuthAsync();
+        // Setup
+        await _context.ResetDatabaseAsync();
+        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        _context.Client.WithBearerToken(token);
 
         // Arrange
         var nonExistingId = Guid.NewGuid();
@@ -316,7 +357,10 @@ public class TagsTests
     [Fact]
     public async Task DeleteTag_MultipleSequentialDeletes_ShouldWork()
     {
-        await SetupAuthAsync();
+        // Setup
+        await _context.ResetDatabaseAsync();
+        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        _context.Client.WithBearerToken(token);
 
         // Arrange
         var tag1Response = await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Delete1", null));
@@ -345,7 +389,10 @@ public class TagsTests
     [Fact]
     public async Task TagLifecycle_CreateSearchAndDelete_ShouldWorkEndToEnd()
     {
-        await SetupAuthAsync();
+        // Setup
+        await _context.ResetDatabaseAsync();
+        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        _context.Client.WithBearerToken(token);
 
         // Create
         var createResponse = await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Lifecycle", "#123456"));

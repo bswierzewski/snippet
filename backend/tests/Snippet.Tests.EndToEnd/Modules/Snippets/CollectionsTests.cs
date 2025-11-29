@@ -1,4 +1,7 @@
 using System.Net;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Shared.Infrastructure.Tests.Authentication;
 using Shared.Infrastructure.Tests.Core;
 using Shared.Infrastructure.Tests.Extensions.Http;
 using Microsoft.EntityFrameworkCore;
@@ -13,26 +16,31 @@ namespace Snippet.Tests.EndToEnd.Modules.Snippets;
 /// End-to-end tests for collection management functionality including creation, retrieval, update, and deletion operations.
 /// </summary>
 [Collection("Snippet")]
-public class CollectionsTests
+public class CollectionsTests : IAsyncLifetime
 {
     private readonly TestContext _context;
+    private TestUserOptions _testUser = null!;
 
     public CollectionsTests(SnippetTestFixture fixture)
     {
         _context = fixture.Context;
     }
 
-    private async Task SetupAuthAsync()
+    public async Task InitializeAsync()
     {
-        await _context.ResetDatabaseAsync();
-        var token = _context.GenerateUserToken("test@example.com");
-        _context.Client.WithBearerToken(token);
+        _testUser = _context.Services.GetRequiredService<IOptions<TestUserOptions>>().Value;
+        await Task.CompletedTask;
     }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task GetCollections_ShouldReturnSuccess()
     {
-        await SetupAuthAsync();
+        // Setup
+        await _context.ResetDatabaseAsync();
+        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        _context.Client.WithBearerToken(token);
 
         var response = await _context.Client.GetAsync("/api/collections");
 
@@ -42,7 +50,10 @@ public class CollectionsTests
     [Fact]
     public async Task CreateCollection_WithValidData_ShouldCreateAndReturnCollection()
     {
-        await SetupAuthAsync();
+        // Setup
+        await _context.ResetDatabaseAsync();
+        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        _context.Client.WithBearerToken(token);
 
         // Arrange
         var command = new CreateCollectionCommand(
@@ -72,7 +83,10 @@ public class CollectionsTests
     [Fact]
     public async Task GetCollections_WithMultipleCollections_ShouldReturnCorrectCount()
     {
-        await SetupAuthAsync();
+        // Setup
+        await _context.ResetDatabaseAsync();
+        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        _context.Client.WithBearerToken(token);
 
         // Arrange - Create multiple collections
         var commands = new[]
@@ -102,7 +116,10 @@ public class CollectionsTests
     [Fact]
     public async Task GetCollectionById_WithExistingId_ShouldReturnCollection()
     {
-        await SetupAuthAsync();
+        // Setup
+        await _context.ResetDatabaseAsync();
+        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        _context.Client.WithBearerToken(token);
 
         // Arrange
         var createResponse = await _context.Client.PostJsonAsync("/api/collections", new CreateCollectionCommand(
@@ -131,7 +148,10 @@ public class CollectionsTests
     [Fact]
     public async Task UpdateCollection_WithValidData_ShouldUpdateCollection()
     {
-        await SetupAuthAsync();
+        // Setup
+        await _context.ResetDatabaseAsync();
+        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        _context.Client.WithBearerToken(token);
 
         // Arrange
         var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
@@ -172,7 +192,10 @@ public class CollectionsTests
     [Fact]
     public async Task DeleteCollection_WithExistingId_ShouldRemoveFromDatabase()
     {
-        await SetupAuthAsync();
+        // Setup
+        await _context.ResetDatabaseAsync();
+        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        _context.Client.WithBearerToken(token);
 
         // Arrange
         var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
@@ -209,7 +232,10 @@ public class CollectionsTests
     [Fact]
     public async Task GetCollectionById_WithNonExistingId_ShouldReturnNotFound()
     {
-        await SetupAuthAsync();
+        // Setup
+        await _context.ResetDatabaseAsync();
+        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        _context.Client.WithBearerToken(token);
 
         // Arrange
         var nonExistingId = Guid.NewGuid();
@@ -224,7 +250,10 @@ public class CollectionsTests
     [Fact]
     public async Task DeleteCollection_WithNonExistingId_ShouldReturnNotFound()
     {
-        await SetupAuthAsync();
+        // Setup
+        await _context.ResetDatabaseAsync();
+        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        _context.Client.WithBearerToken(token);
 
         // Arrange
         var nonExistingId = Guid.NewGuid();

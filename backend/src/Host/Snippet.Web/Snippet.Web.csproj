@@ -20,7 +20,9 @@
 	<ItemGroup Label="NuGet Package References">
     <PackageReference Include="Shared.Abstractions" />
     <PackageReference Include="Shared.Infrastructure" />
-    <PackageReference Include="Shared.Users" />
+    <PackageReference Include="Shared.Users.Domain" />
+    <PackageReference Include="Shared.Users.Application" />
+    <PackageReference Include="Shared.Users.Infrastructure" />
   </ItemGroup>
 
   <ItemGroup Label="Local Module References">

@@ -2,6 +2,7 @@
 using Shared.Abstractions.Modules;
 using Shared.Infrastructure.Modules;
 using Shared.Users.Infrastructure.Extensions.JwtBearers;
+using Shared.Users.Infrastructure.Extensions.Supabase;
 using Snippet.Modules.Snippets.Infrastructure.Persistence;
 
 // Load environment variables from .env file BEFORE creating builder
@@ -13,7 +14,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Register core services
 builder.Services.AddSingleton(TimeProvider.System);
-builder.Services.AddHttpContextAccessor();
 builder.Services.AddCors();
 
 // Health checks for Docker and Caddy monitoring
@@ -33,7 +33,7 @@ builder.Services.RegisterModules(modules, builder.Configuration);
 
 // Configure authentication - JWT from Users module
 builder.Services.AddAuthentication()
-    .AddTestJwtBearer();
+    .AddSupabaseJwtBearer();
 
 builder.Services.AddAuthorization();
 
