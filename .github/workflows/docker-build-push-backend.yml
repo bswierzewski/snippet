@@ -90,7 +90,7 @@ jobs:
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           BRANCH=$(echo "${{ github.ref_name }}" | tr '/' '-')
 
-          # 1. Use literal semicolons (;) instead of %3B
+          # 1. Use literal semicolons
           TAGS="${BRANCH}-${SHORT_SHA};${BRANCH}"
 
           if [[ "$BRANCH" == "main" ]]; then
@@ -99,13 +99,15 @@ jobs:
 
           echo "Publishing with tags: $TAGS"
 
-          # 2. IMPORTANT: Wrap the argument in quotes ("-p:...") 
-          # This ensures Bash passes the semicolons to dotnet without splitting the command
+          # 2. THE FIX:
+          # Use escaped quotes \" around the variable inside the string.
+          # Bash sends: -p:ContainerImageTags="tag1;tag2"
+          # MSBuild sees quotes and treats "tag1;tag2" as a single value containing separators.
           dotnet publish -c Release \
             --os linux \
             --arch x64 \
             -p:ContainerRegistry=${{ env.REGISTRY }} \
             -p:ContainerRepository=${{ env.IMAGE_NAME }} \
-            "-p:ContainerImageTags=$TAGS" \
+            "-p:ContainerImageTags=\"$TAGS\"" \
             -p:ContainerPort=7000 \
             /t:PublishContainer
