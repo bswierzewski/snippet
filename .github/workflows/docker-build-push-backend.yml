@@ -87,34 +87,25 @@ jobs:
         working-directory: ${{ env.WORKING_DIR }}/src/Host/Snippet.Web
         run: |
           # --- Tagging Strategy ---
-          # 1. Get Short SHA (7 characters) for immutable tagging
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
-
-          # 2. Get sanitized branch name (replace slashes with hyphens)
           BRANCH=$(echo "${{ github.ref_name }}" | tr '/' '-')
 
-          # 3. Build the tag list.
-          # NOTE: We use '%3B' as a separator because ';' is a special character 
-          # in the MSBuild CLI command line.
-          # Initial tags: "branch-sha" (Immutable) AND "branch" (Moving target)
-          TAGS="${BRANCH}-${SHORT_SHA}%3B${BRANCH}"
+          # 1. Use literal semicolons (;) instead of %3B
+          TAGS="${BRANCH}-${SHORT_SHA};${BRANCH}"
 
-          # 4. If pushing to 'main', add the 'latest' tag
           if [[ "$BRANCH" == "main" ]]; then
-            TAGS="${TAGS}%3Blatest"
+            TAGS="${TAGS};latest"
           fi
 
           echo "Publishing with tags: $TAGS"
 
-          # --- Publish Command ---
-          # -os linux --arch x64: Ensures we build specifically for Linux containers
-          # -p:ContainerImageTags: Passes the encoded tag list
-          # -p:ContainerPort: Sets the exposed port and env var ASPNETCORE_HTTP_PORTS
+          # 2. IMPORTANT: Wrap the argument in quotes ("-p:...") 
+          # This ensures Bash passes the semicolons to dotnet without splitting the command
           dotnet publish -c Release \
             --os linux \
             --arch x64 \
             -p:ContainerRegistry=${{ env.REGISTRY }} \
             -p:ContainerRepository=${{ env.IMAGE_NAME }} \
-            -p:ContainerImageTags="$TAGS" \
+            "-p:ContainerImageTags=$TAGS" \
             -p:ContainerPort=7000 \
             /t:PublishContainer
