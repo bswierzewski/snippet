@@ -13,11 +13,12 @@
     </None>
   </ItemGroup>
 
-	<ItemGroup Label="Shared References">
+  <ItemGroup Label="Shared References">
     <ProjectReference Include="..\..\Shared\Snippet.Shared\Snippet.Shared.csproj" />
   </ItemGroup>
 
-	<ItemGroup Label="NuGet Package References">
+  <!-- Assuming Central Package Management -->
+  <ItemGroup Label="NuGet Package References">
     <PackageReference Include="Shared.Abstractions" />
     <PackageReference Include="Shared.Infrastructure" />
     <PackageReference Include="Shared.Users.Domain" />
@@ -33,7 +34,11 @@
   <ItemGroup Label="Package References">
     <PackageReference Include="DotNetEnv" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
+    <!-- PrivateAssets="all" ensures this dev-tool doesn't end up in the production container -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <Target Name="GenerateEnvFile" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
