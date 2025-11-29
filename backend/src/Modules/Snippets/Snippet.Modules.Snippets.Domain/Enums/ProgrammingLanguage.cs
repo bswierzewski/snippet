@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Snippet.Modules.Snippets.Domain.Enums;
 
 /// <summary>
@@ -5,69 +7,69 @@ namespace Snippet.Modules.Snippets.Domain.Enums;
 /// </summary>
 public enum ProgrammingLanguage
 {
-    /// <summary>C# programming language</summary>
+    [Display(Description = "C# programming language")]
     CSharp = 1,
 
-    /// <summary>JavaScript programming language</summary>
+    [Display(Description = "JavaScript programming language")]
     JavaScript = 2,
 
-    /// <summary>TypeScript programming language</summary>
+    [Display(Description = "TypeScript programming language")]
     TypeScript = 3,
 
-    /// <summary>Python programming language</summary>
+    [Display(Description = "Python programming language")]
     Python = 4,
 
-    /// <summary>Java programming language</summary>
+    [Display(Description = "Java programming language")]
     Java = 5,
 
-    /// <summary>Go programming language</summary>
+    [Display(Description = "Go programming language")]
     Go = 6,
 
-    /// <summary>Rust programming language</summary>
+    [Display(Description = "Rust programming language")]
     Rust = 7,
 
-    /// <summary>C++ programming language</summary>
+    [Display(Description = "C++ programming language")]
     Cpp = 8,
 
-    /// <summary>PHP programming language</summary>
+    [Display(Description = "PHP programming language")]
     Php = 9,
 
-    /// <summary>Ruby programming language</summary>
+    [Display(Description = "Ruby programming language")]
     Ruby = 10,
 
-    /// <summary>SQL query language</summary>
+    [Display(Description = "SQL query language")]
     Sql = 11,
 
-    /// <summary>Kusto Query Language (KQL)</summary>
+    [Display(Description = "Kusto Query Language (KQL)")]
     Kql = 12,
 
-    /// <summary>GraphQL query language</summary>
+    [Display(Description = "GraphQL query language")]
     GraphQL = 13,
 
-    /// <summary>HTML markup language</summary>
+    [Display(Description = "HTML markup language")]
     Html = 14,
 
-    /// <summary>CSS stylesheet language</summary>
+    [Display(Description = "CSS stylesheet language")]
     Css = 15,
 
-    /// <summary>JSON data format</summary>
+    [Display(Description = "JSON data format")]
     Json = 16,
 
-    /// <summary>YAML data format</summary>
+    [Display(Description = "YAML data format")]
     Yaml = 17,
 
-    /// <summary>XML markup language</summary>
+    [Display(Description = "XML markup language")]
     Xml = 18,
 
-    /// <summary>Markdown markup language</summary>
+    [Display(Description = "Markdown markup language")]
     Markdown = 19,
 
-    /// <summary>Bash shell scripting</summary>
+    [Display(Description = "Bash shell scripting")]
     Bash = 20,
 
-    /// <summary>PowerShell scripting</summary>
+    [Display(Description = "PowerShell scripting")]
     PowerShell = 21,
 
-    /// <summary>Plain text without syntax highlighting</summary>
+    [Display(Description = "Plain text without syntax highlighting")]
     PlainText = 22
 }

@@ -42,7 +42,7 @@ public class TagsTests : IAsyncLifetime
     {
         // Setup
         await _context.ResetDatabaseAsync();
-        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        var token = await _context.GetTokenAsync(_testUser.Email, _testUser.Password);
         _context.Client.WithBearerToken(token);
 
         // Arrange
@@ -73,7 +73,7 @@ public class TagsTests : IAsyncLifetime
     {
         // Setup
         await _context.ResetDatabaseAsync();
-        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        var token = await _context.GetTokenAsync(_testUser.Email, _testUser.Password);
         _context.Client.WithBearerToken(token);
 
         // Arrange
@@ -101,7 +101,7 @@ public class TagsTests : IAsyncLifetime
     {
         // Setup
         await _context.ResetDatabaseAsync();
-        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        var token = await _context.GetTokenAsync(_testUser.Email, _testUser.Password);
         _context.Client.WithBearerToken(token);
 
         // Arrange
@@ -127,7 +127,7 @@ public class TagsTests : IAsyncLifetime
     {
         // Setup
         await _context.ResetDatabaseAsync();
-        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        var token = await _context.GetTokenAsync(_testUser.Email, _testUser.Password);
         _context.Client.WithBearerToken(token);
 
         // Act
@@ -146,7 +146,7 @@ public class TagsTests : IAsyncLifetime
     {
         // Setup
         await _context.ResetDatabaseAsync();
-        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        var token = await _context.GetTokenAsync(_testUser.Email, _testUser.Password);
         _context.Client.WithBearerToken(token);
 
         // Arrange - Create multiple tags
@@ -175,7 +175,7 @@ public class TagsTests : IAsyncLifetime
     {
         // Setup
         await _context.ResetDatabaseAsync();
-        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        var token = await _context.GetTokenAsync(_testUser.Email, _testUser.Password);
         _context.Client.WithBearerToken(token);
 
         // Arrange - Create tag and assign to snippet
@@ -206,7 +206,7 @@ public class TagsTests : IAsyncLifetime
     {
         // Setup
         await _context.ResetDatabaseAsync();
-        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        var token = await _context.GetTokenAsync(_testUser.Email, _testUser.Password);
         _context.Client.WithBearerToken(token);
 
         // Arrange
@@ -230,7 +230,7 @@ public class TagsTests : IAsyncLifetime
     {
         // Setup
         await _context.ResetDatabaseAsync();
-        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        var token = await _context.GetTokenAsync(_testUser.Email, _testUser.Password);
         _context.Client.WithBearerToken(token);
 
         // Arrange
@@ -257,7 +257,7 @@ public class TagsTests : IAsyncLifetime
     {
         // Setup
         await _context.ResetDatabaseAsync();
-        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        var token = await _context.GetTokenAsync(_testUser.Email, _testUser.Password);
         _context.Client.WithBearerToken(token);
 
         // Arrange
@@ -279,7 +279,7 @@ public class TagsTests : IAsyncLifetime
     {
         // Setup
         await _context.ResetDatabaseAsync();
-        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        var token = await _context.GetTokenAsync(_testUser.Email, _testUser.Password);
         _context.Client.WithBearerToken(token);
 
         // Arrange
@@ -313,7 +313,7 @@ public class TagsTests : IAsyncLifetime
     {
         // Setup
         await _context.ResetDatabaseAsync();
-        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        var token = await _context.GetTokenAsync(_testUser.Email, _testUser.Password);
         _context.Client.WithBearerToken(token);
 
         // Arrange
@@ -341,7 +341,7 @@ public class TagsTests : IAsyncLifetime
     {
         // Setup
         await _context.ResetDatabaseAsync();
-        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        var token = await _context.GetTokenAsync(_testUser.Email, _testUser.Password);
         _context.Client.WithBearerToken(token);
 
         // Arrange
@@ -359,7 +359,7 @@ public class TagsTests : IAsyncLifetime
     {
         // Setup
         await _context.ResetDatabaseAsync();
-        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        var token = await _context.GetTokenAsync(_testUser.Email, _testUser.Password);
         _context.Client.WithBearerToken(token);
 
         // Arrange
@@ -391,7 +391,7 @@ public class TagsTests : IAsyncLifetime
     {
         // Setup
         await _context.ResetDatabaseAsync();
-        var token = await _context.GenerateUserToken(_testUser.Email, _testUser.Password);
+        var token = await _context.GetTokenAsync(_testUser.Email, _testUser.Password);
         _context.Client.WithBearerToken(token);
 
         // Create

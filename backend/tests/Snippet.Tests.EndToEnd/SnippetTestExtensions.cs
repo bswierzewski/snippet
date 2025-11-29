@@ -1,6 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Shared.Infrastructure.Tests.Authentication;
 using Shared.Infrastructure.Tests.Core;
 using Snippet.Modules.Snippets.Infrastructure.Persistence;
 using SnippetAggregate = Snippet.Modules.Snippets.Domain.Aggregates.Snippet;
@@ -50,21 +48,5 @@ public static class SnippetTestExtensions
     {
         var db = context.GetRequiredService<SnippetsDbContext>();
         return await db.Snippets.AnyAsync(s => s.Id.Value == id);
-    }
-
-    /// <summary>
-    /// Generates a test JWT token for the specified user credentials.
-    /// Wrapper around GetTokenAsync for simplified test token generation.
-    /// </summary>
-    /// <param name="context">The test context.</param>
-    /// <param name="email">User email</param>
-    /// <param name="password">User password</param>
-    /// <returns>JWT token string</returns>
-    public static async Task<string> GenerateUserToken(
-        this TestContext context,
-        string email,
-        string password)
-    {
-        return await context.GetTokenAsync(email, password);
     }
 }

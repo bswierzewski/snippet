@@ -65,6 +65,7 @@ public class SnippetsModule : IModule
         endpoints.MapSnippetsEndpoints();
         endpoints.MapCollectionsEndpoints();
         endpoints.MapTagsEndpoints();
+        endpoints.MapLookupDataEndpoints();
     }
 
     /// <summary>
