@@ -12,7 +12,6 @@ COPY Directory.Packages.props .
 
 # Copy all project files (excluding tests - not needed for production)
 COPY src/ src/
-COPY libs/ libs/
 
 # Restore dependencies (only for production projects)
 RUN dotnet restore src/Host/Snippet.Web/Snippet.Web.csproj
