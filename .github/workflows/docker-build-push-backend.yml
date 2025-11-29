@@ -58,7 +58,7 @@ jobs:
         run: |
           echo "Creating .env file from variables..."
           echo "${{ vars.ENV_FILE }}" > .env
-          echo ".env file created successfully in $(pwd)"
+          echo "${{ secrets.ENV_FILE }}" >> .env
 
       # Step 3: Setup .NET
       - name: Setup .NET
@@ -66,28 +66,43 @@ jobs:
         with:
           dotnet-version: "9.0.x"
 
-      # Step 4: Restore dependencies with GitHub token authentication
+      # Step 4: Configure NuGet authentication for GitHub Packages
+      - name: Configure NuGet for GitHub Packages
+        working-directory: ./backend
+        run: |
+          dotnet nuget add source "https://nuget.pkg.github.com/bswierzewski/index.json" \
+            --name github \
+            --username ${{ github.actor }} \
+            --password ${{ secrets.GITHUB_TOKEN }} \
+            --store-password-in-clear-text
+
+      # Step 5: Restore dependencies with GitHub token authentication
       - name: Restore dependencies
         working-directory: ./backend
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: dotnet restore
 
-      # Step 5: Build solution
+      # Step 6: Build solution
       - name: Build solution
         working-directory: ./backend
         run: dotnet build --no-restore --configuration Release
 
-      # Step 6: Run E2E Tests (before building Docker image)
+      # Step 7: Run E2E Tests (before building Docker image)
       - name: Run E2E Tests
         working-directory: ./backend
         run: dotnet test tests/Snippet.Tests.EndToEnd/Snippet.Tests.EndToEnd.csproj --no-build --configuration Release --verbosity normal
 
-      # Step 7: Set up Docker Buildx, an advanced builder that enables features like caching.
+      # Step 8: Remove .env file after build
+      - name: Remove .env file
+        working-directory: ./backend
+        run: rm -f .env
+
+      # Step 9: Set up Docker Buildx, an advanced builder that enables features like caching.
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Step 8: Log in to the Docker registry (GitHub Container Registry).
+      # Step 10: Log in to the Docker registry (GitHub Container Registry).
       - name: Log in to GitHub Container Registry
         # This step only runs on 'push' events, not on 'pull_request' events.
         if: github.event_name != 'pull_request'
@@ -97,13 +112,7 @@ jobs:
           username: ${{ github.actor }} # GitHub username from the workflow context.
           password: ${{ secrets.GITHUB_TOKEN }} # GitHub token automatically provided by Actions.
 
-      # Step 4: Create .env file from environment variables
-      - name: Create .env file
-        run: |
-          echo "${{ vars.ENV_FILE }}" > ./backend/.env
-          echo "${{ secrets.ENV_FILE }}" >> ./backend/.env
-
-      # Step 5: Automatically generate tags and labels for the Docker image.
+      # Step 11: Automatically generate tags and labels for the Docker image.
       - name: Extract metadata (tags, labels)
         id: meta # Assign an ID to reference its outputs.
         uses: docker/metadata-action@v5
@@ -117,7 +126,7 @@ jobs:
             type=sha,prefix={{branch}}- # Tag with branch and short commit SHA (e.g., 'main-a1b2c3d')
             type=raw,value=latest,enable={{is_default_branch}} # Tag 'latest' only for the default branch (usually 'main')
 
-      # Step 6: Build the Docker image and push it to the registry.
+      # Step 12: Build the Docker image and push it to the registry.
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -137,7 +146,3 @@ jobs:
           build-args: |
             GIT_COMMIT_SHA=${{ github.sha }}
             BUILD_DATE=${{ github.event.head_commit.timestamp }}
-
-      # Step 7: Remove .env file after build
-      - name: Remove .env file
-        run: rm -f ./backend/.env
