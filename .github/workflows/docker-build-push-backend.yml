@@ -81,22 +81,35 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       # 6. CD Phase: Publish Container
+      # We use Native .NET Container build support (no Dockerfile needed).
       - name: Publish Container Image
         if: github.event_name != 'pull_request'
         working-directory: ${{ env.WORKING_DIR }}/src/Host/Snippet.Web
         run: |
-          # 1. Logic to determine tags
-          TAGS="${{ github.sha }}"
+          # --- Tagging Strategy ---
+          # 1. Get Short SHA (7 characters) for immutable tagging
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
 
-          if [[ "${{ github.ref_name }}" == "main" ]]; then
-            TAGS="$TAGS;latest"
-          elif [[ "${{ github.ref_name }}" != "merge" ]]; then
-             TAGS="$TAGS;${{ github.ref_name }}"
+          # 2. Get sanitized branch name (replace slashes with hyphens)
+          BRANCH=$(echo "${{ github.ref_name }}" | tr '/' '-')
+
+          # 3. Build the tag list.
+          # NOTE: We use '%3B' as a separator because ';' is a special character 
+          # in the MSBuild CLI command line.
+          # Initial tags: "branch-sha" (Immutable) AND "branch" (Moving target)
+          TAGS="${BRANCH}-${SHORT_SHA}%3B${BRANCH}"
+
+          # 4. If pushing to 'main', add the 'latest' tag
+          if [[ "$BRANCH" == "main" ]]; then
+            TAGS="${TAGS}%3Blatest"
           fi
 
           echo "Publishing with tags: $TAGS"
 
-          # 2. Native .NET Container Publish with CLI configuration
+          # --- Publish Command ---
+          # -os linux --arch x64: Ensures we build specifically for Linux containers
+          # -p:ContainerImageTags: Passes the encoded tag list
+          # -p:ContainerPort: Sets the exposed port and env var ASPNETCORE_HTTP_PORTS
           dotnet publish -c Release \
             --os linux \
             --arch x64 \
