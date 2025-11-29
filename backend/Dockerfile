@@ -13,19 +13,10 @@ COPY Directory.Packages.props .
 # Copy all project files (excluding tests - not needed for production)
 COPY src/ src/
 
-# Configure NuGet authentication for GitHub Packages
+# Restore dependencies with GitHub Packages authentication
 RUN --mount=type=secret,id=github_token \
-    GITHUB_TOKEN=$(cat /run/secrets/github_token) && \
-    if [ -n "$GITHUB_TOKEN" ]; then \
-      dotnet nuget update source github \
-        --source "https://nuget.pkg.github.com/bswierzewski/index.json" \
-        --username "github-actions" \
-        --password "$GITHUB_TOKEN" \
-        --store-password-in-clear-text; \
-    fi
-
-# Restore dependencies (only for production projects)
-RUN dotnet restore src/Host/Snippet.Web/Snippet.Web.csproj
+    NUGET_PASSWORD=$(cat /run/secrets/github_token) \
+    dotnet restore src/Host/Snippet.Web/Snippet.Web.csproj
 
 # Build the application
 RUN dotnet build src/Host/Snippet.Web/Snippet.Web.csproj -c Release -o /app/build
