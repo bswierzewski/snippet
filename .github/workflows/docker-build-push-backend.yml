@@ -45,6 +45,7 @@ jobs:
       # 3. Authenticate NuGet (Crucial for Clean nuget.config)
       # This injects credentials into the runner's session, so we don't need placeholders in nuget.config
       - name: Authenticate NuGet Source
+        working-directory: ${{ env.WORKING_DIR }}
         run: |
           dotnet nuget update source github \
             --username ${{ github.actor }} \
