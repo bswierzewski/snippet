@@ -146,3 +146,6 @@ jobs:
           build-args: |
             GIT_COMMIT_SHA=${{ github.sha }}
             BUILD_DATE=${{ github.event.head_commit.timestamp }}
+          # Pass secrets securely (not baked into image)
+          secrets: |
+            github_token=${{ secrets.GITHUB_TOKEN }}
