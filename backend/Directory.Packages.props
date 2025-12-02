@@ -4,13 +4,14 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <SharedVersion>1.0.0-build.30</SharedVersion>
+    <SharedVersion>1.0.0-build.38</SharedVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <!-- Shared Packages from GitHub - Range constraints for prerelease compatibility -->
     <PackageVersion Include="Shared.Abstractions" Version="$(SharedVersion)" />
     <PackageVersion Include="Shared.Infrastructure" Version="$(SharedVersion)" />
+    <PackageVersion Include="Shared.Infrastructure.Generators" Version="$(SharedVersion)" />
     <PackageVersion Include="Shared.Infrastructure.Tests" Version="$(SharedVersion)" />
     <PackageVersion Include="Shared.Users.Domain" Version="$(SharedVersion)" />
     <PackageVersion Include="Shared.Users.Application" Version="$(SharedVersion)" />

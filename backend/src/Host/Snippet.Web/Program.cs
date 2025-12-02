@@ -1,6 +1,5 @@
 ﻿using DotNetEnv;
 using Shared.Abstractions.Modules;
-using Shared.Infrastructure.Modules;
 using Shared.Users.Infrastructure.Extensions.Supabase;
 using Snippet.Modules.Snippets.Infrastructure.Persistence;
 
@@ -22,9 +21,8 @@ builder.Services.AddHealthChecks();
 builder.Services.AddEndpointsApiExplorer(); // Exposes Minimal API endpoints to OpenAPI
 builder.Services.AddOpenApi();              // Generates OpenAPI document
 
-// Load and register all modules
-// Auto-discovers IModule implementations from all loaded assemblies
-var modules = ModuleLoader.LoadModules();
+// Load modules from auto-generated registry
+var modules = ModuleRegistry.GetModules();
 
 builder.Services.AddSingleton<IReadOnlyCollection<IModule>>(modules.AsReadOnly());
 
@@ -73,4 +71,6 @@ await app.Services.InitializeModules(modules);
 await app.RunAsync();
 
 // Make the Program class accessible for integration tests
+// [GenerateModuleRegistry] triggers source generator to create ModuleRegistry class
+[GenerateModuleRegistry]
 public partial class Program { }

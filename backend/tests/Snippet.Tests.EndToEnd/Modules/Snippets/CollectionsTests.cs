@@ -1,7 +1,5 @@
 using System.Net;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using Shared.Infrastructure.Tests.Authentication;
 using Shared.Infrastructure.Tests.Core;
 using Shared.Infrastructure.Tests.Extensions.Http;
 using Microsoft.EntityFrameworkCore;
@@ -16,21 +14,12 @@ namespace Snippet.Tests.EndToEnd.Modules.Snippets;
 /// End-to-end tests for collection management functionality including creation, retrieval, update, and deletion operations.
 /// </summary>
 [Collection("Snippet")]
-public class CollectionsTests : IAsyncLifetime
+public class CollectionsTests(SnippetTestFixture fixture) : IAsyncLifetime
 {
-    private readonly TestContext _context;
-    private TestUserOptions _testUser = null!;
+    private readonly TestContext _context = fixture.Context;
+    private readonly SnippetTestFixture _fixture = fixture;
 
-    public CollectionsTests(SnippetTestFixture fixture)
-    {
-        _context = fixture.Context;
-    }
-
-    public async Task InitializeAsync()
-    {
-        _testUser = _context.Services.GetRequiredService<IOptions<TestUserOptions>>().Value;
-        await Task.CompletedTask;
-    }
+    public Task InitializeAsync() => Task.CompletedTask;
 
     public Task DisposeAsync() => Task.CompletedTask;
 
@@ -39,7 +28,7 @@ public class CollectionsTests : IAsyncLifetime
     {
         // Setup
         await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_testUser.Email, _testUser.Password);
+        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
         _context.Client.WithBearerToken(token);
 
         var response = await _context.Client.GetAsync("/api/collections");
@@ -53,7 +42,7 @@ public class CollectionsTests : IAsyncLifetime
     {
         // Setup
         await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_testUser.Email, _testUser.Password);
+        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
         _context.Client.WithBearerToken(token);
 
         // Arrange
@@ -86,7 +75,7 @@ public class CollectionsTests : IAsyncLifetime
     {
         // Setup
         await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_testUser.Email, _testUser.Password);
+        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
         _context.Client.WithBearerToken(token);
 
         // Arrange - Create multiple collections
@@ -119,7 +108,7 @@ public class CollectionsTests : IAsyncLifetime
     {
         // Setup
         await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_testUser.Email, _testUser.Password);
+        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
         _context.Client.WithBearerToken(token);
 
         // Arrange
@@ -151,7 +140,7 @@ public class CollectionsTests : IAsyncLifetime
     {
         // Setup
         await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_testUser.Email, _testUser.Password);
+        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
         _context.Client.WithBearerToken(token);
 
         // Arrange
@@ -195,7 +184,7 @@ public class CollectionsTests : IAsyncLifetime
     {
         // Setup
         await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_testUser.Email, _testUser.Password);
+        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
         _context.Client.WithBearerToken(token);
 
         // Arrange
@@ -235,7 +224,7 @@ public class CollectionsTests : IAsyncLifetime
     {
         // Setup
         await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_testUser.Email, _testUser.Password);
+        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
         _context.Client.WithBearerToken(token);
 
         // Arrange
@@ -253,7 +242,7 @@ public class CollectionsTests : IAsyncLifetime
     {
         // Setup
         await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_testUser.Email, _testUser.Password);
+        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
         _context.Client.WithBearerToken(token);
 
         // Arrange
