@@ -19,12 +19,12 @@
 
   <!-- Assuming Central Package Management -->
   <ItemGroup Label="NuGet Package References">
-    <PackageReference Include="Shared.Abstractions" Version="1.0.0-build.38" />
-    <PackageReference Include="Shared.Infrastructure" Version="1.0.0-build.38" />
-    <PackageReference Include="Shared.Users.Domain" Version="1.0.0-build.38" />
-    <PackageReference Include="Shared.Users.Application" Version="1.0.0-build.38" />
-    <PackageReference Include="Shared.Users.Infrastructure" Version="1.0.0-build.38" />
-    <PackageReference Include="Shared.Infrastructure.Generators" Version="1.0.0-build.38" />
+    <PackageReference Include="Shared.Abstractions" />
+    <PackageReference Include="Shared.Infrastructure" />
+    <PackageReference Include="Shared.Users.Domain" />
+    <PackageReference Include="Shared.Users.Application" />
+    <PackageReference Include="Shared.Users.Infrastructure" />
+    <PackageReference Include="Shared.Infrastructure.Generators" />
   </ItemGroup>
 
   <ItemGroup Label="Local Module References">

@@ -1,8 +1,8 @@
 using System.Net;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using Shared.Infrastructure.Tests.Authentication;
 using Shared.Infrastructure.Tests.Core;
 using Shared.Infrastructure.Tests.Extensions.Http;
-using Microsoft.EntityFrameworkCore;
 using Snippet.Modules.Snippets.Application.Abstractions;
 using Snippet.Modules.Snippets.Application.Commands.Collections.CreateCollection;
 using Snippet.Modules.Snippets.Application.Commands.Collections.UpdateCollection;
@@ -19,18 +19,19 @@ public class CollectionsTests(SnippetTestFixture fixture) : IAsyncLifetime
     private readonly TestContext _context = fixture.Context;
     private readonly SnippetTestFixture _fixture = fixture;
 
-    public Task InitializeAsync() => Task.CompletedTask;
+    public async Task InitializeAsync()
+    {
+        await _context.ResetDatabaseAsync();
+        var tokenProvider = _context.GetRequiredService<ITokenProvider>();
+        var token = await tokenProvider.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
+        _context.Client.WithBearerToken(token);
+    }
 
     public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task GetCollections_ShouldReturnSuccess()
     {
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         var response = await _context.Client.GetAsync("/api/collections");
 
 
@@ -40,11 +41,6 @@ public class CollectionsTests(SnippetTestFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task CreateCollection_WithValidData_ShouldCreateAndReturnCollection()
     {
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         // Arrange
         var command = new CreateCollectionCommand(
             "Test Collection",
@@ -73,11 +69,6 @@ public class CollectionsTests(SnippetTestFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task GetCollections_WithMultipleCollections_ShouldReturnCorrectCount()
     {
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         // Arrange - Create multiple collections
         var commands = new[]
         {
@@ -106,11 +97,6 @@ public class CollectionsTests(SnippetTestFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task GetCollectionById_WithExistingId_ShouldReturnCollection()
     {
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         // Arrange
         var createResponse = await _context.Client.PostJsonAsync("/api/collections", new CreateCollectionCommand(
             "Test Collection",
@@ -138,11 +124,6 @@ public class CollectionsTests(SnippetTestFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task UpdateCollection_WithValidData_ShouldUpdateCollection()
     {
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         // Arrange
         var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
 
@@ -182,11 +163,6 @@ public class CollectionsTests(SnippetTestFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task DeleteCollection_WithExistingId_ShouldRemoveFromDatabase()
     {
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         // Arrange
         var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
 
@@ -222,11 +198,6 @@ public class CollectionsTests(SnippetTestFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task GetCollectionById_WithNonExistingId_ShouldReturnNotFound()
     {
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         // Arrange
         var nonExistingId = Guid.NewGuid();
 
@@ -240,11 +211,6 @@ public class CollectionsTests(SnippetTestFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task DeleteCollection_WithNonExistingId_ShouldReturnNotFound()
     {
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         // Arrange
         var nonExistingId = Guid.NewGuid();
 

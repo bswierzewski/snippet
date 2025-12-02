@@ -1,8 +1,8 @@
 using System.Net;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using Shared.Infrastructure.Tests.Authentication;
 using Shared.Infrastructure.Tests.Core;
 using Shared.Infrastructure.Tests.Extensions.Http;
-using Microsoft.EntityFrameworkCore;
 using Snippet.Modules.Snippets.Application.Abstractions;
 using Snippet.Modules.Snippets.Application.Commands.Collections.CreateCollection;
 using Snippet.Modules.Snippets.Application.Commands.Snippets.CreateSnippet;
@@ -22,7 +22,13 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     private readonly TestContext _context = fixture.Context;
     private readonly SnippetTestFixture _fixture = fixture;
 
-    public Task InitializeAsync() => Task.CompletedTask;
+    public async Task InitializeAsync()
+    {
+        await _context.ResetDatabaseAsync();
+        var tokenProvider = _context.GetRequiredService<ITokenProvider>();
+        var token = await tokenProvider.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
+        _context.Client.WithBearerToken(token);
+    }
 
     public Task DisposeAsync() => Task.CompletedTask;
 
@@ -32,11 +38,6 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task CreateSnippet_WithValidData_ShouldCreateAndReturnSnippet()
     {
         // Arrange
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         var command = new CreateSnippetCommand(
             "Test Snippet",
             "Console.WriteLine(\"Hello World\");",
@@ -67,11 +68,6 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task CreateSnippet_WithCollections_ShouldAssignToCollections()
     {
         // Arrange
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         var collection1Response = await _context.Client.PostJsonAsync("/api/collections", new CreateCollectionCommand("Collection 1", null, null, null));
         var collection1Id = await collection1Response.ReadAsJsonAsync<Guid>();
 
@@ -106,11 +102,6 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task GetSnippets_ShouldReturnSuccess()
     {
         // Arrange
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         var response = await _context.Client.GetAsync("/api/snippets");
 
         response.IsSuccessStatusCode.Should().BeTrue();
@@ -120,11 +111,6 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task GetSnippets_WithMultipleSnippets_ShouldReturnCorrectCount()
     {
         // Arrange
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         var commands = new[]
         {
             new CreateSnippetCommand("Snippet 1", "code1", ProgrammingLanguage.JavaScript, null, null, null),
@@ -153,11 +139,6 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task GetSnippetById_WithExistingId_ShouldReturnSnippet()
     {
         // Arrange
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         var createResponse = await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
             "Test Snippet",
             "SELECT * FROM Users",
@@ -187,11 +168,6 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task GetSnippetById_WithNonExistingId_ShouldReturnNotFound()
     {
         // Arrange
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         var nonExistingId = Guid.NewGuid();
 
         // Act
@@ -209,11 +185,6 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task UpdateSnippetContent_WithValidData_ShouldUpdateContent()
     {
         // Arrange
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
 
         var createResponse = await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
@@ -254,11 +225,6 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task ChangeSnippetLanguage_WithValidData_ShouldUpdateLanguage()
     {
         // Arrange
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
 
         var createResponse = await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
@@ -303,11 +269,6 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task AddTag_WithValidData_ShouldAddTagToSnippet()
     {
         // Arrange
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
 
         // Create a tag first
@@ -359,11 +320,6 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task RemoveTag_WithExistingTag_ShouldRemoveTag()
     {
         // Arrange
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
 
         // Create a tag
@@ -418,11 +374,6 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task ToggleFavorite_ShouldToggleSnippetFavoriteStatus()
     {
         // Arrange
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
 
         var createResponse = await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
@@ -462,11 +413,6 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task RecordUsage_ShouldUpdateUsageCount()
     {
         // Arrange
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
 
         var createResponse = await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
@@ -500,11 +446,6 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task MoveSnippet_ShouldUpdateCollections()
     {
         // Arrange
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
 
         var collection1Response = await _context.Client.PostJsonAsync("/api/collections", new CreateCollectionCommand("Collection 1", null, null, null));
@@ -557,11 +498,6 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task DeleteSnippet_WithExistingId_ShouldRemoveFromDatabase()
     {
         // Arrange
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
 
         var createResponse = await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
@@ -599,11 +535,6 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task DeleteSnippet_WithNonExistingId_ShouldReturnNotFound()
     {
         // Arrange
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         var nonExistingId = Guid.NewGuid();
 
         // Act
@@ -621,11 +552,6 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task GetFavoriteSnippets_ShouldReturnOnlyFavorites()
     {
         // Arrange
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         var snippet1Response = await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand("Snippet 1", "code1", ProgrammingLanguage.CSharp, null, null, null));
         var snippet1Id = await snippet1Response.ReadAsJsonAsync<Guid>();
 
@@ -654,11 +580,6 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task GetRecentSnippets_ShouldReturnLimitedResults()
     {
         // Arrange
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         for (int i = 0; i < 15; i++)
         {
             await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand($"Snippet {i}", $"code{i}", ProgrammingLanguage.CSharp, null, null, null));
@@ -675,11 +596,6 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task GetCollectionSnippets_ShouldReturnSnippetsInCollection()
     {
         // Arrange
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         var collectionResponse = await _context.Client.PostJsonAsync("/api/collections", new CreateCollectionCommand("Test Collection", null, null, null));
         var collectionId = await collectionResponse.ReadAsJsonAsync<Guid>();
 

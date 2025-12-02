@@ -1,5 +1,6 @@
 ﻿using DotNetEnv;
 using Shared.Abstractions.Modules;
+using Shared.Infrastructure.Modules;
 using Shared.Users.Infrastructure.Extensions.Supabase;
 using Snippet.Modules.Snippets.Infrastructure.Persistence;
 

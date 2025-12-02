@@ -1,8 +1,8 @@
 using System.Net;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using Shared.Infrastructure.Tests.Authentication;
 using Shared.Infrastructure.Tests.Core;
 using Shared.Infrastructure.Tests.Extensions.Http;
-using Microsoft.EntityFrameworkCore;
 using Snippet.Modules.Snippets.Application.Abstractions;
 using Snippet.Modules.Snippets.Application.Commands.Tags.CreateTag;
 using Snippet.Modules.Snippets.Application.Queries.Tags.GetTags;
@@ -20,7 +20,13 @@ public class TagsTests(SnippetTestFixture fixture) : IAsyncLifetime
     private readonly TestContext _context = fixture.Context;
     private readonly SnippetTestFixture _fixture = fixture;
 
-    public Task InitializeAsync() => Task.CompletedTask;
+    public async Task InitializeAsync()
+    {
+        await _context.ResetDatabaseAsync();
+        var tokenProvider = _context.GetRequiredService<ITokenProvider>();
+        var token = await tokenProvider.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
+        _context.Client.WithBearerToken(token);
+    }
 
     public Task DisposeAsync() => Task.CompletedTask;
 
@@ -29,11 +35,6 @@ public class TagsTests(SnippetTestFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task CreateTag_WithValidData_ShouldCreateAndReturnTagId()
     {
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         // Arrange
         var command = new CreateTagCommand(
             "ImportantTag",
@@ -60,11 +61,6 @@ public class TagsTests(SnippetTestFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task CreateTag_WithoutColor_ShouldCreateTagWithNullColor()
     {
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         // Arrange
         var command = new CreateTagCommand(
             "SimpleTag",
@@ -88,11 +84,6 @@ public class TagsTests(SnippetTestFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task CreateTag_WithDuplicateName_ShouldHandleGracefully()
     {
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         // Arrange
         var command1 = new CreateTagCommand("DuplicateTag", "#FF0000");
         var command2 = new CreateTagCommand("duplicatetag", "#00FF00"); // Same name, different case
@@ -114,11 +105,6 @@ public class TagsTests(SnippetTestFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task GetUserTags_WithNoTags_ShouldReturnEmptyList()
     {
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         // Act
         var response = await _context.Client.GetAsync("/api/tags");
 
@@ -133,11 +119,6 @@ public class TagsTests(SnippetTestFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task GetUserTags_WithMultipleTags_ShouldReturnAllUserTags()
     {
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         // Arrange - Create multiple tags
         var tag1Response = await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Tag1", "#FF0000"));
         var tag2Response = await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Tag2", "#00FF00"));
@@ -162,11 +143,6 @@ public class TagsTests(SnippetTestFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task GetUserTags_ShouldIncludeSnippetCount()
     {
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         // Arrange - Create tag and assign to snippet
         var tagResponse = await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("CountedTag", null));
         var tagId = await tagResponse.ReadAsJsonAsync<Guid>();
@@ -193,11 +169,6 @@ public class TagsTests(SnippetTestFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task SearchTags_WithoutSearchTerm_ShouldReturnAllTags()
     {
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         // Arrange
         await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Alpha", null));
         await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Beta", null));
@@ -217,11 +188,6 @@ public class TagsTests(SnippetTestFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task SearchTags_WithSearchTerm_ShouldReturnMatchingTags()
     {
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         // Arrange
         await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("JavaScript", null));
         await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Java", null));
@@ -244,11 +210,6 @@ public class TagsTests(SnippetTestFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task SearchTags_WithNonMatchingTerm_ShouldReturnEmptyList()
     {
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         // Arrange
         await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Tag1", null));
 
@@ -266,11 +227,6 @@ public class TagsTests(SnippetTestFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task SearchTags_IsCaseInsensitive()
     {
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         // Arrange
         await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("ImportantTag", null));
 
@@ -300,11 +256,6 @@ public class TagsTests(SnippetTestFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task DeleteTag_WithExistingTag_ShouldRemoveFromDatabase()
     {
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         // Arrange
         var createResponse = await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("ToDelete", "#FF0000"));
         var tagId = await createResponse.ReadAsJsonAsync<Guid>();
@@ -328,11 +279,6 @@ public class TagsTests(SnippetTestFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task DeleteTag_WithNonExistingTag_ShouldReturnNotFound()
     {
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         // Arrange
         var nonExistingId = Guid.NewGuid();
 
@@ -346,11 +292,6 @@ public class TagsTests(SnippetTestFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task DeleteTag_MultipleSequentialDeletes_ShouldWork()
     {
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         // Arrange
         var tag1Response = await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Delete1", null));
         var tag1Id = await tag1Response.ReadAsJsonAsync<Guid>();
@@ -378,11 +319,6 @@ public class TagsTests(SnippetTestFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task TagLifecycle_CreateSearchAndDelete_ShouldWorkEndToEnd()
     {
-        // Setup
-        await _context.ResetDatabaseAsync();
-        var token = await _context.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
-
         // Create
         var createResponse = await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand("Lifecycle", "#123456"));
         createResponse.StatusCode.Should().Be(HttpStatusCode.OK);
