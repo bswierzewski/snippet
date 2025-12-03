@@ -53,8 +53,4 @@
 		<Using Include="FluentAssertions" />
 	</ItemGroup>
 
-	<Target Name="GenerateEnvFile" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
-		<Exec Command="dotnet tool run shared env generate -p $(MSBuildProjectDirectory) -o $(MSBuildProjectDirectory)\.env.example -c $(Configuration) -f" />
-	</Target>
-
 </Project>

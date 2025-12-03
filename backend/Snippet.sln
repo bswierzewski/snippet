@@ -10,6 +10,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{B8E9F5D2-3A4C-4B5E-9F8A-1D2E3F4A5B6C}"
 	ProjectSection(SolutionItems) = preProject
 		scripts\drop-database.ps1 = scripts\drop-database.ps1
+		scripts\env-template-generator.ps1 = scripts\env-template-generator.ps1
 		scripts\README.md = scripts\README.md
 	EndProjectSection
 EndProject
@@ -135,5 +136,8 @@ Global
 		{C8E42992-5E42-0C2B-DBFE-AA848D06431C} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{BFD6819F-DB31-4DF1-BB29-7BB1A51CD84F} = {C8E42992-5E42-0C2B-DBFE-AA848D06431C}
 		{EA29C7E5-EDA7-46A1-AB7C-1B64306BDC5E} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {129D23D4-9C45-4D98-B56F-E7072AAB975D}
 	EndGlobalSection
 EndGlobal
