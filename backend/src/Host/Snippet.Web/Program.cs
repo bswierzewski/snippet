@@ -1,5 +1,6 @@
 ﻿using DotNetEnv;
 using Shared.Abstractions.Modules;
+using Shared.Infrastructure.Exceptions;
 using Shared.Users.Infrastructure.Extensions.Supabase;
 using Snippet.Modules.Snippets.Infrastructure.Persistence;
 
@@ -13,6 +14,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Register core services
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddCors();
+
+// Exception handling
+builder.Services.AddExceptionHandler<CustomExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 // Health checks for Docker and Caddy monitoring
 builder.Services.AddHealthChecks();
@@ -49,6 +54,9 @@ if (app.Environment.IsDevelopment())
     var seeder = new DataSeeder(dbContext);
     await seeder.SeedAsync();
 }
+
+// Exception handling
+app.UseExceptionHandler(options => { });
 
 // Middleware pipeline order matters!
 app.UseAuthentication(); // 1. Authentication first
