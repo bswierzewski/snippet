@@ -1,6 +1,7 @@
 ﻿using DotNetEnv;
 using Shared.Abstractions.Modules;
 using Shared.Infrastructure.Exceptions;
+using Shared.Infrastructure.Logging;
 using Shared.Users.Infrastructure.Extensions.Supabase;
 using Snippet.Modules.Snippets.Infrastructure.Persistence;
 
@@ -10,6 +11,9 @@ if (File.Exists(".env"))
     Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog with TraceId support
+builder.AddSerilog("Snippet.Backend");
 
 // Register core services
 builder.Services.AddSingleton(TimeProvider.System);
@@ -57,6 +61,9 @@ if (app.Environment.IsDevelopment())
 
 // Exception handling
 app.UseExceptionHandler(options => { });
+
+// Request logging with TraceId (MUST be after UseExceptionHandler)
+app.UseSerilogRequestLogging();
 
 // Middleware pipeline order matters!
 app.UseAuthentication(); // 1. Authentication first
