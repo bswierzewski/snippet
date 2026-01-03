@@ -1,8 +1,7 @@
 using System.Net;
 using Microsoft.EntityFrameworkCore;
-using Shared.Infrastructure.Tests.Authentication;
-using Shared.Infrastructure.Tests.Core;
-using Shared.Infrastructure.Tests.Extensions.Http;
+using BuildingBlocks.Tests.Core;
+using BuildingBlocks.Tests.Extensions.Http;
 using Snippet.Modules.Snippets.Application.Abstractions;
 using Snippet.Modules.Snippets.Application.Commands.Collections.CreateCollection;
 using Snippet.Modules.Snippets.Application.Commands.Snippets.CreateSnippet;
@@ -25,9 +24,6 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task InitializeAsync()
     {
         await _context.ResetDatabaseAsync();
-        var tokenProvider = _context.GetRequiredService<ITokenProvider>();
-        var token = await tokenProvider.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -53,11 +49,11 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Verify in database using read context
-        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
-        var snippetsCount = await readContext.Snippets.CountAsync();
+        var readContext = _context.GetRequiredService<ISnippetDbContext>();
+        var snippetsCount = await readContext.Snippets.AsNoTracking().CountAsync();
         snippetsCount.Should().Be(1);
 
-        var snippet = await readContext.Snippets.FirstAsync();
+        var snippet = await readContext.Snippets.AsNoTracking().FirstAsync();
         snippet.Title.Should().Be("Test Snippet");
         snippet.Content.Should().Be("Console.WriteLine(\"Hello World\");");
         snippet.Language.Should().Be(ProgrammingLanguage.CSharp);
@@ -88,8 +84,8 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
-        var snippet = await readContext.Snippets.Include(s => s.SnippetCollections).ThenInclude(sc => sc.Collection).FirstAsync();
+        var readContext = _context.GetRequiredService<ISnippetDbContext>();
+        var snippet = await readContext.Snippets.AsNoTracking().Include(s => s.SnippetCollections).ThenInclude(sc => sc.Collection).FirstAsync();
 
         snippet.SnippetCollections.Should().HaveCount(2);
     }
@@ -130,8 +126,8 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
         response.IsSuccessStatusCode.Should().BeTrue();
 
         // Verify database count using read context
-        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
-        var snippetsCount = await readContext.Snippets.CountAsync();
+        var readContext = _context.GetRequiredService<ISnippetDbContext>();
+        var snippetsCount = await readContext.Snippets.AsNoTracking().CountAsync();
         snippetsCount.Should().Be(3);
     }
 
@@ -157,8 +153,9 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
         response.IsSuccessStatusCode.Should().BeTrue();
 
         // Verify snippet exists in database using read context
-        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
+        var readContext = _context.GetRequiredService<ISnippetDbContext>();
         var snippet = await readContext.Snippets
+            .AsNoTracking()
             .FirstOrDefaultAsync(s => s.Id == new SnippetId(snippetId));
         snippet.Should().NotBeNull();
         snippet!.Title.Should().Be("Test Snippet");
@@ -185,7 +182,7 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task UpdateSnippetContent_WithValidData_ShouldUpdateContent()
     {
         // Arrange
-        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
+        var readContext = _context.GetRequiredService<ISnippetDbContext>();
 
         var createResponse = await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
             "Original Snippet",
@@ -216,6 +213,7 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
 
         // Verify update in database
         var updatedSnippet = await readContext.Snippets
+            .AsNoTracking()
             .FirstOrDefaultAsync(s => s.Id == new SnippetId(snippetId));
         updatedSnippet.Should().NotBeNull();
         updatedSnippet!.Content.Should().Be("updated content");
@@ -225,7 +223,7 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task ChangeSnippetLanguage_WithValidData_ShouldUpdateLanguage()
     {
         // Arrange
-        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
+        var readContext = _context.GetRequiredService<ISnippetDbContext>();
 
         var createResponse = await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
             "Language Change Test",
@@ -256,6 +254,7 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
 
         // Verify update in database
         var updatedSnippet = await readContext.Snippets
+            .AsNoTracking()
             .FirstOrDefaultAsync(s => s.Id == new SnippetId(snippetId));
         updatedSnippet.Should().NotBeNull();
         updatedSnippet!.Language.Should().Be(ProgrammingLanguage.TypeScript);
@@ -269,7 +268,7 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task AddTag_WithValidData_ShouldAddTagToSnippet()
     {
         // Arrange
-        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
+        var readContext = _context.GetRequiredService<ISnippetDbContext>();
 
         // Create a tag first
         var createTagResponse = await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand(
@@ -309,6 +308,7 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
 
         // Verify tag added in database
         var snippet = await readContext.Snippets
+            .AsNoTracking()
             .Include(s => s.SnippetTags).ThenInclude(st => st.Tag)
             .FirstOrDefaultAsync(s => s.Id == new SnippetId(snippetId));
         snippet.Should().NotBeNull();
@@ -320,7 +320,7 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task RemoveTag_WithExistingTag_ShouldRemoveTag()
     {
         // Arrange
-        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
+        var readContext = _context.GetRequiredService<ISnippetDbContext>();
 
         // Create a tag
         var createTagResponse = await _context.Client.PostJsonAsync("/api/tags", new CreateTagCommand(
@@ -360,6 +360,7 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
 
         // Verify tag removed
         var snippet = await readContext.Snippets
+            .AsNoTracking()
             .Include(s => s.SnippetTags).ThenInclude(st => st.Tag)
             .FirstOrDefaultAsync(s => s.Id == new SnippetId(snippetId));
         snippet.Should().NotBeNull();
@@ -374,7 +375,7 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task ToggleFavorite_ShouldToggleSnippetFavoriteStatus()
     {
         // Arrange
-        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
+        var readContext = _context.GetRequiredService<ISnippetDbContext>();
 
         var createResponse = await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
             "Favorite Test",
@@ -394,6 +395,7 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
         response1.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         var snippet = await readContext.Snippets
+            .AsNoTracking()
             .FirstOrDefaultAsync(s => s.Id == new SnippetId(snippetId));
         snippet.Should().NotBeNull();
         snippet!.IsFavorite.Should().BeTrue();
@@ -405,6 +407,7 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
         response2.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         var snippetAfterToggle = await readContext.Snippets
+            .AsNoTracking()
             .FirstOrDefaultAsync(s => s.Id == new SnippetId(snippetId));
         snippetAfterToggle!.IsFavorite.Should().BeFalse();
     }
@@ -413,7 +416,7 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task RecordUsage_ShouldUpdateUsageCount()
     {
         // Arrange
-        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
+        var readContext = _context.GetRequiredService<ISnippetDbContext>();
 
         var createResponse = await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
             "Usage Test",
@@ -433,6 +436,7 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         var snippet = await readContext.Snippets
+            .AsNoTracking()
             .FirstOrDefaultAsync(s => s.Id == new SnippetId(snippetId));
         snippet.Should().NotBeNull();
         snippet!.UsageCount.Should().Be(1);
@@ -446,7 +450,7 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task MoveSnippet_ShouldUpdateCollections()
     {
         // Arrange
-        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
+        var readContext = _context.GetRequiredService<ISnippetDbContext>();
 
         var collection1Response = await _context.Client.PostJsonAsync("/api/collections", new CreateCollectionCommand("Collection 1", null, null, null));
         var collection1Id = await collection1Response.ReadAsJsonAsync<Guid>();
@@ -483,6 +487,7 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
 
         // Verify collections updated
         var snippet = await readContext.Snippets
+            .AsNoTracking()
             .Include(s => s.SnippetCollections).ThenInclude(sc => sc.Collection)
             .FirstOrDefaultAsync(s => s.Id == new SnippetId(snippetId));
         snippet.Should().NotBeNull();
@@ -498,7 +503,7 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task DeleteSnippet_WithExistingId_ShouldRemoveFromDatabase()
     {
         // Arrange
-        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
+        var readContext = _context.GetRequiredService<ISnippetDbContext>();
 
         var createResponse = await _context.Client.PostJsonAsync("/api/snippets", new CreateSnippetCommand(
             "To Delete Snippet",
@@ -513,6 +518,7 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
 
         // Verify snippet exists before deletion
         var snippetBeforeDelete = await readContext.Snippets
+            .AsNoTracking()
             .FirstOrDefaultAsync(s => s.Id == new SnippetId(snippetId));
         snippetBeforeDelete.Should().NotBeNull();
 
@@ -524,10 +530,11 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
 
         // Verify snippet no longer exists
         var snippetAfterDelete = await readContext.Snippets
+            .AsNoTracking()
             .FirstOrDefaultAsync(s => s.Id == new SnippetId(snippetId));
         snippetAfterDelete.Should().BeNull();
 
-        var totalCount = await readContext.Snippets.CountAsync();
+        var totalCount = await readContext.Snippets.AsNoTracking().CountAsync();
         totalCount.Should().Be(0);
     }
 
@@ -571,8 +578,8 @@ public class SnippetsTests(SnippetTestFixture fixture) : IAsyncLifetime
         // Assert
         response.IsSuccessStatusCode.Should().BeTrue();
 
-        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
-        var favoriteCount = await readContext.Snippets.CountAsync(s => s.IsFavorite);
+        var readContext = _context.GetRequiredService<ISnippetDbContext>();
+        var favoriteCount = await readContext.Snippets.AsNoTracking().CountAsync(s => s.IsFavorite);
         favoriteCount.Should().Be(2);
     }
 

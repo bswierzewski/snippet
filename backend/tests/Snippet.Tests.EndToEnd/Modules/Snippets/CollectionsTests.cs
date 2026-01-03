@@ -1,8 +1,7 @@
 using System.Net;
 using Microsoft.EntityFrameworkCore;
-using Shared.Infrastructure.Tests.Authentication;
-using Shared.Infrastructure.Tests.Core;
-using Shared.Infrastructure.Tests.Extensions.Http;
+using BuildingBlocks.Tests.Core;
+using BuildingBlocks.Tests.Extensions.Http;
 using Snippet.Modules.Snippets.Application.Abstractions;
 using Snippet.Modules.Snippets.Application.Commands.Collections.CreateCollection;
 using Snippet.Modules.Snippets.Application.Commands.Collections.UpdateCollection;
@@ -22,9 +21,6 @@ public class CollectionsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task InitializeAsync()
     {
         await _context.ResetDatabaseAsync();
-        var tokenProvider = _context.GetRequiredService<ITokenProvider>();
-        var token = await tokenProvider.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -55,11 +51,11 @@ public class CollectionsTests(SnippetTestFixture fixture) : IAsyncLifetime
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Verify in database using read context
-        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
-        var collectionsCount = await readContext.Collections.CountAsync();
+        var readContext = _context.GetRequiredService<ISnippetDbContext>();
+        var collectionsCount = await readContext.Collections.AsNoTracking().CountAsync();
         collectionsCount.Should().Be(1);
 
-        var collection = await readContext.Collections.FirstAsync();
+        var collection = await readContext.Collections.AsNoTracking().FirstAsync();
         collection.Name.Should().Be("Test Collection");
         collection.Description.Should().Be("Test Description");
         collection.Color.Should().Be("#FF5733");
@@ -89,8 +85,8 @@ public class CollectionsTests(SnippetTestFixture fixture) : IAsyncLifetime
         response.IsSuccessStatusCode.Should().BeTrue();
 
         // Verify database count using read context
-        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
-        var collectionsCount = await readContext.Collections.CountAsync();
+        var readContext = _context.GetRequiredService<ISnippetDbContext>();
+        var collectionsCount = await readContext.Collections.AsNoTracking().CountAsync();
         collectionsCount.Should().Be(3);
     }
 
@@ -114,8 +110,9 @@ public class CollectionsTests(SnippetTestFixture fixture) : IAsyncLifetime
         response.IsSuccessStatusCode.Should().BeTrue();
 
         // Verify collection exists in database using read context
-        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
+        var readContext = _context.GetRequiredService<ISnippetDbContext>();
         var collection = await readContext.Collections
+            .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == new CollectionId(collectionId));
         collection.Should().NotBeNull();
         collection!.Name.Should().Be("Test Collection");
@@ -125,7 +122,7 @@ public class CollectionsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task UpdateCollection_WithValidData_ShouldUpdateCollection()
     {
         // Arrange
-        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
+        var readContext = _context.GetRequiredService<ISnippetDbContext>();
 
         var createResponse = await _context.Client.PostJsonAsync("/api/collections", new CreateCollectionCommand(
             "Original Name",
@@ -152,6 +149,7 @@ public class CollectionsTests(SnippetTestFixture fixture) : IAsyncLifetime
 
         // Verify update in database
         var updatedCollection = await readContext.Collections
+            .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == new CollectionId(collectionId));
         updatedCollection.Should().NotBeNull();
         updatedCollection!.Name.Should().Be("Updated Name");
@@ -164,7 +162,7 @@ public class CollectionsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task DeleteCollection_WithExistingId_ShouldRemoveFromDatabase()
     {
         // Arrange
-        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
+        var readContext = _context.GetRequiredService<ISnippetDbContext>();
 
         var createResponse = await _context.Client.PostJsonAsync("/api/collections", new CreateCollectionCommand(
             "To Delete Collection",
@@ -177,6 +175,7 @@ public class CollectionsTests(SnippetTestFixture fixture) : IAsyncLifetime
 
         // Verify collection exists before deletion
         var collectionBeforeDelete = await readContext.Collections
+            .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == new CollectionId(collectionId));
         collectionBeforeDelete.Should().NotBeNull();
 
@@ -188,10 +187,11 @@ public class CollectionsTests(SnippetTestFixture fixture) : IAsyncLifetime
 
         // Verify collection no longer exists
         var collectionAfterDelete = await readContext.Collections
+            .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == new CollectionId(collectionId));
         collectionAfterDelete.Should().BeNull();
 
-        var totalCount = await readContext.Collections.CountAsync();
+        var totalCount = await readContext.Collections.AsNoTracking().CountAsync();
         totalCount.Should().Be(0);
     }
 

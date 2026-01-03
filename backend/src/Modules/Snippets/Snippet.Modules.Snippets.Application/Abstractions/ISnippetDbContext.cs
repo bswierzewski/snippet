@@ -4,22 +4,22 @@ using Snippet.Modules.Snippets.Domain.Aggregates;
 namespace Snippet.Modules.Snippets.Application.Abstractions;
 
 /// <summary>
-/// Write database context interface for modifying snippets data.
+/// Database context interface for snippets data operations.
 /// </summary>
-public interface ISnippetsWriteDbContext
+public interface ISnippetDbContext
 {
     /// <summary>
-    /// Gets the collection of snippets for write operations.
+    /// Gets the collection of snippets.
     /// </summary>
     DbSet<Domain.Aggregates.Snippet> Snippets { get; }
 
     /// <summary>
-    /// Gets the collection of collections for write operations.
+    /// Gets the collection of collections.
     /// </summary>
     DbSet<Collection> Collections { get; }
 
     /// <summary>
-    /// Gets the collection of tags for write operations.
+    /// Gets the collection of tags.
     /// </summary>
     DbSet<Tag> Tags { get; }
 

@@ -1,9 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
 		<IsPackable>false</IsPackable>
 		<IsTestProject>true</IsTestProject>
 	</PropertyGroup>
@@ -17,7 +14,6 @@
 
 	<ItemGroup>
 		<PackageReference Include="DotNetEnv" />
-		<PackageReference Include="Supabase" />
 		<PackageReference Include="xunit" />
 		<PackageReference Include="xunit.runner.visualstudio" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" />
@@ -34,23 +30,26 @@
 		<PackageReference Include="Microsoft.Extensions.Logging" />
 	</ItemGroup>
 
+	<ItemGroup Label="BuildingBlocks References">
+		<ProjectReference Include="..\..\src\BuildingBlocks\src\BuildingBlocks.Abstractions\BuildingBlocks.Abstractions.csproj" />
+		<ProjectReference Include="..\..\src\BuildingBlocks\src\BuildingBlocks.Infrastructure\BuildingBlocks.Infrastructure.csproj" />
+		<ProjectReference Include="..\..\src\BuildingBlocks\src\BuildingBlocks.Tests\BuildingBlocks.Tests.csproj" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\Host\Snippet.Web\Snippet.Web.csproj" />
 		<ProjectReference Include="..\..\src\Modules\Snippets\Snippet.Modules.Snippets.Infrastructure\Snippet.Modules.Snippets.Infrastructure.csproj" />
-	</ItemGroup>
-
-	<!-- NuGet Shared packages -->
-	<ItemGroup>
-		<PackageReference Include="Shared.Abstractions" />
-		<PackageReference Include="Shared.Infrastructure.Tests" />
-		<PackageReference Include="Shared.Users.Domain" />
-		<PackageReference Include="Shared.Users.Application" />
-		<PackageReference Include="Shared.Users.Infrastructure" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<Using Include="Xunit" />
 		<Using Include="FluentAssertions" />
 	</ItemGroup>
+
+	<!-- Run BuildingBlocks.Tools after build to generate .env template (Debug only) -->
+	<Target Name="RunBuildingBlocksTools" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
+		<Exec Command="dotnet tool restore" WorkingDirectory="$(MSBuildProjectDirectory)/../../" />
+		<Exec Command="dotnet bb env generate" WorkingDirectory="$(MSBuildProjectDirectory)" />
+	</Target>
 
 </Project>

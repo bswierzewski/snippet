@@ -5,9 +5,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export interface AddTagCommand {
-  snippetId: string;
-  tagName: string;
-  /** @nullable */
-  color: string | null;
-}
+/**
+ * Validation errors grouped by field name.
+ */
+export type ProblemDetailsErrors = { [key: string]: string[] };

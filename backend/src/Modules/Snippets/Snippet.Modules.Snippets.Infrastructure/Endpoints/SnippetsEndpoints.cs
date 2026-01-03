@@ -1,6 +1,9 @@
-using Shared.Infrastructure.Models;
+using BuildingBlocks.Infrastructure.Extensions;
 using MediatR;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Snippet.Modules.Snippets.Application.Commands.Snippets.CreateSnippet;
 using Snippet.Modules.Snippets.Application.Commands.Snippets.DeleteSnippet;
 using Snippet.Modules.Snippets.Application.Commands.Snippets.RecordUsage;
@@ -12,9 +15,6 @@ using Snippet.Modules.Snippets.Application.Queries.Snippets.GetRecentSnippets;
 using Snippet.Modules.Snippets.Application.Queries.Snippets.GetSnippetById;
 using Snippet.Modules.Snippets.Application.Queries.Snippets.GetUserSnippets;
 using Snippet.Modules.Snippets.Application.Queries.Snippets.SearchSnippets;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 
 namespace Snippet.Modules.Snippets.Infrastructure.Endpoints;
 
@@ -35,71 +35,48 @@ public static class SnippetsEndpoints
         // Commands
         group.MapPost("/", CreateSnippet)
             .WithName("CreateSnippet")
-            .Produces<Guid>(StatusCodes.Status200OK)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
-            .WithOpenApi();
+            .Produces<Guid>(StatusCodes.Status200OK);
 
         group.MapPut("/{id:guid}", UpdateSnippet)
             .WithName("UpdateSnippet")
-            .Produces(StatusCodes.Status204NoContent)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
-            .WithOpenApi();
+            .Produces(StatusCodes.Status204NoContent);
 
         group.MapPost("/{id:guid}/favorite", ToggleFavorite)
             .WithName("ToggleFavorite")
-            .Produces(StatusCodes.Status204NoContent)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
-            .WithOpenApi();
+            .Produces(StatusCodes.Status204NoContent);
 
         group.MapPost("/{id:guid}/usage", RecordUsage)
             .WithName("RecordUsage")
-            .Produces(StatusCodes.Status204NoContent)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
-            .WithOpenApi();
+            .Produces(StatusCodes.Status204NoContent);
 
         group.MapDelete("/{id:guid}", DeleteSnippet)
             .WithName("DeleteSnippet")
-            .Produces(StatusCodes.Status204NoContent)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
-            .WithOpenApi();
+            .Produces(StatusCodes.Status204NoContent);
 
         // Queries
         group.MapGet("/{id:guid}", GetSnippetById)
             .WithName("GetSnippetById")
-            .Produces<GetSnippetByIdDto>(StatusCodes.Status200OK)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
-            .WithOpenApi();
+            .Produces<GetSnippetByIdDto>(StatusCodes.Status200OK);
 
         group.MapGet("/", GetUserSnippets)
             .WithName("GetUserSnippets")
-            .Produces<IEnumerable<SnippetSummaryDto>>(StatusCodes.Status200OK)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
-            .WithOpenApi();
+            .Produces<IEnumerable<SnippetSummaryDto>>(StatusCodes.Status200OK);
 
         group.MapGet("/collections/{collectionId:guid}", GetCollectionSnippets)
             .WithName("GetCollectionSnippets")
-            .Produces<IEnumerable<SnippetSummaryDto>>(StatusCodes.Status200OK)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
-            .WithOpenApi();
+            .Produces<IEnumerable<SnippetSummaryDto>>(StatusCodes.Status200OK);
 
         group.MapGet("/favorites", GetFavoriteSnippets)
             .WithName("GetFavoriteSnippets")
-            .Produces<IEnumerable<SnippetSummaryDto>>(StatusCodes.Status200OK)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
-            .WithOpenApi();
+            .Produces<IEnumerable<SnippetSummaryDto>>(StatusCodes.Status200OK);
 
         group.MapGet("/recent", GetRecentSnippets)
             .WithName("GetRecentSnippets")
-            .Produces<IEnumerable<SnippetSummaryDto>>(StatusCodes.Status200OK)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
-            .WithOpenApi();
+            .Produces<IEnumerable<SnippetSummaryDto>>(StatusCodes.Status200OK);
 
         group.MapPost("/search", SearchSnippets)
             .WithName("SearchSnippets")
-            .Produces<SearchSnippetsResponse>(StatusCodes.Status200OK)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
-            .WithOpenApi();
+            .Produces<SearchSnippetsResponse>(StatusCodes.Status200OK);
 
         return endpoints;
     }
@@ -110,9 +87,7 @@ public static class SnippetsEndpoints
         IMediator mediator)
     {
         var result = await mediator.Send(command);
-        return result.IsSuccess
-            ? Results.Ok(result.Value)
-            : Results.BadRequest(result.Errors);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> UpdateSnippet(
@@ -126,9 +101,7 @@ public static class SnippetsEndpoints
         }
 
         var result = await mediator.Send(command);
-        return result.IsSuccess
-            ? Results.NoContent()
-            : Results.NotFound(result.Errors);
+        return result.ToNoContentResult();
     }
 
     private static async Task<IResult> ToggleFavorite(
@@ -136,9 +109,7 @@ public static class SnippetsEndpoints
         IMediator mediator)
     {
         var result = await mediator.Send(new ToggleSnippetFavoriteCommand(id));
-        return result.IsSuccess
-            ? Results.NoContent()
-            : Results.NotFound(result.Errors);
+        return result.ToNoContentResult();
     }
 
     private static async Task<IResult> RecordUsage(
@@ -146,9 +117,7 @@ public static class SnippetsEndpoints
         IMediator mediator)
     {
         var result = await mediator.Send(new RecordSnippetUsageCommand(id));
-        return result.IsSuccess
-            ? Results.NoContent()
-            : Results.NotFound(result.Errors);
+        return result.ToNoContentResult();
     }
 
     private static async Task<IResult> DeleteSnippet(
@@ -156,9 +125,7 @@ public static class SnippetsEndpoints
         IMediator mediator)
     {
         var result = await mediator.Send(new DeleteSnippetCommand(id));
-        return result.IsSuccess
-            ? Results.NoContent()
-            : Results.NotFound(result.Errors);
+        return result.ToNoContentResult();
     }
 
     // Query handlers
@@ -167,18 +134,14 @@ public static class SnippetsEndpoints
         IMediator mediator)
     {
         var result = await mediator.Send(new GetSnippetByIdQuery(id));
-        return result.IsSuccess
-            ? Results.Ok(result.Value)
-            : Results.NotFound(result.Errors);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetUserSnippets(
         IMediator mediator)
     {
         var result = await mediator.Send(new GetUserSnippetsQuery());
-        return result.IsSuccess
-            ? Results.Ok(result.Value)
-            : Results.BadRequest(result.Errors);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetCollectionSnippets(
@@ -186,18 +149,14 @@ public static class SnippetsEndpoints
         IMediator mediator)
     {
         var result = await mediator.Send(new GetCollectionSnippetsQuery(collectionId));
-        return result.IsSuccess
-            ? Results.Ok(result.Value)
-            : Results.NotFound(result.Errors);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetFavoriteSnippets(
         IMediator mediator)
     {
         var result = await mediator.Send(new GetFavoriteSnippetsQuery());
-        return result.IsSuccess
-            ? Results.Ok(result.Value)
-            : Results.BadRequest(result.Errors);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetRecentSnippets(
@@ -205,9 +164,7 @@ public static class SnippetsEndpoints
         IMediator mediator)
     {
         var result = await mediator.Send(new GetRecentSnippetsQuery(limit > 0 ? limit : 10));
-        return result.IsSuccess
-            ? Results.Ok(result.Value)
-            : Results.BadRequest(result.Errors);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> SearchSnippets(
@@ -215,8 +172,6 @@ public static class SnippetsEndpoints
         IMediator mediator)
     {
         var result = await mediator.Send(query);
-        return result.IsSuccess
-            ? Results.Ok(result.Value)
-            : Results.BadRequest(result.Errors);
+        return result.ToHttpResult();
     }
 }

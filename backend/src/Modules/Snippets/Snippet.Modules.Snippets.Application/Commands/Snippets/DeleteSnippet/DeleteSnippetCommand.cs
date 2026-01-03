@@ -1,4 +1,4 @@
-using Shared.Infrastructure.Models;
+using ErrorOr;
 using MediatR;
 
 namespace Snippet.Modules.Snippets.Application.Commands.Snippets.DeleteSnippet;
@@ -7,4 +7,4 @@ namespace Snippet.Modules.Snippets.Application.Commands.Snippets.DeleteSnippet;
 /// Command to delete an existing snippet.
 /// </summary>
 /// <param name="Id">Snippet identifier to delete.</param>
-public record DeleteSnippetCommand(Guid Id) : IRequest<Result>;
+public record DeleteSnippetCommand(Guid Id) : IRequest<ErrorOr<Unit>>;

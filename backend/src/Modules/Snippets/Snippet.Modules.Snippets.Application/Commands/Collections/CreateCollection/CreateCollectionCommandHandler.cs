@@ -1,5 +1,5 @@
-using Shared.Abstractions.Authorization;
-using Shared.Infrastructure.Models;
+using BuildingBlocks.Abstractions.Abstractions;
+using ErrorOr;
 using MediatR;
 using Snippet.Modules.Snippets.Application.Abstractions;
 using Snippet.Modules.Snippets.Domain.Aggregates;
@@ -10,16 +10,8 @@ namespace Snippet.Modules.Snippets.Application.Commands.Collections.CreateCollec
 /// <summary>
 /// Handles the creation of new collections by processing CreateCollectionCommand requests.
 /// </summary>
-public class CreateCollectionCommandHandler : IRequestHandler<CreateCollectionCommand, Result<Guid>>
+public class CreateCollectionCommandHandler(ISnippetDbContext dbContext, IUserContext user) : IRequestHandler<CreateCollectionCommand, ErrorOr<Guid>>
 {
-    private readonly ISnippetsWriteDbContext _writeDbContext;
-    private readonly IUser _user;
-
-    public CreateCollectionCommandHandler(ISnippetsWriteDbContext writeDbContext, IUser user)
-    {
-        _writeDbContext = writeDbContext;
-        _user = user;
-    }
 
     /// <summary>
     /// Creates a new collection entity and persists it to the database.
@@ -27,13 +19,13 @@ public class CreateCollectionCommandHandler : IRequestHandler<CreateCollectionCo
     /// <param name="request">Command containing collection details.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The ID of the newly created collection.</returns>
-    public async Task<Result<Guid>> Handle(CreateCollectionCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Guid>> Handle(CreateCollectionCommand request, CancellationToken cancellationToken)
     {
         var collectionId = new CollectionId(Guid.NewGuid());
 
         var collection = new Collection(
             collectionId,
-            _user.Id!.Value,
+            user.Id,
             request.Name,
             request.Description,
             request.Color,
@@ -41,9 +33,9 @@ public class CreateCollectionCommandHandler : IRequestHandler<CreateCollectionCo
             sortOrder: 0
         );
 
-        await _writeDbContext.Collections.AddAsync(collection, cancellationToken);
-        await _writeDbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.Collections.AddAsync(collection, cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
-        return Result<Guid>.Success(collectionId.Value);
+        return collectionId.Value;
     }
 }

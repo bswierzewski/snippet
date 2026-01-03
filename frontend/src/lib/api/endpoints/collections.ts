@@ -21,7 +21,7 @@ import type {
 } from '@tanstack/react-query';
 
 import { customInstance } from '../axios-instance';
-import type { CollectionDto, CreateCollectionCommand, Error, UpdateCollectionCommand } from '../models';
+import type { CollectionDto, CreateCollectionCommand, ProblemDetails, UpdateCollectionCommand } from '../models';
 
 export const createCollection = (createCollectionCommand: CreateCollectionCommand, signal?: AbortSignal) => {
   return customInstance<string>({
@@ -33,7 +33,7 @@ export const createCollection = (createCollectionCommand: CreateCollectionComman
   });
 };
 
-export const getCreateCollectionMutationOptions = <TError = Error[], TContext = unknown>(options?: {
+export const getCreateCollectionMutationOptions = <TError = ProblemDetails, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createCollection>>,
     TError,
@@ -67,9 +67,9 @@ export const getCreateCollectionMutationOptions = <TError = Error[], TContext = 
 
 export type CreateCollectionMutationResult = NonNullable<Awaited<ReturnType<typeof createCollection>>>;
 export type CreateCollectionMutationBody = CreateCollectionCommand;
-export type CreateCollectionMutationError = Error[];
+export type CreateCollectionMutationError = ProblemDetails;
 
-export const useCreateCollection = <TError = Error[], TContext = unknown>(
+export const useCreateCollection = <TError = ProblemDetails, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createCollection>>,
@@ -99,7 +99,7 @@ export const getGetUserCollectionsQueryKey = () => {
 
 export const getGetUserCollectionsQueryOptions = <
   TData = Awaited<ReturnType<typeof getUserCollections>>,
-  TError = Error[]
+  TError = ProblemDetails
 >(options?: {
   query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserCollections>>, TError, TData>>;
 }) => {
@@ -118,9 +118,9 @@ export const getGetUserCollectionsQueryOptions = <
 };
 
 export type GetUserCollectionsQueryResult = NonNullable<Awaited<ReturnType<typeof getUserCollections>>>;
-export type GetUserCollectionsQueryError = Error[];
+export type GetUserCollectionsQueryError = ProblemDetails;
 
-export function useGetUserCollections<TData = Awaited<ReturnType<typeof getUserCollections>>, TError = Error[]>(
+export function useGetUserCollections<TData = Awaited<ReturnType<typeof getUserCollections>>, TError = ProblemDetails>(
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserCollections>>, TError, TData>> &
       Pick<
@@ -134,7 +134,7 @@ export function useGetUserCollections<TData = Awaited<ReturnType<typeof getUserC
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetUserCollections<TData = Awaited<ReturnType<typeof getUserCollections>>, TError = Error[]>(
+export function useGetUserCollections<TData = Awaited<ReturnType<typeof getUserCollections>>, TError = ProblemDetails>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserCollections>>, TError, TData>> &
       Pick<
@@ -148,12 +148,12 @@ export function useGetUserCollections<TData = Awaited<ReturnType<typeof getUserC
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetUserCollections<TData = Awaited<ReturnType<typeof getUserCollections>>, TError = Error[]>(
+export function useGetUserCollections<TData = Awaited<ReturnType<typeof getUserCollections>>, TError = ProblemDetails>(
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserCollections>>, TError, TData>> },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-export function useGetUserCollections<TData = Awaited<ReturnType<typeof getUserCollections>>, TError = Error[]>(
+export function useGetUserCollections<TData = Awaited<ReturnType<typeof getUserCollections>>, TError = ProblemDetails>(
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserCollections>>, TError, TData>> },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -178,7 +178,7 @@ export const getGetCollectionByIdQueryKey = (id?: string) => {
 
 export const getGetCollectionByIdQueryOptions = <
   TData = Awaited<ReturnType<typeof getCollectionById>>,
-  TError = Error[]
+  TError = ProblemDetails
 >(
   id: string,
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getCollectionById>>, TError, TData>> }
@@ -198,9 +198,9 @@ export const getGetCollectionByIdQueryOptions = <
 };
 
 export type GetCollectionByIdQueryResult = NonNullable<Awaited<ReturnType<typeof getCollectionById>>>;
-export type GetCollectionByIdQueryError = Error[];
+export type GetCollectionByIdQueryError = ProblemDetails;
 
-export function useGetCollectionById<TData = Awaited<ReturnType<typeof getCollectionById>>, TError = Error[]>(
+export function useGetCollectionById<TData = Awaited<ReturnType<typeof getCollectionById>>, TError = ProblemDetails>(
   id: string,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getCollectionById>>, TError, TData>> &
@@ -215,7 +215,7 @@ export function useGetCollectionById<TData = Awaited<ReturnType<typeof getCollec
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetCollectionById<TData = Awaited<ReturnType<typeof getCollectionById>>, TError = Error[]>(
+export function useGetCollectionById<TData = Awaited<ReturnType<typeof getCollectionById>>, TError = ProblemDetails>(
   id: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getCollectionById>>, TError, TData>> &
@@ -230,13 +230,13 @@ export function useGetCollectionById<TData = Awaited<ReturnType<typeof getCollec
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetCollectionById<TData = Awaited<ReturnType<typeof getCollectionById>>, TError = Error[]>(
+export function useGetCollectionById<TData = Awaited<ReturnType<typeof getCollectionById>>, TError = ProblemDetails>(
   id: string,
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getCollectionById>>, TError, TData>> },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-export function useGetCollectionById<TData = Awaited<ReturnType<typeof getCollectionById>>, TError = Error[]>(
+export function useGetCollectionById<TData = Awaited<ReturnType<typeof getCollectionById>>, TError = ProblemDetails>(
   id: string,
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getCollectionById>>, TError, TData>> },
   queryClient?: QueryClient
@@ -261,7 +261,7 @@ export const updateCollection = (id: string, updateCollectionCommand: UpdateColl
   });
 };
 
-export const getUpdateCollectionMutationOptions = <TError = Error[], TContext = unknown>(options?: {
+export const getUpdateCollectionMutationOptions = <TError = ProblemDetails, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateCollection>>,
     TError,
@@ -295,9 +295,9 @@ export const getUpdateCollectionMutationOptions = <TError = Error[], TContext = 
 
 export type UpdateCollectionMutationResult = NonNullable<Awaited<ReturnType<typeof updateCollection>>>;
 export type UpdateCollectionMutationBody = UpdateCollectionCommand;
-export type UpdateCollectionMutationError = Error[];
+export type UpdateCollectionMutationError = ProblemDetails;
 
-export const useUpdateCollection = <TError = Error[], TContext = unknown>(
+export const useUpdateCollection = <TError = ProblemDetails, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateCollection>>,
@@ -321,7 +321,7 @@ export const deleteCollection = (id: string) => {
   return customInstance<void>({ url: `/api/collections/${id}`, method: 'DELETE' });
 };
 
-export const getDeleteCollectionMutationOptions = <TError = Error[], TContext = unknown>(options?: {
+export const getDeleteCollectionMutationOptions = <TError = ProblemDetails, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteCollection>>, TError, { id: string }, TContext>;
 }): UseMutationOptions<Awaited<ReturnType<typeof deleteCollection>>, TError, { id: string }, TContext> => {
   const mutationKey = ['deleteCollection'];
@@ -342,9 +342,9 @@ export const getDeleteCollectionMutationOptions = <TError = Error[], TContext = 
 
 export type DeleteCollectionMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCollection>>>;
 
-export type DeleteCollectionMutationError = Error[];
+export type DeleteCollectionMutationError = ProblemDetails;
 
-export const useDeleteCollection = <TError = Error[], TContext = unknown>(
+export const useDeleteCollection = <TError = ProblemDetails, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteCollection>>, TError, { id: string }, TContext>;
   },

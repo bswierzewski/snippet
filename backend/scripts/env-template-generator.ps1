@@ -17,8 +17,8 @@ foreach ($path in $paths) {
         
         try {
             # Execute the dotnet command
-            Write-Host "Running: dotnet tool run shared env generate -f" -ForegroundColor DarkGray
-            dotnet tool run shared env generate -f
+            Write-Host "Running: dotnet tool run bb env generate -f" -ForegroundColor DarkGray
+            dotnet tool run bb env generate -f
         }
         catch {
             Write-Error "An error occurred while executing the command in: $path"

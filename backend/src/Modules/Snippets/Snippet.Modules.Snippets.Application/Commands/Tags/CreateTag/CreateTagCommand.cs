@@ -1,4 +1,4 @@
-using Shared.Infrastructure.Models;
+using ErrorOr;
 using MediatR;
 
 namespace Snippet.Modules.Snippets.Application.Commands.Tags.CreateTag;
@@ -11,4 +11,4 @@ namespace Snippet.Modules.Snippets.Application.Commands.Tags.CreateTag;
 public record CreateTagCommand(
     string Name,
     string? Color
-) : IRequest<Result<Guid>>;
+) : IRequest<ErrorOr<Guid>>;

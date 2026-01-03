@@ -2,9 +2,9 @@
   "version": 1,
   "isRoot": true,
   "tools": {
-    "shared.envfilegenerator": {
-      "version": "1.0.0-build.40",
-      "commands": ["shared"],
+    "buildingblocks.tools": {
+      "version": "1.0.0-ci.1",
+      "commands": ["bb"],
       "rollForward": false
     }
   }

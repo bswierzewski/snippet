@@ -1,5 +1,5 @@
-using Shared.Abstractions.Authorization;
-using Shared.Infrastructure.Models;
+using BuildingBlocks.Abstractions.Abstractions;
+using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Snippet.Modules.Snippets.Application.Abstractions;
@@ -11,16 +11,8 @@ namespace Snippet.Modules.Snippets.Application.Queries.Snippets.SearchSnippets;
 /// <summary>
 /// Handles snippet search by processing SearchSnippetsQuery requests.
 /// </summary>
-public class SearchSnippetsQueryHandler : IRequestHandler<SearchSnippetsQuery, Result<SearchSnippetsResponse>>
+public class SearchSnippetsQueryHandler(ISnippetDbContext dbContext, IUserContext user) : IRequestHandler<SearchSnippetsQuery, ErrorOr<SearchSnippetsResponse>>
 {
-    private readonly ISnippetsReadDbContext _readDbContext;
-    private readonly IUser _user;
-
-    public SearchSnippetsQueryHandler(ISnippetsReadDbContext readDbContext, IUser user)
-    {
-        _readDbContext = readDbContext;
-        _user = user;
-    }
 
     /// <summary>
     /// Searches for snippets based on provided criteria and returns paginated results.
@@ -28,13 +20,13 @@ public class SearchSnippetsQueryHandler : IRequestHandler<SearchSnippetsQuery, R
     /// <param name="request">Query request with search criteria.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Paginated search results.</returns>
-    public async Task<Result<SearchSnippetsResponse>> Handle(SearchSnippetsQuery request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<SearchSnippetsResponse>> Handle(SearchSnippetsQuery request, CancellationToken cancellationToken)
     {
-        var query = _readDbContext.Snippets
+        var query = dbContext.Snippets
             .AsNoTracking()
             .Include(s => s.SnippetTags).ThenInclude(st => st.Tag)
             .Include(s => s.SnippetCollections).ThenInclude(sc => sc.Collection)
-            .Where(s => s.UserId == _user.Id);
+            .Where(s => s.UserId == user.Id);
 
         // Apply search term filter
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
@@ -97,12 +89,12 @@ public class SearchSnippetsQueryHandler : IRequestHandler<SearchSnippetsQuery, R
 
         var totalPages = (int)Math.Ceiling(totalCount / (double)request.PageSize);
 
-        return Result<SearchSnippetsResponse>.Success(new SearchSnippetsResponse(
+        return new SearchSnippetsResponse(
             snippetDtos,
             totalCount,
             request.PageNumber,
             request.PageSize,
             totalPages
-        ));
+        );
     }
 }

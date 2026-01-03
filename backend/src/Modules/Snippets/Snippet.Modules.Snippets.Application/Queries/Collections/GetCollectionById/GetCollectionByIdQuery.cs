@@ -1,4 +1,4 @@
-using Shared.Infrastructure.Models;
+using ErrorOr;
 using MediatR;
 
 namespace Snippet.Modules.Snippets.Application.Queries.Collections.GetCollectionById;
@@ -7,7 +7,7 @@ namespace Snippet.Modules.Snippets.Application.Queries.Collections.GetCollection
 /// Query to retrieve a specific collection by its unique identifier.
 /// </summary>
 /// <param name="Id">Collection unique identifier.</param>
-public record GetCollectionByIdQuery(Guid Id) : IRequest<Result<CollectionDto>>;
+public record GetCollectionByIdQuery(Guid Id) : IRequest<ErrorOr<CollectionDto>>;
 
 /// <summary>
 /// Data transfer object containing full collection information.

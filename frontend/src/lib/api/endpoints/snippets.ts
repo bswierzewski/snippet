@@ -27,9 +27,9 @@ import type {
 import { customInstance } from '../axios-instance';
 import type {
   CreateSnippetCommand,
-  Error,
   GetRecentSnippetsParams,
   GetSnippetByIdDto,
+  ProblemDetails,
   SearchSnippetsQuery,
   SearchSnippetsResponse,
   SnippetSummaryDto,
@@ -46,7 +46,7 @@ export const createSnippet = (createSnippetCommand: CreateSnippetCommand, signal
   });
 };
 
-export const getCreateSnippetMutationOptions = <TError = Error[], TContext = unknown>(options?: {
+export const getCreateSnippetMutationOptions = <TError = ProblemDetails, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createSnippet>>,
     TError,
@@ -74,9 +74,9 @@ export const getCreateSnippetMutationOptions = <TError = Error[], TContext = unk
 
 export type CreateSnippetMutationResult = NonNullable<Awaited<ReturnType<typeof createSnippet>>>;
 export type CreateSnippetMutationBody = CreateSnippetCommand;
-export type CreateSnippetMutationError = Error[];
+export type CreateSnippetMutationError = ProblemDetails;
 
-export const useCreateSnippet = <TError = Error[], TContext = unknown>(
+export const useCreateSnippet = <TError = ProblemDetails, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createSnippet>>,
@@ -101,7 +101,7 @@ export const getGetUserSnippetsQueryKey = () => {
 
 export const getGetUserSnippetsQueryOptions = <
   TData = Awaited<ReturnType<typeof getUserSnippets>>,
-  TError = Error[]
+  TError = ProblemDetails
 >(options?: {
   query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserSnippets>>, TError, TData>>;
 }) => {
@@ -119,9 +119,9 @@ export const getGetUserSnippetsQueryOptions = <
 };
 
 export type GetUserSnippetsQueryResult = NonNullable<Awaited<ReturnType<typeof getUserSnippets>>>;
-export type GetUserSnippetsQueryError = Error[];
+export type GetUserSnippetsQueryError = ProblemDetails;
 
-export function useGetUserSnippets<TData = Awaited<ReturnType<typeof getUserSnippets>>, TError = Error[]>(
+export function useGetUserSnippets<TData = Awaited<ReturnType<typeof getUserSnippets>>, TError = ProblemDetails>(
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserSnippets>>, TError, TData>> &
       Pick<
@@ -135,7 +135,7 @@ export function useGetUserSnippets<TData = Awaited<ReturnType<typeof getUserSnip
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetUserSnippets<TData = Awaited<ReturnType<typeof getUserSnippets>>, TError = Error[]>(
+export function useGetUserSnippets<TData = Awaited<ReturnType<typeof getUserSnippets>>, TError = ProblemDetails>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserSnippets>>, TError, TData>> &
       Pick<
@@ -149,12 +149,12 @@ export function useGetUserSnippets<TData = Awaited<ReturnType<typeof getUserSnip
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetUserSnippets<TData = Awaited<ReturnType<typeof getUserSnippets>>, TError = Error[]>(
+export function useGetUserSnippets<TData = Awaited<ReturnType<typeof getUserSnippets>>, TError = ProblemDetails>(
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserSnippets>>, TError, TData>> },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-export function useGetUserSnippets<TData = Awaited<ReturnType<typeof getUserSnippets>>, TError = Error[]>(
+export function useGetUserSnippets<TData = Awaited<ReturnType<typeof getUserSnippets>>, TError = ProblemDetails>(
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserSnippets>>, TError, TData>> },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -178,7 +178,7 @@ export const updateSnippet = (id: string, updateSnippetCommand: UpdateSnippetCom
   });
 };
 
-export const getUpdateSnippetMutationOptions = <TError = Error[], TContext = unknown>(options?: {
+export const getUpdateSnippetMutationOptions = <TError = ProblemDetails, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateSnippet>>,
     TError,
@@ -212,9 +212,9 @@ export const getUpdateSnippetMutationOptions = <TError = Error[], TContext = unk
 
 export type UpdateSnippetMutationResult = NonNullable<Awaited<ReturnType<typeof updateSnippet>>>;
 export type UpdateSnippetMutationBody = UpdateSnippetCommand;
-export type UpdateSnippetMutationError = Error[];
+export type UpdateSnippetMutationError = ProblemDetails;
 
-export const useUpdateSnippet = <TError = Error[], TContext = unknown>(
+export const useUpdateSnippet = <TError = ProblemDetails, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateSnippet>>,
@@ -238,7 +238,7 @@ export const deleteSnippet = (id: string) => {
   return customInstance<void>({ url: `/api/snippets/${id}`, method: 'DELETE' });
 };
 
-export const getDeleteSnippetMutationOptions = <TError = Error[], TContext = unknown>(options?: {
+export const getDeleteSnippetMutationOptions = <TError = ProblemDetails, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteSnippet>>, TError, { id: string }, TContext>;
 }): UseMutationOptions<Awaited<ReturnType<typeof deleteSnippet>>, TError, { id: string }, TContext> => {
   const mutationKey = ['deleteSnippet'];
@@ -259,9 +259,9 @@ export const getDeleteSnippetMutationOptions = <TError = Error[], TContext = unk
 
 export type DeleteSnippetMutationResult = NonNullable<Awaited<ReturnType<typeof deleteSnippet>>>;
 
-export type DeleteSnippetMutationError = Error[];
+export type DeleteSnippetMutationError = ProblemDetails;
 
-export const useDeleteSnippet = <TError = Error[], TContext = unknown>(
+export const useDeleteSnippet = <TError = ProblemDetails, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteSnippet>>, TError, { id: string }, TContext>;
   },
@@ -279,7 +279,10 @@ export const getGetSnippetByIdQueryKey = (id?: string) => {
   return [`/api/snippets/${id}`] as const;
 };
 
-export const getGetSnippetByIdQueryOptions = <TData = Awaited<ReturnType<typeof getSnippetById>>, TError = Error[]>(
+export const getGetSnippetByIdQueryOptions = <
+  TData = Awaited<ReturnType<typeof getSnippetById>>,
+  TError = ProblemDetails
+>(
   id: string,
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getSnippetById>>, TError, TData>> }
 ) => {
@@ -297,9 +300,9 @@ export const getGetSnippetByIdQueryOptions = <TData = Awaited<ReturnType<typeof 
 };
 
 export type GetSnippetByIdQueryResult = NonNullable<Awaited<ReturnType<typeof getSnippetById>>>;
-export type GetSnippetByIdQueryError = Error[];
+export type GetSnippetByIdQueryError = ProblemDetails;
 
-export function useGetSnippetById<TData = Awaited<ReturnType<typeof getSnippetById>>, TError = Error[]>(
+export function useGetSnippetById<TData = Awaited<ReturnType<typeof getSnippetById>>, TError = ProblemDetails>(
   id: string,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getSnippetById>>, TError, TData>> &
@@ -314,7 +317,7 @@ export function useGetSnippetById<TData = Awaited<ReturnType<typeof getSnippetBy
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetSnippetById<TData = Awaited<ReturnType<typeof getSnippetById>>, TError = Error[]>(
+export function useGetSnippetById<TData = Awaited<ReturnType<typeof getSnippetById>>, TError = ProblemDetails>(
   id: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getSnippetById>>, TError, TData>> &
@@ -329,13 +332,13 @@ export function useGetSnippetById<TData = Awaited<ReturnType<typeof getSnippetBy
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetSnippetById<TData = Awaited<ReturnType<typeof getSnippetById>>, TError = Error[]>(
+export function useGetSnippetById<TData = Awaited<ReturnType<typeof getSnippetById>>, TError = ProblemDetails>(
   id: string,
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getSnippetById>>, TError, TData>> },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-export function useGetSnippetById<TData = Awaited<ReturnType<typeof getSnippetById>>, TError = Error[]>(
+export function useGetSnippetById<TData = Awaited<ReturnType<typeof getSnippetById>>, TError = ProblemDetails>(
   id: string,
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getSnippetById>>, TError, TData>> },
   queryClient?: QueryClient
@@ -355,7 +358,7 @@ export const toggleFavorite = (id: string, signal?: AbortSignal) => {
   return customInstance<void>({ url: `/api/snippets/${id}/favorite`, method: 'POST', signal });
 };
 
-export const getToggleFavoriteMutationOptions = <TError = Error[], TContext = unknown>(options?: {
+export const getToggleFavoriteMutationOptions = <TError = ProblemDetails, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof toggleFavorite>>, TError, { id: string }, TContext>;
 }): UseMutationOptions<Awaited<ReturnType<typeof toggleFavorite>>, TError, { id: string }, TContext> => {
   const mutationKey = ['toggleFavorite'];
@@ -376,9 +379,9 @@ export const getToggleFavoriteMutationOptions = <TError = Error[], TContext = un
 
 export type ToggleFavoriteMutationResult = NonNullable<Awaited<ReturnType<typeof toggleFavorite>>>;
 
-export type ToggleFavoriteMutationError = Error[];
+export type ToggleFavoriteMutationError = ProblemDetails;
 
-export const useToggleFavorite = <TError = Error[], TContext = unknown>(
+export const useToggleFavorite = <TError = ProblemDetails, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof toggleFavorite>>, TError, { id: string }, TContext>;
   },
@@ -392,7 +395,7 @@ export const recordUsage = (id: string, signal?: AbortSignal) => {
   return customInstance<void>({ url: `/api/snippets/${id}/usage`, method: 'POST', signal });
 };
 
-export const getRecordUsageMutationOptions = <TError = Error[], TContext = unknown>(options?: {
+export const getRecordUsageMutationOptions = <TError = ProblemDetails, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof recordUsage>>, TError, { id: string }, TContext>;
 }): UseMutationOptions<Awaited<ReturnType<typeof recordUsage>>, TError, { id: string }, TContext> => {
   const mutationKey = ['recordUsage'];
@@ -413,9 +416,9 @@ export const getRecordUsageMutationOptions = <TError = Error[], TContext = unkno
 
 export type RecordUsageMutationResult = NonNullable<Awaited<ReturnType<typeof recordUsage>>>;
 
-export type RecordUsageMutationError = Error[];
+export type RecordUsageMutationError = ProblemDetails;
 
-export const useRecordUsage = <TError = Error[], TContext = unknown>(
+export const useRecordUsage = <TError = ProblemDetails, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof recordUsage>>, TError, { id: string }, TContext>;
   },
@@ -439,7 +442,7 @@ export const getGetCollectionSnippetsQueryKey = (collectionId?: string) => {
 
 export const getGetCollectionSnippetsQueryOptions = <
   TData = Awaited<ReturnType<typeof getCollectionSnippets>>,
-  TError = Error[]
+  TError = ProblemDetails
 >(
   collectionId: string,
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getCollectionSnippets>>, TError, TData>> }
@@ -459,9 +462,12 @@ export const getGetCollectionSnippetsQueryOptions = <
 };
 
 export type GetCollectionSnippetsQueryResult = NonNullable<Awaited<ReturnType<typeof getCollectionSnippets>>>;
-export type GetCollectionSnippetsQueryError = Error[];
+export type GetCollectionSnippetsQueryError = ProblemDetails;
 
-export function useGetCollectionSnippets<TData = Awaited<ReturnType<typeof getCollectionSnippets>>, TError = Error[]>(
+export function useGetCollectionSnippets<
+  TData = Awaited<ReturnType<typeof getCollectionSnippets>>,
+  TError = ProblemDetails
+>(
   collectionId: string,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getCollectionSnippets>>, TError, TData>> &
@@ -476,7 +482,10 @@ export function useGetCollectionSnippets<TData = Awaited<ReturnType<typeof getCo
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetCollectionSnippets<TData = Awaited<ReturnType<typeof getCollectionSnippets>>, TError = Error[]>(
+export function useGetCollectionSnippets<
+  TData = Awaited<ReturnType<typeof getCollectionSnippets>>,
+  TError = ProblemDetails
+>(
   collectionId: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getCollectionSnippets>>, TError, TData>> &
@@ -491,13 +500,19 @@ export function useGetCollectionSnippets<TData = Awaited<ReturnType<typeof getCo
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetCollectionSnippets<TData = Awaited<ReturnType<typeof getCollectionSnippets>>, TError = Error[]>(
+export function useGetCollectionSnippets<
+  TData = Awaited<ReturnType<typeof getCollectionSnippets>>,
+  TError = ProblemDetails
+>(
   collectionId: string,
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getCollectionSnippets>>, TError, TData>> },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-export function useGetCollectionSnippets<TData = Awaited<ReturnType<typeof getCollectionSnippets>>, TError = Error[]>(
+export function useGetCollectionSnippets<
+  TData = Awaited<ReturnType<typeof getCollectionSnippets>>,
+  TError = ProblemDetails
+>(
   collectionId: string,
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getCollectionSnippets>>, TError, TData>> },
   queryClient?: QueryClient
@@ -523,7 +538,7 @@ export const getGetFavoriteSnippetsQueryKey = () => {
 
 export const getGetFavoriteSnippetsQueryOptions = <
   TData = Awaited<ReturnType<typeof getFavoriteSnippets>>,
-  TError = Error[]
+  TError = ProblemDetails
 >(options?: {
   query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getFavoriteSnippets>>, TError, TData>>;
 }) => {
@@ -542,9 +557,12 @@ export const getGetFavoriteSnippetsQueryOptions = <
 };
 
 export type GetFavoriteSnippetsQueryResult = NonNullable<Awaited<ReturnType<typeof getFavoriteSnippets>>>;
-export type GetFavoriteSnippetsQueryError = Error[];
+export type GetFavoriteSnippetsQueryError = ProblemDetails;
 
-export function useGetFavoriteSnippets<TData = Awaited<ReturnType<typeof getFavoriteSnippets>>, TError = Error[]>(
+export function useGetFavoriteSnippets<
+  TData = Awaited<ReturnType<typeof getFavoriteSnippets>>,
+  TError = ProblemDetails
+>(
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getFavoriteSnippets>>, TError, TData>> &
       Pick<
@@ -558,7 +576,10 @@ export function useGetFavoriteSnippets<TData = Awaited<ReturnType<typeof getFavo
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetFavoriteSnippets<TData = Awaited<ReturnType<typeof getFavoriteSnippets>>, TError = Error[]>(
+export function useGetFavoriteSnippets<
+  TData = Awaited<ReturnType<typeof getFavoriteSnippets>>,
+  TError = ProblemDetails
+>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getFavoriteSnippets>>, TError, TData>> &
       Pick<
@@ -572,12 +593,18 @@ export function useGetFavoriteSnippets<TData = Awaited<ReturnType<typeof getFavo
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetFavoriteSnippets<TData = Awaited<ReturnType<typeof getFavoriteSnippets>>, TError = Error[]>(
+export function useGetFavoriteSnippets<
+  TData = Awaited<ReturnType<typeof getFavoriteSnippets>>,
+  TError = ProblemDetails
+>(
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getFavoriteSnippets>>, TError, TData>> },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-export function useGetFavoriteSnippets<TData = Awaited<ReturnType<typeof getFavoriteSnippets>>, TError = Error[]>(
+export function useGetFavoriteSnippets<
+  TData = Awaited<ReturnType<typeof getFavoriteSnippets>>,
+  TError = ProblemDetails
+>(
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getFavoriteSnippets>>, TError, TData>> },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -602,7 +629,7 @@ export const getGetRecentSnippetsQueryKey = (params?: GetRecentSnippetsParams) =
 
 export const getGetRecentSnippetsQueryOptions = <
   TData = Awaited<ReturnType<typeof getRecentSnippets>>,
-  TError = Error[]
+  TError = ProblemDetails
 >(
   params: GetRecentSnippetsParams,
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRecentSnippets>>, TError, TData>> }
@@ -622,9 +649,9 @@ export const getGetRecentSnippetsQueryOptions = <
 };
 
 export type GetRecentSnippetsQueryResult = NonNullable<Awaited<ReturnType<typeof getRecentSnippets>>>;
-export type GetRecentSnippetsQueryError = Error[];
+export type GetRecentSnippetsQueryError = ProblemDetails;
 
-export function useGetRecentSnippets<TData = Awaited<ReturnType<typeof getRecentSnippets>>, TError = Error[]>(
+export function useGetRecentSnippets<TData = Awaited<ReturnType<typeof getRecentSnippets>>, TError = ProblemDetails>(
   params: GetRecentSnippetsParams,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRecentSnippets>>, TError, TData>> &
@@ -639,7 +666,7 @@ export function useGetRecentSnippets<TData = Awaited<ReturnType<typeof getRecent
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetRecentSnippets<TData = Awaited<ReturnType<typeof getRecentSnippets>>, TError = Error[]>(
+export function useGetRecentSnippets<TData = Awaited<ReturnType<typeof getRecentSnippets>>, TError = ProblemDetails>(
   params: GetRecentSnippetsParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRecentSnippets>>, TError, TData>> &
@@ -654,13 +681,13 @@ export function useGetRecentSnippets<TData = Awaited<ReturnType<typeof getRecent
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetRecentSnippets<TData = Awaited<ReturnType<typeof getRecentSnippets>>, TError = Error[]>(
+export function useGetRecentSnippets<TData = Awaited<ReturnType<typeof getRecentSnippets>>, TError = ProblemDetails>(
   params: GetRecentSnippetsParams,
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRecentSnippets>>, TError, TData>> },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-export function useGetRecentSnippets<TData = Awaited<ReturnType<typeof getRecentSnippets>>, TError = Error[]>(
+export function useGetRecentSnippets<TData = Awaited<ReturnType<typeof getRecentSnippets>>, TError = ProblemDetails>(
   params: GetRecentSnippetsParams,
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRecentSnippets>>, TError, TData>> },
   queryClient?: QueryClient
@@ -696,7 +723,7 @@ export const getSearchSnippetsQueryKey = (searchSnippetsQuery?: SearchSnippetsQu
 
 export const getSearchSnippetsInfiniteQueryOptions = <
   TData = InfiniteData<Awaited<ReturnType<typeof searchSnippets>>>,
-  TError = Error[]
+  TError = ProblemDetails
 >(
   searchSnippetsQuery: SearchSnippetsQuery,
   options?: { query?: Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof searchSnippets>>, TError, TData>> }
@@ -716,11 +743,11 @@ export const getSearchSnippetsInfiniteQueryOptions = <
 };
 
 export type SearchSnippetsInfiniteQueryResult = NonNullable<Awaited<ReturnType<typeof searchSnippets>>>;
-export type SearchSnippetsInfiniteQueryError = Error[];
+export type SearchSnippetsInfiniteQueryError = ProblemDetails;
 
 export function useSearchSnippetsInfinite<
   TData = InfiniteData<Awaited<ReturnType<typeof searchSnippets>>>,
-  TError = Error[]
+  TError = ProblemDetails
 >(
   searchSnippetsQuery: SearchSnippetsQuery,
   options: {
@@ -738,7 +765,7 @@ export function useSearchSnippetsInfinite<
 ): DefinedUseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useSearchSnippetsInfinite<
   TData = InfiniteData<Awaited<ReturnType<typeof searchSnippets>>>,
-  TError = Error[]
+  TError = ProblemDetails
 >(
   searchSnippetsQuery: SearchSnippetsQuery,
   options?: {
@@ -756,7 +783,7 @@ export function useSearchSnippetsInfinite<
 ): UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useSearchSnippetsInfinite<
   TData = InfiniteData<Awaited<ReturnType<typeof searchSnippets>>>,
-  TError = Error[]
+  TError = ProblemDetails
 >(
   searchSnippetsQuery: SearchSnippetsQuery,
   options?: { query?: Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof searchSnippets>>, TError, TData>> },
@@ -765,7 +792,7 @@ export function useSearchSnippetsInfinite<
 
 export function useSearchSnippetsInfinite<
   TData = InfiniteData<Awaited<ReturnType<typeof searchSnippets>>>,
-  TError = Error[]
+  TError = ProblemDetails
 >(
   searchSnippetsQuery: SearchSnippetsQuery,
   options?: { query?: Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof searchSnippets>>, TError, TData>> },
@@ -782,7 +809,10 @@ export function useSearchSnippetsInfinite<
   return query;
 }
 
-export const getSearchSnippetsQueryOptions = <TData = Awaited<ReturnType<typeof searchSnippets>>, TError = Error[]>(
+export const getSearchSnippetsQueryOptions = <
+  TData = Awaited<ReturnType<typeof searchSnippets>>,
+  TError = ProblemDetails
+>(
   searchSnippetsQuery: SearchSnippetsQuery,
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchSnippets>>, TError, TData>> }
 ) => {
@@ -801,9 +831,9 @@ export const getSearchSnippetsQueryOptions = <TData = Awaited<ReturnType<typeof 
 };
 
 export type SearchSnippetsQueryResult = NonNullable<Awaited<ReturnType<typeof searchSnippets>>>;
-export type SearchSnippetsQueryError = Error[];
+export type SearchSnippetsQueryError = ProblemDetails;
 
-export function useSearchSnippets<TData = Awaited<ReturnType<typeof searchSnippets>>, TError = Error[]>(
+export function useSearchSnippets<TData = Awaited<ReturnType<typeof searchSnippets>>, TError = ProblemDetails>(
   searchSnippetsQuery: SearchSnippetsQuery,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchSnippets>>, TError, TData>> &
@@ -818,7 +848,7 @@ export function useSearchSnippets<TData = Awaited<ReturnType<typeof searchSnippe
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useSearchSnippets<TData = Awaited<ReturnType<typeof searchSnippets>>, TError = Error[]>(
+export function useSearchSnippets<TData = Awaited<ReturnType<typeof searchSnippets>>, TError = ProblemDetails>(
   searchSnippetsQuery: SearchSnippetsQuery,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchSnippets>>, TError, TData>> &
@@ -833,13 +863,13 @@ export function useSearchSnippets<TData = Awaited<ReturnType<typeof searchSnippe
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useSearchSnippets<TData = Awaited<ReturnType<typeof searchSnippets>>, TError = Error[]>(
+export function useSearchSnippets<TData = Awaited<ReturnType<typeof searchSnippets>>, TError = ProblemDetails>(
   searchSnippetsQuery: SearchSnippetsQuery,
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchSnippets>>, TError, TData>> },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-export function useSearchSnippets<TData = Awaited<ReturnType<typeof searchSnippets>>, TError = Error[]>(
+export function useSearchSnippets<TData = Awaited<ReturnType<typeof searchSnippets>>, TError = ProblemDetails>(
   searchSnippetsQuery: SearchSnippetsQuery,
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchSnippets>>, TError, TData>> },
   queryClient?: QueryClient

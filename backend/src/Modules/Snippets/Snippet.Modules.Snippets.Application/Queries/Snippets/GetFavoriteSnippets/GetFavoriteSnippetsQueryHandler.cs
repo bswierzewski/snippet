@@ -1,5 +1,5 @@
-using Shared.Abstractions.Authorization;
-using Shared.Infrastructure.Models;
+using BuildingBlocks.Abstractions.Abstractions;
+using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Snippet.Modules.Snippets.Application.Abstractions;
@@ -10,16 +10,8 @@ namespace Snippet.Modules.Snippets.Application.Queries.Snippets.GetFavoriteSnipp
 /// <summary>
 /// Handles retrieval of favorite snippets by processing GetFavoriteSnippetsQuery requests.
 /// </summary>
-public class GetFavoriteSnippetsQueryHandler : IRequestHandler<GetFavoriteSnippetsQuery, Result<IEnumerable<SnippetSummaryDto>>>
+public class GetFavoriteSnippetsQueryHandler(ISnippetDbContext dbContext, IUserContext user) : IRequestHandler<GetFavoriteSnippetsQuery, ErrorOr<IEnumerable<SnippetSummaryDto>>>
 {
-    private readonly ISnippetsReadDbContext _readDbContext;
-    private readonly IUser _user;
-
-    public GetFavoriteSnippetsQueryHandler(ISnippetsReadDbContext readDbContext, IUser user)
-    {
-        _readDbContext = readDbContext;
-        _user = user;
-    }
 
     /// <summary>
     /// Retrieves all favorite snippets for the current user and maps them to DTOs.
@@ -27,17 +19,17 @@ public class GetFavoriteSnippetsQueryHandler : IRequestHandler<GetFavoriteSnippe
     /// <param name="request">Query request.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Collection of favorite snippet summary DTOs.</returns>
-    public async Task<Result<IEnumerable<SnippetSummaryDto>>> Handle(GetFavoriteSnippetsQuery request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<IEnumerable<SnippetSummaryDto>>> Handle(GetFavoriteSnippetsQuery request, CancellationToken cancellationToken)
     {
-        var snippets = await _readDbContext.Snippets
+        var snippets = await dbContext.Snippets
             .AsNoTracking()
             .Include(s => s.SnippetTags).ThenInclude(st => st.Tag)
             .Include(s => s.SnippetCollections).ThenInclude(sc => sc.Collection)
-            .Where(s => s.UserId == _user.Id && s.IsFavorite)
+            .Where(s => s.UserId == user.Id && s.IsFavorite)
             .OrderByDescending(s => s.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        return Result<IEnumerable<SnippetSummaryDto>>.Success(snippets.Select(s => new SnippetSummaryDto(
+        return snippets.Select(s => new SnippetSummaryDto(
             s.Id.Value,
             s.Title,
             s.Description,
@@ -49,6 +41,6 @@ public class GetFavoriteSnippetsQueryHandler : IRequestHandler<GetFavoriteSnippe
             s.UsageCount,
             s.CreatedAt,
             s.LastUsedAt
-        )));
+        )).ToList();
     }
 }

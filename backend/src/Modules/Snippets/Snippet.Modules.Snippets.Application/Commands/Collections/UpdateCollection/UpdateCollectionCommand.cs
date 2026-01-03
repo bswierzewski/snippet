@@ -1,4 +1,4 @@
-using Shared.Infrastructure.Models;
+using ErrorOr;
 using MediatR;
 
 namespace Snippet.Modules.Snippets.Application.Commands.Collections.UpdateCollection;
@@ -17,4 +17,4 @@ public record UpdateCollectionCommand(
     string? Description,
     string? Color,
     string? Icon
-) : IRequest<Result>;
+) : IRequest<ErrorOr<Unit>>;

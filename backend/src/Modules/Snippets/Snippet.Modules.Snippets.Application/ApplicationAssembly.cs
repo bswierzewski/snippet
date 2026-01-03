@@ -1,4 +1,4 @@
-using Shared.Abstractions.Modules;
+using BuildingBlocks.Abstractions.Abstractions;
 
 namespace Snippet.Modules.Snippets.Application;
 

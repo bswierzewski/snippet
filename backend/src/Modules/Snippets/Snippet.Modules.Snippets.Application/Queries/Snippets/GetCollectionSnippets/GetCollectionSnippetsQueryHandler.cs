@@ -1,4 +1,4 @@
-using Shared.Infrastructure.Models;
+using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Snippet.Modules.Snippets.Application.Abstractions;
@@ -10,14 +10,8 @@ namespace Snippet.Modules.Snippets.Application.Queries.Snippets.GetCollectionSni
 /// <summary>
 /// Handles retrieval of snippets in a collection by processing GetCollectionSnippetsQuery requests.
 /// </summary>
-public class GetCollectionSnippetsQueryHandler : IRequestHandler<GetCollectionSnippetsQuery, Result<IEnumerable<SnippetSummaryDto>>>
+public class GetCollectionSnippetsQueryHandler(ISnippetDbContext dbContext) : IRequestHandler<GetCollectionSnippetsQuery, ErrorOr<IEnumerable<SnippetSummaryDto>>>
 {
-    private readonly ISnippetsReadDbContext _readDbContext;
-
-    public GetCollectionSnippetsQueryHandler(ISnippetsReadDbContext readDbContext)
-    {
-        _readDbContext = readDbContext;
-    }
 
     /// <summary>
     /// Retrieves all snippets within a specific collection and maps them to DTOs.
@@ -25,18 +19,18 @@ public class GetCollectionSnippetsQueryHandler : IRequestHandler<GetCollectionSn
     /// <param name="request">Query request containing collection ID.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Collection of snippet summary DTOs.</returns>
-    public async Task<Result<IEnumerable<SnippetSummaryDto>>> Handle(GetCollectionSnippetsQuery request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<IEnumerable<SnippetSummaryDto>>> Handle(GetCollectionSnippetsQuery request, CancellationToken cancellationToken)
     {
         var collectionId = new CollectionId(request.CollectionId);
 
-        var collection = await _readDbContext.Collections
+        var collection = await dbContext.Collections
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == collectionId, cancellationToken);
 
         if (collection is null)
-            return Result<IEnumerable<SnippetSummaryDto>>.Failure($"Collection with ID {request.CollectionId} not found");
+            return Error.NotFound("Collection.NotFound", $"Collection with ID {request.CollectionId} not found");
 
-        var snippets = await _readDbContext.Snippets
+        var snippets = await dbContext.Snippets
             .AsNoTracking()
             .Include(s => s.SnippetTags).ThenInclude(st => st.Tag)
             .Include(s => s.SnippetCollections).ThenInclude(sc => sc.Collection)
@@ -44,7 +38,7 @@ public class GetCollectionSnippetsQueryHandler : IRequestHandler<GetCollectionSn
             .OrderByDescending(s => s.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        return Result<IEnumerable<SnippetSummaryDto>>.Success(snippets.Select(s => new SnippetSummaryDto(
+        return snippets.Select(s => new SnippetSummaryDto(
             s.Id.Value,
             s.Title,
             s.Description,
@@ -56,6 +50,6 @@ public class GetCollectionSnippetsQueryHandler : IRequestHandler<GetCollectionSn
             s.UsageCount,
             s.CreatedAt,
             s.LastUsedAt
-        )));
+        )).ToList();
     }
 }

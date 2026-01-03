@@ -1,5 +1,5 @@
-using Shared.Abstractions.Authorization;
-using Shared.Infrastructure.Models;
+using BuildingBlocks.Abstractions.Abstractions;
+using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Snippet.Modules.Snippets.Application.Abstractions;
@@ -10,21 +10,10 @@ namespace Snippet.Modules.Snippets.Application.Commands.Snippets.CreateSnippet;
 /// <summary>
 /// Handles the creation of new snippets by processing CreateSnippetCommand requests.
 /// </summary>
-public class CreateSnippetCommandHandler : IRequestHandler<CreateSnippetCommand, Result<Guid>>
+public class CreateSnippetCommandHandler(
+    ISnippetDbContext dbContext,
+    IUserContext user) : IRequestHandler<CreateSnippetCommand, ErrorOr<Guid>>
 {
-    private readonly ISnippetsWriteDbContext _writeDbContext;
-    private readonly ISnippetsReadDbContext _readDbContext;
-    private readonly IUser _user;
-
-    public CreateSnippetCommandHandler(
-        ISnippetsWriteDbContext writeDbContext,
-        ISnippetsReadDbContext readDbContext,
-        IUser user)
-    {
-        _writeDbContext = writeDbContext;
-        _readDbContext = readDbContext;
-        _user = user;
-    }
 
     /// <summary>
     /// Creates a new snippet entity and persists it to the database.
@@ -32,7 +21,7 @@ public class CreateSnippetCommandHandler : IRequestHandler<CreateSnippetCommand,
     /// <param name="request">Command containing snippet details.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The ID of the newly created snippet.</returns>
-    public async Task<Result<Guid>> Handle(CreateSnippetCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Guid>> Handle(CreateSnippetCommand request, CancellationToken cancellationToken)
     {
         var snippetId = new SnippetId(Guid.NewGuid());
 
@@ -41,7 +30,8 @@ public class CreateSnippetCommandHandler : IRequestHandler<CreateSnippetCommand,
         if (request.TagIds is not null && request.TagIds.Any())
         {
             var tagIdObjects = request.TagIds.Select(id => new TagId(id)).ToList();
-            tags = await _readDbContext.Tags
+            tags = await dbContext.Tags
+                .AsNoTracking()
                 .Where(t => tagIdObjects.Contains(t.Id))
                 .ToListAsync(cancellationToken);
         }
@@ -51,14 +41,15 @@ public class CreateSnippetCommandHandler : IRequestHandler<CreateSnippetCommand,
         if (request.CollectionIds is not null && request.CollectionIds.Any())
         {
             var collectionIdObjects = request.CollectionIds.Select(id => new CollectionId(id)).ToList();
-            collections = await _readDbContext.Collections
+            collections = await dbContext.Collections
+                .AsNoTracking()
                 .Where(c => collectionIdObjects.Contains(c.Id))
                 .ToListAsync(cancellationToken);
         }
 
         var snippet = new Domain.Aggregates.Snippet(
             snippetId,
-            _user.Id!.Value,
+            user.Id,
             request.Title,
             request.Content,
             request.Language,
@@ -67,9 +58,9 @@ public class CreateSnippetCommandHandler : IRequestHandler<CreateSnippetCommand,
             collections
         );
 
-        await _writeDbContext.Snippets.AddAsync(snippet, cancellationToken);
-        await _writeDbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.Snippets.AddAsync(snippet, cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
-        return Result<Guid>.Success(snippetId.Value);
+        return snippetId.Value;
     }
 }

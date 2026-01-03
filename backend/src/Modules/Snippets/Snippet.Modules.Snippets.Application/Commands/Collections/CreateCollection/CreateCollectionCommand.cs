@@ -1,4 +1,4 @@
-using Shared.Infrastructure.Models;
+using ErrorOr;
 using MediatR;
 
 namespace Snippet.Modules.Snippets.Application.Commands.Collections.CreateCollection;
@@ -15,4 +15,4 @@ public record CreateCollectionCommand(
     string? Description,
     string? Color,
     string? Icon
-) : IRequest<Result<Guid>>;
+) : IRequest<ErrorOr<Guid>>;

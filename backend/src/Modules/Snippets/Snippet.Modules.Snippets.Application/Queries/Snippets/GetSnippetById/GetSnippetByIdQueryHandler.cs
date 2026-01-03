@@ -1,4 +1,4 @@
-using Shared.Infrastructure.Models;
+using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Snippet.Modules.Snippets.Application.Abstractions;
@@ -10,14 +10,8 @@ namespace Snippet.Modules.Snippets.Application.Queries.Snippets.GetSnippetById;
 /// <summary>
 /// Handles retrieval of a snippet by ID by processing GetSnippetByIdQuery requests.
 /// </summary>
-public class GetSnippetByIdQueryHandler : IRequestHandler<GetSnippetByIdQuery, Result<GetSnippetByIdDto>>
+public class GetSnippetByIdQueryHandler(ISnippetDbContext dbContext) : IRequestHandler<GetSnippetByIdQuery, ErrorOr<GetSnippetByIdDto>>
 {
-    private readonly ISnippetsReadDbContext _readDbContext;
-
-    public GetSnippetByIdQueryHandler(ISnippetsReadDbContext readDbContext)
-    {
-        _readDbContext = readDbContext;
-    }
 
     /// <summary>
     /// Retrieves a snippet by its identifier and maps it to a DTO.
@@ -25,18 +19,18 @@ public class GetSnippetByIdQueryHandler : IRequestHandler<GetSnippetByIdQuery, R
     /// <param name="request">Query request containing snippet ID.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Snippet DTO with full details.</returns>
-    public async Task<Result<GetSnippetByIdDto>> Handle(GetSnippetByIdQuery request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<GetSnippetByIdDto>> Handle(GetSnippetByIdQuery request, CancellationToken cancellationToken)
     {
-        var snippet = await _readDbContext.Snippets
+        var snippet = await dbContext.Snippets
             .AsNoTracking()
             .Include(s => s.SnippetTags).ThenInclude(st => st.Tag)
             .Include(s => s.SnippetCollections).ThenInclude(sc => sc.Collection)
             .FirstOrDefaultAsync(s => s.Id == new SnippetId(request.Id), cancellationToken);
 
         if (snippet is null)
-            return Result<GetSnippetByIdDto>.Failure($"Snippet with ID {request.Id} not found");
+            return Error.NotFound("Snippet.NotFound", $"Snippet with ID {request.Id} not found");
 
-        return Result<GetSnippetByIdDto>.Success(new GetSnippetByIdDto(
+        return new GetSnippetByIdDto(
             snippet.Id.Value,
             snippet.UserId,
             snippet.Title,
@@ -50,6 +44,6 @@ public class GetSnippetByIdQueryHandler : IRequestHandler<GetSnippetByIdQuery, R
             snippet.CreatedAt,
             snippet.ModifiedAt,
             snippet.LastUsedAt
-        ));
+        );
     }
 }

@@ -1,9 +1,9 @@
+using BuildingBlocks.Infrastructure.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using Shared.Infrastructure.Models;
 using Snippet.Modules.Snippets.Application.Commands.Tags.CreateTag;
 using Snippet.Modules.Snippets.Application.Commands.Tags.DeleteTag;
 using Snippet.Modules.Snippets.Application.Queries.Tags.GetTags;
@@ -27,27 +27,19 @@ public static class TagsEndpoints
 
         group.MapGet("/search", SearchTags)
             .WithName("SearchTags")
-            .Produces<IEnumerable<TagSearchDto>>(StatusCodes.Status200OK)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
-            .WithOpenApi();
+            .Produces<IEnumerable<TagSearchDto>>(StatusCodes.Status200OK);
 
         group.MapGet("/", GetUserTags)
             .WithName("GetUserTags")
-            .Produces<IEnumerable<TagDto>>(StatusCodes.Status200OK)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
-            .WithOpenApi();
+            .Produces<IEnumerable<TagDto>>(StatusCodes.Status200OK);
 
         group.MapPost("/", CreateTag)
             .WithName("CreateTag")
-            .Produces<Guid>(StatusCodes.Status200OK)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
-            .WithOpenApi();
+            .Produces<Guid>(StatusCodes.Status200OK);
 
         group.MapDelete("/{id:guid}", DeleteTag)
             .WithName("DeleteTag")
-            .Produces(StatusCodes.Status204NoContent)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
-            .WithOpenApi();
+            .Produces(StatusCodes.Status204NoContent);
 
         return endpoints;
     }
@@ -57,18 +49,14 @@ public static class TagsEndpoints
         IMediator mediator)
     {
         var result = await mediator.Send(new GetTagsQuery(searchTerm));
-        return result.IsSuccess
-            ? Results.Ok(result.Value)
-            : Results.BadRequest(result.Errors);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetUserTags(
         IMediator mediator)
     {
         var result = await mediator.Send(new GetUserTagsQuery());
-        return result.IsSuccess
-            ? Results.Ok(result.Value)
-            : Results.BadRequest(result.Errors);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> CreateTag(
@@ -76,9 +64,7 @@ public static class TagsEndpoints
         IMediator mediator)
     {
         var result = await mediator.Send(command);
-        return result.IsSuccess
-            ? Results.Ok(result.Value)
-            : Results.BadRequest(result.Errors);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> DeleteTag(
@@ -86,8 +72,6 @@ public static class TagsEndpoints
         IMediator mediator)
     {
         var result = await mediator.Send(new DeleteTagCommand(id));
-        return result.IsSuccess
-            ? Results.NoContent()
-            : Results.NotFound(result.Errors);
+        return result.ToNoContentResult();
     }
 }

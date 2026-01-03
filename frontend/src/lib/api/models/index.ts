@@ -5,25 +5,17 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export * from './addTagCommand';
-export * from './buildInfoDto';
-export * from './changeSnippetLanguageCommand';
 export * from './collectionDto';
 export * from './collectionSummaryDto';
 export * from './createCollectionCommand';
 export * from './createSnippetCommand';
 export * from './createTagCommand';
-export * from './currentUserDto';
 export * from './enumValueDto';
-export * from './error';
 export * from './getRecentSnippetsParams';
 export * from './getSnippetByIdDto';
-export * from './moveSnippetCommand';
-export * from './permissionDto';
 export * from './problemDetails';
+export * from './problemDetailsErrors';
 export * from './programmingLanguage';
-export * from './result';
-export * from './roleDto';
 export * from './searchSnippetsQuery';
 export * from './searchSnippetsResponse';
 export * from './searchTagsParams';
@@ -34,4 +26,3 @@ export * from './tagSearchDto';
 export * from './tagSummaryDto';
 export * from './updateCollectionCommand';
 export * from './updateSnippetCommand';
-export * from './updateSnippetContentCommand';

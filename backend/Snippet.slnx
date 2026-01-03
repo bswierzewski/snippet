@@ -1,0 +1,33 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/solution items/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/solution items/scripts/">
+    <File Path="scripts/drop-database.ps1" />
+    <File Path="scripts/env-template-generator.ps1" />
+  </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/src/BuildingBlocks.Abstractions/BuildingBlocks.Abstractions.csproj" />
+    <Project Path="src/BuildingBlocks/src/BuildingBlocks.Infrastructure/BuildingBlocks.Infrastructure.csproj" />
+    <Project Path="src/BuildingBlocks/src/BuildingBlocks.Tests/BuildingBlocks.Tests.csproj" />
+  </Folder>
+  <Folder Name="/src/Host/">
+    <Project Path="src/Host/Snippet.Web/Snippet.Web.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/Snippets/">
+    <Project Path="src/Modules/Snippets/Snippet.Modules.Snippets.Application/Snippet.Modules.Snippets.Application.csproj" />
+    <Project Path="src/Modules/Snippets/Snippet.Modules.Snippets.Domain/Snippet.Modules.Snippets.Domain.csproj" />
+    <Project Path="src/Modules/Snippets/Snippet.Modules.Snippets.Infrastructure/Snippet.Modules.Snippets.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Snippet.Tests.EndToEnd/Snippet.Tests.EndToEnd.csproj" />
+  </Folder>
+</Solution>

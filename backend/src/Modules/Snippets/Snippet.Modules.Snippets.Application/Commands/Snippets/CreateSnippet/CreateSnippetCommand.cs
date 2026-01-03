@@ -1,4 +1,4 @@
-using Shared.Infrastructure.Models;
+using ErrorOr;
 using MediatR;
 using Snippet.Modules.Snippets.Domain.Enums;
 
@@ -20,4 +20,4 @@ public record CreateSnippetCommand(
     string? Description,
     List<Guid>? TagIds,
     List<Guid>? CollectionIds
-) : IRequest<Result<Guid>>;
+) : IRequest<ErrorOr<Guid>>;

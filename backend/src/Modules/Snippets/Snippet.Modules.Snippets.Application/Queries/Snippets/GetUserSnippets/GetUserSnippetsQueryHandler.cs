@@ -1,5 +1,5 @@
-using Shared.Abstractions.Authorization;
-using Shared.Infrastructure.Models;
+using BuildingBlocks.Abstractions.Abstractions;
+using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Snippet.Modules.Snippets.Application.Abstractions;
@@ -9,16 +9,8 @@ namespace Snippet.Modules.Snippets.Application.Queries.Snippets.GetUserSnippets;
 /// <summary>
 /// Handles retrieval of all user snippets by processing GetUserSnippetsQuery requests.
 /// </summary>
-public class GetUserSnippetsQueryHandler : IRequestHandler<GetUserSnippetsQuery, Result<IEnumerable<SnippetSummaryDto>>>
+public class GetUserSnippetsQueryHandler(ISnippetDbContext dbContext, IUserContext user) : IRequestHandler<GetUserSnippetsQuery, ErrorOr<IEnumerable<SnippetSummaryDto>>>
 {
-    private readonly ISnippetsReadDbContext _readDbContext;
-    private readonly IUser _user;
-
-    public GetUserSnippetsQueryHandler(ISnippetsReadDbContext readDbContext, IUser user)
-    {
-        _readDbContext = readDbContext;
-        _user = user;
-    }
 
     /// <summary>
     /// Retrieves all snippets for the current user and maps them to DTOs.
@@ -26,17 +18,17 @@ public class GetUserSnippetsQueryHandler : IRequestHandler<GetUserSnippetsQuery,
     /// <param name="request">Query request.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Collection of snippet summary DTOs.</returns>
-    public async Task<Result<IEnumerable<SnippetSummaryDto>>> Handle(GetUserSnippetsQuery request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<IEnumerable<SnippetSummaryDto>>> Handle(GetUserSnippetsQuery request, CancellationToken cancellationToken)
     {
-        var snippets = await _readDbContext.Snippets
+        var snippets = await dbContext.Snippets
             .AsNoTracking()
             .Include(s => s.SnippetTags).ThenInclude(st => st.Tag)
             .Include(s => s.SnippetCollections).ThenInclude(sc => sc.Collection)
-            .Where(s => s.UserId == _user.Id)
+            .Where(s => s.UserId == user.Id)
             .OrderByDescending(s => s.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        return Result<IEnumerable<SnippetSummaryDto>>.Success(snippets.Select(s => new SnippetSummaryDto(
+        return snippets.Select(s => new SnippetSummaryDto(
             s.Id.Value,
             s.Title,
             s.Description,
@@ -48,6 +40,6 @@ public class GetUserSnippetsQueryHandler : IRequestHandler<GetUserSnippetsQuery,
             s.UsageCount,
             s.CreatedAt,
             s.LastUsedAt
-        )));
+        )).ToList();
     }
 }

@@ -3,54 +3,45 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <SharedVersion>1.0.0-build.41</SharedVersion>
-  </PropertyGroup>
-
   <ItemGroup>
-    <!-- Shared Packages from GitHub - Range constraints for prerelease compatibility -->
-    <PackageVersion Include="Shared.Abstractions" Version="$(SharedVersion)" />
-    <PackageVersion Include="Shared.Infrastructure" Version="$(SharedVersion)" />
-    <PackageVersion Include="Shared.Infrastructure.Generators" Version="$(SharedVersion)" />
-    <PackageVersion Include="Shared.Infrastructure.Tests" Version="$(SharedVersion)" />
-    <PackageVersion Include="Shared.Users.Domain" Version="$(SharedVersion)" />
-    <PackageVersion Include="Shared.Users.Application" Version="$(SharedVersion)" />
-    <PackageVersion Include="Shared.Users.Infrastructure" Version="$(SharedVersion)" />
-
     <!-- DotNetEnv -->
     <PackageVersion Include="DotNetEnv" Version="3.1.1" />
 
     <!-- MediatR -->
     <PackageVersion Include="MediatR" Version="12.5.0" />
     <!-- FluentValidation -->
-    <PackageVersion Include="FluentValidation" Version="12.0.0" />
-    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
+    <PackageVersion Include="FluentValidation" Version="12.1.1" />
+    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <!-- Entity Framework Core -->
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.10" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.10" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
     <!-- OpenAPI -->
-    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="9.0.10" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
     <!-- Microsoft Extensions -->
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="9.0.10" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.10" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.10" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.10" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.0" />
+	<!-- Logging & Observability (Serilog) -->
+    <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageVersion Include="Serilog.Enrichers.Span" Version="3.1.0" />
+    <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
     <!-- ==================== TESTING PACKAGES ==================== -->
     <!-- .NET Testing Runtime -->
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
-    <PackageVersion Include="Supabase" Version="1.1.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <!-- Testing Framework -->
     <PackageVersion Include="xunit" Version="2.9.3" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <!-- Testing Tools and Utilities -->
-    <PackageVersion Include="FluentAssertions" Version="8.6.0" />
+    <PackageVersion Include="FluentAssertions" Version="8.8.0" />
     <PackageVersion Include="Moq" Version="4.20.72" />
-    <PackageVersion Include="Respawn" Version="6.2.1" />
+    <PackageVersion Include="Respawn" Version="7.0.0" />
     <!-- Web Testing -->
-    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.10" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.0" />
     <!-- Integration Testing with TestContainers -->
-    <PackageVersion Include="Testcontainers" Version="4.7.0" />
-    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.7.0" />
+    <PackageVersion Include="Testcontainers" Version="4.9.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.9.0" />
   </ItemGroup>
 </Project>

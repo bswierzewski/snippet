@@ -1,3 +1,4 @@
+using BuildingBlocks.Infrastructure.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -18,8 +19,7 @@ public static class LookupDataEndpoints
     public static void MapLookupDataEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/lookup")
-            .WithTags("LookupData")
-            .WithOpenApi();
+            .WithTags("LookupData");
         // Public endpoints - no authorization required
 
         group.MapGet("/enums/programming-languages", GetProgrammingLanguageEnumValues)
@@ -35,8 +35,6 @@ public static class LookupDataEndpoints
     {
         var query = new GetListEnumValuesQuery(typeof(ProgrammingLanguage));
         var result = await sender.Send(query);
-        return result.IsSuccess
-            ? Results.Ok(result.Value)
-            : Results.BadRequest(result.Errors);
+        return result.ToHttpResult();
     }
 }

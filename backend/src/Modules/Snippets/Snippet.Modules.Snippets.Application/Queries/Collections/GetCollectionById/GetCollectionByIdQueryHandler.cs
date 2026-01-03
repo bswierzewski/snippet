@@ -1,4 +1,4 @@
-using Shared.Infrastructure.Models;
+using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Snippet.Modules.Snippets.Application.Abstractions;
@@ -9,14 +9,8 @@ namespace Snippet.Modules.Snippets.Application.Queries.Collections.GetCollection
 /// <summary>
 /// Handles retrieval of a collection by ID by processing GetCollectionByIdQuery requests.
 /// </summary>
-public class GetCollectionByIdQueryHandler : IRequestHandler<GetCollectionByIdQuery, Result<CollectionDto>>
+public class GetCollectionByIdQueryHandler(ISnippetDbContext dbContext) : IRequestHandler<GetCollectionByIdQuery, ErrorOr<CollectionDto>>
 {
-    private readonly ISnippetsReadDbContext _readDbContext;
-
-    public GetCollectionByIdQueryHandler(ISnippetsReadDbContext readDbContext)
-    {
-        _readDbContext = readDbContext;
-    }
 
     /// <summary>
     /// Retrieves a collection by its identifier and maps it to a DTO.
@@ -24,20 +18,20 @@ public class GetCollectionByIdQueryHandler : IRequestHandler<GetCollectionByIdQu
     /// <param name="request">Query request containing collection ID.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Collection DTO with full details.</returns>
-    public async Task<Result<CollectionDto>> Handle(GetCollectionByIdQuery request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<CollectionDto>> Handle(GetCollectionByIdQuery request, CancellationToken cancellationToken)
     {
-        var collection = await _readDbContext.Collections
+        var collection = await dbContext.Collections
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == new CollectionId(request.Id), cancellationToken);
 
         if (collection is null)
-            return Result<CollectionDto>.Failure($"Collection with ID {request.Id} not found");
+            return Error.NotFound("Collection.NotFound", $"Collection with ID {request.Id} not found");
 
-        var snippetCount = await _readDbContext.Snippets
+        var snippetCount = await dbContext.Snippets
             .AsNoTracking()
             .CountAsync(s => s.SnippetCollections.Any(sc => sc.CollectionId == collection.Id), cancellationToken);
 
-        return Result<CollectionDto>.Success(new CollectionDto(
+        return new CollectionDto(
             collection.Id.Value,
             collection.UserId,
             collection.Name,
@@ -47,6 +41,6 @@ public class GetCollectionByIdQueryHandler : IRequestHandler<GetCollectionByIdQu
             collection.SortOrder,
             snippetCount,
             collection.CreatedAt
-        ));
+        );
     }
 }

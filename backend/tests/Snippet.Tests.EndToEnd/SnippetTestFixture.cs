@@ -1,9 +1,9 @@
+using BuildingBlocks.Abstractions.Abstractions;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using Shared.Infrastructure.Extensions;
-using Shared.Infrastructure.Tests.Authentication;
-using Shared.Infrastructure.Tests.Core;
-using Shared.Infrastructure.Tests.Infrastructure.Containers;
+using BuildingBlocks.Tests.Core;
+using BuildingBlocks.Tests.Infrastructure.Containers;
+using Snippet.Tests.EndToEnd.Mocks;
 
 namespace Snippet.Tests.EndToEnd;
 
@@ -13,12 +13,11 @@ namespace Snippet.Tests.EndToEnd;
 /// </summary>
 /// <remarks>
 /// This fixture is created ONCE per test collection and shared across all test classes.
-/// Since Snippet module tests don't use mocks, they share a single TestContext.
-/// 
+///
 /// It provides:
 /// - PostgreSQL container (started once, shared)
 /// - TestContext (shared across all tests)
-/// - Token provider with built-in cache
+/// - Mocked user context for authentication
 /// </remarks>
 public class SnippetTestFixture : IAsyncLifetime
 {
@@ -33,11 +32,6 @@ public class SnippetTestFixture : IAsyncLifetime
     /// </summary>
     public TestContext Context { get; private set; } = null!;
 
-    /// <summary>
-    /// Gets the test user options (email, password) from configuration.
-    /// </summary>
-    public TestUserOptions TestUser { get; private set; } = null!;
-
     public async Task InitializeAsync()
     {
         // Start PostgreSQL container (once for all tests)
@@ -48,16 +42,16 @@ public class SnippetTestFixture : IAsyncLifetime
             .WithContainer(Container)
             .WithServices((services, configuration) =>
             {
-                // Register test user credentials from appsettings
-                services.ConfigureOptions<TestUserOptions>(configuration);
+                // Replace real authentication with mock for testing
+                services.AddAuthentication(MockAuthenticationHandler.SchemeName)
+                    .AddScheme<AuthenticationSchemeOptions, MockAuthenticationHandler>(
+                        MockAuthenticationHandler.SchemeName,
+                        options => { });
 
-                // Register Supabase token provider for authentication
-                services.AddSingleton<ITokenProvider, SupabaseTokenProvider>();
+                // Replace real user context with mock for testing
+                services.AddScoped<IUserContext, MockUserContext>();
             })
             .BuildAsync();
-
-        // Get test user configuration
-        TestUser = Context.GetRequiredService<IOptions<TestUserOptions>>().Value;
     }
 
     public async Task DisposeAsync()

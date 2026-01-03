@@ -1,4 +1,4 @@
-using Shared.Infrastructure.Models;
+using ErrorOr;
 using MediatR;
 using Snippet.Modules.Snippets.Application.Queries.Snippets.GetUserSnippets;
 using Snippet.Modules.Snippets.Domain.Enums;
@@ -9,7 +9,7 @@ namespace Snippet.Modules.Snippets.Application.Queries.Snippets.GetSnippetById;
 /// Query to retrieve a specific snippet by its unique identifier.
 /// </summary>
 /// <param name="Id">Snippet unique identifier.</param>
-public record GetSnippetByIdQuery(Guid Id) : IRequest<Result<GetSnippetByIdDto>>;
+public record GetSnippetByIdQuery(Guid Id) : IRequest<ErrorOr<GetSnippetByIdDto>>;
 
 /// <summary>
 /// Data transfer object containing full snippet information.

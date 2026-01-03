@@ -18,7 +18,7 @@ import type {
 } from '@tanstack/react-query';
 
 import { customInstance } from '../axios-instance';
-import type { EnumValueDto, Error } from '../models';
+import type { EnumValueDto, ProblemDetails } from '../models';
 
 /**
  * @summary Retrieves values for the ProgrammingLanguage enum
@@ -33,7 +33,7 @@ export const getGetProgrammingLanguageEnumValuesQueryKey = () => {
 
 export const getGetProgrammingLanguageEnumValuesQueryOptions = <
   TData = Awaited<ReturnType<typeof getProgrammingLanguageEnumValues>>,
-  TError = Error[]
+  TError = ProblemDetails
 >(options?: {
   query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getProgrammingLanguageEnumValues>>, TError, TData>>;
 }) => {
@@ -54,11 +54,11 @@ export const getGetProgrammingLanguageEnumValuesQueryOptions = <
 export type GetProgrammingLanguageEnumValuesQueryResult = NonNullable<
   Awaited<ReturnType<typeof getProgrammingLanguageEnumValues>>
 >;
-export type GetProgrammingLanguageEnumValuesQueryError = Error[];
+export type GetProgrammingLanguageEnumValuesQueryError = ProblemDetails;
 
 export function useGetProgrammingLanguageEnumValues<
   TData = Awaited<ReturnType<typeof getProgrammingLanguageEnumValues>>,
-  TError = Error[]
+  TError = ProblemDetails
 >(
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getProgrammingLanguageEnumValues>>, TError, TData>> &
@@ -75,7 +75,7 @@ export function useGetProgrammingLanguageEnumValues<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useGetProgrammingLanguageEnumValues<
   TData = Awaited<ReturnType<typeof getProgrammingLanguageEnumValues>>,
-  TError = Error[]
+  TError = ProblemDetails
 >(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getProgrammingLanguageEnumValues>>, TError, TData>> &
@@ -92,7 +92,7 @@ export function useGetProgrammingLanguageEnumValues<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useGetProgrammingLanguageEnumValues<
   TData = Awaited<ReturnType<typeof getProgrammingLanguageEnumValues>>,
-  TError = Error[]
+  TError = ProblemDetails
 >(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getProgrammingLanguageEnumValues>>, TError, TData>>;
@@ -105,7 +105,7 @@ export function useGetProgrammingLanguageEnumValues<
 
 export function useGetProgrammingLanguageEnumValues<
   TData = Awaited<ReturnType<typeof getProgrammingLanguageEnumValues>>,
-  TError = Error[]
+  TError = ProblemDetails
 >(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getProgrammingLanguageEnumValues>>, TError, TData>>;

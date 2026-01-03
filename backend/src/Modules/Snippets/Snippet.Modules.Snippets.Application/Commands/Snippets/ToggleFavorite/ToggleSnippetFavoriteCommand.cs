@@ -1,4 +1,4 @@
-using Shared.Infrastructure.Models;
+using ErrorOr;
 using MediatR;
 
 namespace Snippet.Modules.Snippets.Application.Commands.Snippets.ToggleFavorite;
@@ -7,4 +7,4 @@ namespace Snippet.Modules.Snippets.Application.Commands.Snippets.ToggleFavorite;
 /// Command to toggle the favorite status of a snippet.
 /// </summary>
 /// <param name="SnippetId">Snippet identifier.</param>
-public record ToggleSnippetFavoriteCommand(Guid SnippetId) : IRequest<Result>;
+public record ToggleSnippetFavoriteCommand(Guid SnippetId) : IRequest<ErrorOr<Unit>>;

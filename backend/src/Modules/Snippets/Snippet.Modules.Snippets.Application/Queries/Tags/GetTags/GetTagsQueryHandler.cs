@@ -1,5 +1,5 @@
-using Shared.Abstractions.Authorization;
-using Shared.Infrastructure.Models;
+using BuildingBlocks.Abstractions.Abstractions;
+using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Snippet.Modules.Snippets.Application.Abstractions;
@@ -10,16 +10,8 @@ namespace Snippet.Modules.Snippets.Application.Queries.Tags.GetTags;
 /// Fast handler for tag search optimized for autocomplete/search scenarios.
 /// Returns minimal data without joins for maximum performance.
 /// </summary>
-public class GetTagsQueryHandler : IRequestHandler<GetTagsQuery, Result<IEnumerable<TagSearchDto>>>
+public class GetTagsQueryHandler(ISnippetDbContext dbContext, IUserContext user) : IRequestHandler<GetTagsQuery, ErrorOr<IEnumerable<TagSearchDto>>>
 {
-    private readonly ISnippetsReadDbContext _readDbContext;
-    private readonly IUser _user;
-
-    public GetTagsQueryHandler(ISnippetsReadDbContext readDbContext, IUser user)
-    {
-        _readDbContext = readDbContext;
-        _user = user;
-    }
 
     /// <summary>
     /// Searches tags by name with optimal performance.
@@ -28,11 +20,11 @@ public class GetTagsQueryHandler : IRequestHandler<GetTagsQuery, Result<IEnumera
     /// <param name="request">Query with optional search term.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Lightweight collection of tag search results.</returns>
-    public async Task<Result<IEnumerable<TagSearchDto>>> Handle(GetTagsQuery request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<IEnumerable<TagSearchDto>>> Handle(GetTagsQuery request, CancellationToken cancellationToken)
     {
-        var query = _readDbContext.Tags
+        var query = dbContext.Tags
             .AsNoTracking()
-            .Where(t => t.UserId == _user.Id);
+            .Where(t => t.UserId == user.Id);
 
         // Filter by search term if provided
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
@@ -49,6 +41,6 @@ public class GetTagsQueryHandler : IRequestHandler<GetTagsQuery, Result<IEnumera
             ))
             .ToListAsync(cancellationToken);
 
-        return Result<IEnumerable<TagSearchDto>>.Success(tags);
+        return tags;
     }
 }

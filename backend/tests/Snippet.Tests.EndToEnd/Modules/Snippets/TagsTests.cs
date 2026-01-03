@@ -1,8 +1,7 @@
 using System.Net;
 using Microsoft.EntityFrameworkCore;
-using Shared.Infrastructure.Tests.Authentication;
-using Shared.Infrastructure.Tests.Core;
-using Shared.Infrastructure.Tests.Extensions.Http;
+using BuildingBlocks.Tests.Core;
+using BuildingBlocks.Tests.Extensions.Http;
 using Snippet.Modules.Snippets.Application.Abstractions;
 using Snippet.Modules.Snippets.Application.Commands.Tags.CreateTag;
 using Snippet.Modules.Snippets.Application.Queries.Tags.GetTags;
@@ -23,9 +22,6 @@ public class TagsTests(SnippetTestFixture fixture) : IAsyncLifetime
     public async Task InitializeAsync()
     {
         await _context.ResetDatabaseAsync();
-        var tokenProvider = _context.GetRequiredService<ITokenProvider>();
-        var token = await tokenProvider.GetTokenAsync(_fixture.TestUser.Email, _fixture.TestUser.Password);
-        _context.Client.WithBearerToken(token);
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -51,8 +47,8 @@ public class TagsTests(SnippetTestFixture fixture) : IAsyncLifetime
         tagId.Should().NotBeEmpty();
 
         // Verify in database
-        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
-        var tag = await readContext.Tags.FirstOrDefaultAsync(t => t.Id == new TagId(tagId));
+        var readContext = _context.GetRequiredService<ISnippetDbContext>();
+        var tag = await readContext.Tags.AsNoTracking().FirstOrDefaultAsync(t => t.Id == new TagId(tagId));
         tag.Should().NotBeNull();
         tag!.Name.Should().Be("importanttag"); // Tags are stored in lowercase
         tag.Color.Should().Be("#FF5733");
@@ -75,8 +71,8 @@ public class TagsTests(SnippetTestFixture fixture) : IAsyncLifetime
 
         var tagId = await response.ReadAsJsonAsync<Guid>();
 
-        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
-        var tag = await readContext.Tags.FirstOrDefaultAsync(t => t.Id == new TagId(tagId));
+        var readContext = _context.GetRequiredService<ISnippetDbContext>();
+        var tag = await readContext.Tags.AsNoTracking().FirstOrDefaultAsync(t => t.Id == new TagId(tagId));
         tag.Should().NotBeNull();
         tag!.Color.Should().BeNull();
     }
@@ -261,8 +257,8 @@ public class TagsTests(SnippetTestFixture fixture) : IAsyncLifetime
         var tagId = await createResponse.ReadAsJsonAsync<Guid>();
 
         // Verify tag exists
-        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
-        var tagBeforeDelete = await readContext.Tags.FirstOrDefaultAsync(t => t.Id == new TagId(tagId));
+        var readContext = _context.GetRequiredService<ISnippetDbContext>();
+        var tagBeforeDelete = await readContext.Tags.AsNoTracking().FirstOrDefaultAsync(t => t.Id == new TagId(tagId));
         tagBeforeDelete.Should().NotBeNull();
 
         // Act
@@ -272,7 +268,7 @@ public class TagsTests(SnippetTestFixture fixture) : IAsyncLifetime
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Verify tag no longer exists
-        var tagAfterDelete = await readContext.Tags.FirstOrDefaultAsync(t => t.Id == new TagId(tagId));
+        var tagAfterDelete = await readContext.Tags.AsNoTracking().FirstOrDefaultAsync(t => t.Id == new TagId(tagId));
         tagAfterDelete.Should().BeNull();
     }
 
@@ -307,8 +303,8 @@ public class TagsTests(SnippetTestFixture fixture) : IAsyncLifetime
         response1.StatusCode.Should().Be(HttpStatusCode.NoContent);
         response2.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        var readContext = _context.GetRequiredService<ISnippetsReadDbContext>();
-        var remainingTags = await readContext.Tags.CountAsync();
+        var readContext = _context.GetRequiredService<ISnippetDbContext>();
+        var remainingTags = await readContext.Tags.AsNoTracking().CountAsync();
         remainingTags.Should().Be(0);
     }
 

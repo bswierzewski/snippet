@@ -1,4 +1,4 @@
-using Shared.Infrastructure.Models;
+using ErrorOr;
 using MediatR;
 using Snippet.Modules.Snippets.Application.Queries.Snippets.GetUserSnippets;
 using Snippet.Modules.Snippets.Domain.Enums;
@@ -23,7 +23,7 @@ public record SearchSnippetsQuery(
     Guid? CollectionId,
     int PageNumber = 1,
     int PageSize = 50
-) : IRequest<Result<SearchSnippetsResponse>>;
+) : IRequest<ErrorOr<SearchSnippetsResponse>>;
 
 /// <summary>
 /// Response containing search results with pagination information.

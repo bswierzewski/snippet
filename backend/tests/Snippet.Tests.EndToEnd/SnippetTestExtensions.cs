@@ -1,6 +1,6 @@
+using BuildingBlocks.Tests.Core;
 using Microsoft.EntityFrameworkCore;
-using Shared.Infrastructure.Tests.Core;
-using Snippet.Modules.Snippets.Infrastructure.Persistence;
+using Snippet.Modules.Snippets.Application.Abstractions;
 using SnippetAggregate = Snippet.Modules.Snippets.Domain.Aggregates.Snippet;
 
 namespace Snippet.Tests.EndToEnd;
@@ -21,7 +21,7 @@ public static class SnippetTestExtensions
         this TestContext context,
         Guid id)
     {
-        var db = context.GetRequiredService<SnippetsDbContext>();
+        var db = context.GetRequiredService<ISnippetDbContext>();
         return await db.Snippets
             .AsNoTracking()
             .FirstOrDefaultAsync(s => s.Id.Value == id);
@@ -33,7 +33,7 @@ public static class SnippetTestExtensions
     public static async Task<List<SnippetAggregate>> GetAllSnippetsFromDbAsync(
         this TestContext context)
     {
-        var db = context.GetRequiredService<SnippetsDbContext>();
+        var db = context.GetRequiredService<ISnippetDbContext>();
         return await db.Snippets
             .AsNoTracking()
             .ToListAsync();
@@ -46,7 +46,7 @@ public static class SnippetTestExtensions
         this TestContext context,
         Guid id)
     {
-        var db = context.GetRequiredService<SnippetsDbContext>();
+        var db = context.GetRequiredService<ISnippetDbContext>();
         return await db.Snippets.AnyAsync(s => s.Id.Value == id);
     }
 }

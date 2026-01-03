@@ -1,4 +1,4 @@
-using Shared.Infrastructure.Models;
+using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Snippet.Modules.Snippets.Application.Abstractions;
@@ -9,34 +9,28 @@ namespace Snippet.Modules.Snippets.Application.Commands.Collections.UpdateCollec
 /// <summary>
 /// Handles updating collection details by processing UpdateCollectionCommand requests.
 /// </summary>
-public class UpdateCollectionCommandHandler : IRequestHandler<UpdateCollectionCommand, Result>
+public class UpdateCollectionCommandHandler(ISnippetDbContext dbContext) : IRequestHandler<UpdateCollectionCommand, ErrorOr<Unit>>
 {
-    private readonly ISnippetsWriteDbContext _writeDbContext;
-
-    public UpdateCollectionCommandHandler(ISnippetsWriteDbContext writeDbContext)
-    {
-        _writeDbContext = writeDbContext;
-    }
 
     /// <summary>
     /// Updates an existing collection's details.
     /// </summary>
     /// <param name="request">Command containing collection ID and new details.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public async Task<Result> Handle(UpdateCollectionCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Unit>> Handle(UpdateCollectionCommand request, CancellationToken cancellationToken)
     {
-        var collection = await _writeDbContext.Collections
+        var collection = await dbContext.Collections
             .FirstOrDefaultAsync(c => c.Id == new CollectionId(request.Id), cancellationToken);
 
         if (collection is null)
-            return Result.Failure($"Collection with ID {request.Id} not found");
+            return Error.Failure("Error", $"Collection with ID {request.Id} not found");
 
         collection.Rename(request.Name);
         collection.UpdateDescription(request.Description);
         collection.UpdateAppearance(request.Color, request.Icon);
 
-        await _writeDbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
-        return Result.Success();
+        return Unit.Value;
     }
 }

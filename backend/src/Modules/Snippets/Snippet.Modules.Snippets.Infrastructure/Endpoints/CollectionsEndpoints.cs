@@ -1,14 +1,14 @@
-using Shared.Infrastructure.Models;
+using BuildingBlocks.Infrastructure.Extensions;
 using MediatR;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Snippet.Modules.Snippets.Application.Commands.Collections.CreateCollection;
 using Snippet.Modules.Snippets.Application.Commands.Collections.DeleteCollection;
 using Snippet.Modules.Snippets.Application.Commands.Collections.UpdateCollection;
 using Snippet.Modules.Snippets.Application.Queries.Collections.GetCollectionById;
 using Snippet.Modules.Snippets.Application.Queries.Collections.GetUserCollections;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 
 namespace Snippet.Modules.Snippets.Infrastructure.Endpoints;
 
@@ -28,34 +28,23 @@ public static class CollectionsEndpoints
 
         group.MapPost("/", CreateCollection)
             .WithName("CreateCollection")
-            .Produces<Guid>(StatusCodes.Status200OK)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
-            .WithOpenApi();
+            .Produces<Guid>(StatusCodes.Status200OK);
 
         group.MapGet("/{id:guid}", GetCollectionById)
             .WithName("GetCollectionById")
-            .Produces<CollectionDto>(StatusCodes.Status200OK)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
-            .WithOpenApi();
+            .Produces<CollectionDto>(StatusCodes.Status200OK);
 
         group.MapGet("/", GetUserCollections)
             .WithName("GetUserCollections")
-            .Produces<IEnumerable<CollectionDto>>(StatusCodes.Status200OK)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
-            .WithOpenApi();
+            .Produces<IEnumerable<CollectionDto>>(StatusCodes.Status200OK);
 
         group.MapPut("/{id:guid}", UpdateCollection)
             .WithName("UpdateCollection")
-            .Produces(StatusCodes.Status204NoContent)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status400BadRequest)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
-            .WithOpenApi();
+            .Produces(StatusCodes.Status204NoContent);
 
         group.MapDelete("/{id:guid}", DeleteCollection)
             .WithName("DeleteCollection")
-            .Produces(StatusCodes.Status204NoContent)
-            .Produces<IReadOnlyCollection<Error>>(StatusCodes.Status404NotFound)
-            .WithOpenApi();
+            .Produces(StatusCodes.Status204NoContent);
 
         return endpoints;
     }
@@ -65,9 +54,7 @@ public static class CollectionsEndpoints
         IMediator mediator)
     {
         var result = await mediator.Send(command);
-        return result.IsSuccess
-            ? Results.Ok(result.Value)
-            : Results.BadRequest(result.Errors);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetCollectionById(
@@ -75,18 +62,14 @@ public static class CollectionsEndpoints
         IMediator mediator)
     {
         var result = await mediator.Send(new GetCollectionByIdQuery(id));
-        return result.IsSuccess
-            ? Results.Ok(result.Value)
-            : Results.NotFound(result.Errors);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetUserCollections(
         IMediator mediator)
     {
         var result = await mediator.Send(new GetUserCollectionsQuery());
-        return result.IsSuccess
-            ? Results.Ok(result.Value)
-            : Results.BadRequest(result.Errors);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> UpdateCollection(
@@ -100,9 +83,7 @@ public static class CollectionsEndpoints
         }
 
         var result = await mediator.Send(command);
-        return result.IsSuccess
-            ? Results.NoContent()
-            : Results.NotFound(result.Errors);
+        return result.ToNoContentResult();
     }
 
     private static async Task<IResult> DeleteCollection(
@@ -110,8 +91,6 @@ public static class CollectionsEndpoints
         IMediator mediator)
     {
         var result = await mediator.Send(new DeleteCollectionCommand(id));
-        return result.IsSuccess
-            ? Results.NoContent()
-            : Results.NotFound(result.Errors);
+        return result.ToNoContentResult();
     }
 }

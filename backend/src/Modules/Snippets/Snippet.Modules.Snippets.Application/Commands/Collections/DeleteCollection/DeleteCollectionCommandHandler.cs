@@ -1,4 +1,4 @@
-using Shared.Infrastructure.Models;
+using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Snippet.Modules.Snippets.Application.Abstractions;
@@ -9,32 +9,25 @@ namespace Snippet.Modules.Snippets.Application.Commands.Collections.DeleteCollec
 /// <summary>
 /// Handles deletion of collections by processing DeleteCollectionCommand requests.
 /// </summary>
-public class DeleteCollectionCommandHandler : IRequestHandler<DeleteCollectionCommand, Result>
+public class DeleteCollectionCommandHandler(ISnippetDbContext dbContext) : IRequestHandler<DeleteCollectionCommand, ErrorOr<Unit>>
 {
-    private readonly ISnippetsWriteDbContext _writeDbContext;
-
-    public DeleteCollectionCommandHandler(ISnippetsWriteDbContext writeDbContext)
-    {
-        _writeDbContext = writeDbContext;
-    }
-
     /// <summary>
     /// Deletes an existing collection from the database.
     /// </summary>
     /// <param name="request">Command containing collection ID to delete.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public async Task<Result> Handle(DeleteCollectionCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Unit>> Handle(DeleteCollectionCommand request, CancellationToken cancellationToken)
     {
-        var collection = await _writeDbContext.Collections
+        var collection = await dbContext.Collections
             .FirstOrDefaultAsync(c => c.Id == new CollectionId(request.Id), cancellationToken);
 
         if (collection is null)
-            return Result.Failure($"Collection with ID {request.Id} not found");
+            return Error.NotFound("Collection.NotFound", $"Collection with ID {request.Id} not found");
 
-        _writeDbContext.Collections.Remove(collection);
+        dbContext.Collections.Remove(collection);
 
-        await _writeDbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
-        return Result.Success();
+        return Unit.Value;
     }
 }

@@ -1,4 +1,4 @@
-using Shared.Infrastructure.Models;
+using ErrorOr;
 using MediatR;
 
 namespace Snippet.Modules.Snippets.Application.Queries.Tags.GetTags;
@@ -7,7 +7,7 @@ namespace Snippet.Modules.Snippets.Application.Queries.Tags.GetTags;
 /// Fast query to search tags by name for autocomplete/search functionality.
 /// </summary>
 /// <param name="SearchTerm">Optional search term to filter tags by name (case-insensitive).</param>
-public record GetTagsQuery(string? SearchTerm = null) : IRequest<Result<IEnumerable<TagSearchDto>>>;
+public record GetTagsQuery(string? SearchTerm = null) : IRequest<ErrorOr<IEnumerable<TagSearchDto>>>;
 
 /// <summary>
 /// Lightweight DTO for tag search results containing only essential information.

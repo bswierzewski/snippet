@@ -1,4 +1,4 @@
-using Shared.Infrastructure.Models;
+using ErrorOr;
 using MediatR;
 
 namespace Snippet.Modules.Snippets.Application.Queries.Tags.GetUserTags;
@@ -6,7 +6,7 @@ namespace Snippet.Modules.Snippets.Application.Queries.Tags.GetUserTags;
 /// <summary>
 /// Query to retrieve all tags owned by the current user.
 /// </summary>
-public record GetUserTagsQuery() : IRequest<Result<IEnumerable<TagDto>>>;
+public record GetUserTagsQuery() : IRequest<ErrorOr<IEnumerable<TagDto>>>;
 
 /// <summary>
 /// Data transfer object containing tag information.

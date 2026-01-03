@@ -1,4 +1,4 @@
-using Shared.Infrastructure.Models;
+using ErrorOr;
 using MediatR;
 using Snippet.Modules.Snippets.Domain.Enums;
 
@@ -7,7 +7,7 @@ namespace Snippet.Modules.Snippets.Application.Queries.Snippets.GetUserSnippets;
 /// <summary>
 /// Query to retrieve all snippets owned by the current user.
 /// </summary>
-public record GetUserSnippetsQuery() : IRequest<Result<IEnumerable<SnippetSummaryDto>>>;
+public record GetUserSnippetsQuery() : IRequest<ErrorOr<IEnumerable<SnippetSummaryDto>>>;
 
 /// <summary>
 /// Data transfer object containing summary snippet information for display in lists.

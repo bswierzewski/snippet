@@ -4,16 +4,26 @@
  * Snippet.Web | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { ProblemDetailsErrors } from './problemDetailsErrors';
 
+/**
+ * RFC 7807 Problem Details for HTTP APIs
+ */
 export interface ProblemDetails {
-  /** @nullable */
-  type?: string | null;
-  /** @nullable */
-  title?: string | null;
-  /** @nullable */
-  status?: number | null;
-  /** @nullable */
-  detail?: string | null;
-  /** @nullable */
-  instance?: string | null;
+  /** A URI reference that identifies the problem type. */
+  type?: string;
+  /** A short, human-readable summary of the problem type. */
+  title?: string;
+  /** The HTTP status code. */
+  status?: number;
+  /** A human-readable explanation specific to this occurrence. */
+  detail?: string;
+  /** A URI reference that identifies the specific occurrence. */
+  instance?: string;
+  /** The trace identifier for request tracking. */
+  traceId?: string;
+  /** The timestamp when the error occurred (UTC). */
+  timestamp?: string;
+  /** Validation errors grouped by field name. */
+  errors?: ProblemDetailsErrors;
 }

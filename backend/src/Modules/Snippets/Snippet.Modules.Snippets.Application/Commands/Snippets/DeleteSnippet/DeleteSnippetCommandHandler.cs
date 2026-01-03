@@ -1,4 +1,4 @@
-using Shared.Infrastructure.Models;
+using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Snippet.Modules.Snippets.Application.Abstractions;
@@ -9,32 +9,26 @@ namespace Snippet.Modules.Snippets.Application.Commands.Snippets.DeleteSnippet;
 /// <summary>
 /// Handles deletion of snippets by processing DeleteSnippetCommand requests.
 /// </summary>
-public class DeleteSnippetCommandHandler : IRequestHandler<DeleteSnippetCommand, Result>
+public class DeleteSnippetCommandHandler(ISnippetDbContext dbContext) : IRequestHandler<DeleteSnippetCommand, ErrorOr<Unit>>
 {
-    private readonly ISnippetsWriteDbContext _writeDbContext;
-
-    public DeleteSnippetCommandHandler(ISnippetsWriteDbContext writeDbContext)
-    {
-        _writeDbContext = writeDbContext;
-    }
 
     /// <summary>
     /// Deletes an existing snippet from the database.
     /// </summary>
     /// <param name="request">Command containing snippet ID to delete.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public async Task<Result> Handle(DeleteSnippetCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Unit>> Handle(DeleteSnippetCommand request, CancellationToken cancellationToken)
     {
-        var snippet = await _writeDbContext.Snippets
+        var snippet = await dbContext.Snippets
             .FirstOrDefaultAsync(s => s.Id == new SnippetId(request.Id), cancellationToken);
 
         if (snippet is null)
-            return Result.Failure($"Snippet with ID {request.Id} not found");
+            return Error.NotFound("Snippet.NotFound", $"Snippet with ID {request.Id} not found");
 
-        _writeDbContext.Snippets.Remove(snippet);
+        dbContext.Snippets.Remove(snippet);
 
-        await _writeDbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
-        return Result.Success();
+        return Unit.Value;
     }
 }

@@ -1,4 +1,4 @@
-using Shared.Infrastructure.Models;
+using ErrorOr;
 using MediatR;
 
 namespace Snippet.Modules.Snippets.Application.Queries.EnumValues;
@@ -7,7 +7,7 @@ namespace Snippet.Modules.Snippets.Application.Queries.EnumValues;
 /// Query to retrieve all values of a specific enum type.
 /// </summary>
 /// <param name="EnumType">The type of the enum to retrieve values for.</param>
-public record GetListEnumValuesQuery(Type EnumType) : IRequest<Result<IEnumerable<EnumValueDto>>>;
+public record GetListEnumValuesQuery(Type EnumType) : IRequest<ErrorOr<IEnumerable<EnumValueDto>>>;
 
 /// <summary>
 /// Data transfer object containing enum value information.

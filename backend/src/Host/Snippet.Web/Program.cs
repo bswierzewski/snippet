@@ -1,87 +1,51 @@
-﻿using DotNetEnv;
-using Shared.Abstractions.Modules;
-using Shared.Infrastructure.Exceptions;
-using Shared.Infrastructure.Logging;
-using Shared.Users.Infrastructure.Extensions.Supabase;
-using Snippet.Modules.Snippets.Infrastructure.Persistence;
+﻿using BuildingBlocks.Infrastructure.Extensions;
+using BuildingBlocks.Infrastructure.Extensions.JwtBearer;
+using DotNetEnv;
+using Snippet.Modules.Snippets.Infrastructure;
 
-// Load environment variables from .env file BEFORE creating builder
-// clobberExistingVars: false ensures Docker/CI/CD environment variables take precedence
 if (File.Exists(".env"))
     Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Serilog with TraceId support
-builder.AddSerilog("Snippet.Backend");
-
-// Register core services
+builder.AddSerilog();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddCors();
 
-// Exception handling
-builder.Services.AddExceptionHandler<CustomExceptionHandler>();
-builder.Services.AddProblemDetails();
+builder.Services.AddProblemDetails(options =>
+    options.AddCustomConfiguration(builder.Environment));
 
-// Health checks for Docker and Caddy monitoring
-builder.Services.AddHealthChecks();
+builder.Services.AddOpenApi(options =>
+    options.AddProblemDetailsSchemas());
 
-// OpenAPI for Orval client generation
-builder.Services.AddEndpointsApiExplorer(); // Exposes Minimal API endpoints to OpenAPI
-builder.Services.AddOpenApi();              // Generates OpenAPI document
-
-// Register modules from auto-generated registry
-builder.Services.RegisterModules(builder.Configuration);
-
-// Configure authentication - JWT from Users module
-builder.Services.AddAuthentication()
-    .AddSupabaseJwtBearer();
+builder.Services
+    .AddAuthentication()
+    .AddZitadelJwtBearer();
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddUserContext();
+
+builder.Services.RegisterModules(builder.Configuration, [new SnippetsModule()]);
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi(); // Generates OpenAPI JSON at /openapi/v1.json
+    app.MapOpenApi();
 
-    // CORS only in Development (production runs in single Docker container)
     app.UseCors(policy =>
         policy.AllowAnyOrigin()
               .AllowAnyMethod()
               .AllowAnyHeader());
-
-    // Seed database in development
-    using var scope = app.Services.CreateScope();
-    var dbContext = scope.ServiceProvider.GetRequiredService<SnippetsDbContext>();
-    var seeder = new DataSeeder(dbContext);
-    await seeder.SeedAsync();
 }
 
-// Exception handling
-app.UseExceptionHandler(options => { });
+app.UseAuthentication();
+app.UseAuthorization();
 
-// Request logging with TraceId (MUST be after UseExceptionHandler)
-app.UseSerilogRequestLogging();
-
-// Middleware pipeline order matters!
-app.UseAuthentication(); // 1. Authentication first
-app.UseAuthorization();  // 2. Authorization second
-
-// Health check endpoint (no authentication required)
-app.MapHealthChecks("/api/health");
-
-// Configure modules middleware pipeline
-// Modules configure their own middleware and endpoints
 app.UseModules(builder.Configuration);
 
-// Initialize all modules (run migrations, seed data, etc.)
 await app.Services.InitModules();
+app.Run();
 
-await app.RunAsync();
-
-// Make the Program class accessible for integration tests
-// [GenerateModuleRegistry] triggers source generator to create ModuleRegistry class
-[GenerateModuleRegistry]
 public partial class Program { }

@@ -1,4 +1,4 @@
-﻿using Shared.Abstractions.Primitives;
+using BuildingBlocks.Abstractions.Primitives;
 using Snippet.Modules.Snippets.Domain.Entities;
 using Snippet.Modules.Snippets.Domain.Enums;
 using Snippet.Modules.Snippets.Domain.ValueObjects;

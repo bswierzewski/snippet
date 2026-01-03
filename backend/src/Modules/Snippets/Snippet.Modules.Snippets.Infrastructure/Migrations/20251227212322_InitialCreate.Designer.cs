@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Snippet.Modules.Snippets.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using Snippet.Modules.Snippets.Infrastructure.Persistence;
 namespace Snippet.Modules.Snippets.Infrastructure.Migrations
 {
     [DbContext(typeof(SnippetsDbContext))]
-    partial class SnippetsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251227212322_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -9,6 +9,7 @@ export default defineConfig({
       client: 'react-query',
       prettier: true,
       mode: 'tags',
+      clean: true,
       override: {
         mutator: {
           path: './src/lib/api/axios-instance.ts',

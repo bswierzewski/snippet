@@ -1,4 +1,4 @@
-using Shared.Infrastructure.Models;
+using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Snippet.Modules.Snippets.Application.Abstractions;
@@ -9,32 +9,26 @@ namespace Snippet.Modules.Snippets.Application.Commands.Tags.DeleteTag;
 /// <summary>
 /// Handles deletion of tags by processing DeleteTagCommand requests.
 /// </summary>
-public class DeleteTagCommandHandler : IRequestHandler<DeleteTagCommand, Result>
+public class DeleteTagCommandHandler(ISnippetDbContext dbContext) : IRequestHandler<DeleteTagCommand, ErrorOr<Unit>>
 {
-    private readonly ISnippetsWriteDbContext _writeDbContext;
-
-    public DeleteTagCommandHandler(ISnippetsWriteDbContext writeDbContext)
-    {
-        _writeDbContext = writeDbContext;
-    }
 
     /// <summary>
     /// Deletes an existing tag from the database.
     /// </summary>
     /// <param name="request">Command containing tag ID to delete.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public async Task<Result> Handle(DeleteTagCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Unit>> Handle(DeleteTagCommand request, CancellationToken cancellationToken)
     {
-        var tag = await _writeDbContext.Tags
+        var tag = await dbContext.Tags
             .FirstOrDefaultAsync(t => t.Id == new TagId(request.Id), cancellationToken);
 
         if (tag is null)
-            return Result.Failure($"Tag with ID {request.Id} not found");
+            return Error.NotFound("Tag.NotFound", $"Tag with ID {request.Id} not found");
 
-        _writeDbContext.Tags.Remove(tag);
+        dbContext.Tags.Remove(tag);
 
-        await _writeDbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
-        return Result.Success();
+        return Unit.Value;
     }
 }

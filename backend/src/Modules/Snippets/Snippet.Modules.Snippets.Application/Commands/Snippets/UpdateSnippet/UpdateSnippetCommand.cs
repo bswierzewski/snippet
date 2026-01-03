@@ -1,4 +1,4 @@
-using Shared.Infrastructure.Models;
+using ErrorOr;
 using MediatR;
 using Snippet.Modules.Snippets.Domain.Enums;
 
@@ -22,4 +22,4 @@ public record UpdateSnippetCommand(
     ProgrammingLanguage Language,
     IEnumerable<Guid> TagIds,
     IEnumerable<Guid> CollectionIds
-) : IRequest<Result>;
+) : IRequest<ErrorOr<Unit>>;

@@ -1,5 +1,5 @@
-using Shared.Infrastructure.Models;
-using Shared.Abstractions.Extensions;
+using BuildingBlocks.Abstractions.Extensions;
+using ErrorOr;
 using MediatR;
 
 namespace Snippet.Modules.Snippets.Application.Queries.EnumValues;
@@ -7,7 +7,7 @@ namespace Snippet.Modules.Snippets.Application.Queries.EnumValues;
 /// <summary>
 /// Handles retrieval of enum values by processing GetListEnumValuesQuery requests.
 /// </summary>
-public class GetListEnumValuesQueryHandler : IRequestHandler<GetListEnumValuesQuery, Result<IEnumerable<EnumValueDto>>>
+public class GetListEnumValuesQueryHandler : IRequestHandler<GetListEnumValuesQuery, ErrorOr<IEnumerable<EnumValueDto>>>
 {
     /// <summary>
     /// Retrieves all values for the specified enum type.
@@ -15,13 +15,13 @@ public class GetListEnumValuesQueryHandler : IRequestHandler<GetListEnumValuesQu
     /// <param name="request">Query request containing enum type.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Collection of enum values with their metadata.</returns>
-    public Task<Result<IEnumerable<EnumValueDto>>> Handle(GetListEnumValuesQuery request, CancellationToken cancellationToken)
+    public Task<ErrorOr<IEnumerable<EnumValueDto>>> Handle(GetListEnumValuesQuery request, CancellationToken cancellationToken)
     {
         if (request.EnumType == null)
-            return Task.FromResult(Result<IEnumerable<EnumValueDto>>.Failure("Enum type cannot be null."));
+            return Task.FromResult<ErrorOr<IEnumerable<EnumValueDto>>>(Error.Validation("EnumType.Null", "Enum type cannot be null."));
 
         if (!request.EnumType.IsEnum)
-            return Task.FromResult(Result<IEnumerable<EnumValueDto>>.Failure(
+            return Task.FromResult<ErrorOr<IEnumerable<EnumValueDto>>>(Error.Validation("EnumType.Invalid",
                 $"Type '{request.EnumType.Name}' is not an enum type."));
 
         var enumValues = Enum.GetValues(request.EnumType)
@@ -34,6 +34,6 @@ public class GetListEnumValuesQueryHandler : IRequestHandler<GetListEnumValuesQu
             .OrderBy(e => e.Name)
             .ToList();
 
-        return Task.FromResult(Result<IEnumerable<EnumValueDto>>.Success(enumValues));
+        return Task.FromResult<ErrorOr<IEnumerable<EnumValueDto>>>(enumValues);
     }
 }
