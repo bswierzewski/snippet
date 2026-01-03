@@ -1,9 +1,9 @@
 using BuildingBlocks.Abstractions.Abstractions;
+using BuildingBlocks.Tests.Core;
+using BuildingBlocks.Tests.Infrastructure.Authentication;
+using BuildingBlocks.Tests.Infrastructure.Containers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
-using BuildingBlocks.Tests.Core;
-using BuildingBlocks.Tests.Infrastructure.Containers;
-using Snippet.Tests.EndToEnd.Mocks;
 
 namespace Snippet.Tests.EndToEnd;
 
@@ -43,13 +43,13 @@ public class SnippetTestFixture : IAsyncLifetime
             .WithServices((services, configuration) =>
             {
                 // Replace real authentication with mock for testing
-                services.AddAuthentication(MockAuthenticationHandler.SchemeName)
-                    .AddScheme<AuthenticationSchemeOptions, MockAuthenticationHandler>(
-                        MockAuthenticationHandler.SchemeName,
+                services.AddAuthentication(TestAuthenticationHandler.AuthenticationScheme)
+                    .AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>(
+                        TestAuthenticationHandler.AuthenticationScheme,
                         options => { });
 
                 // Replace real user context with mock for testing
-                services.AddScoped<IUserContext, MockUserContext>();
+                services.AddScoped<IUserContext, TestUserContext>();
             })
             .BuildAsync();
     }
