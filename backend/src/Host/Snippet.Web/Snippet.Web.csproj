@@ -28,9 +28,4 @@
     </PackageReference>
   </ItemGroup>
 
-  <!-- Run BuildingBlocks.Tools after build to generate .env template (Debug only) -->
-  <Target Name="RunBuildingBlocksTools" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
-    <Exec Command="dotnet bb env generate" WorkingDirectory="$(MSBuildProjectDirectory)" />
-  </Target>
-
 </Project>

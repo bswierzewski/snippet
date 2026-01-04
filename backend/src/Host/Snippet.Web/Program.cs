@@ -1,5 +1,4 @@
 ﻿using BuildingBlocks.Infrastructure.Extensions;
-using BuildingBlocks.Infrastructure.Extensions.JwtBearer;
 using DotNetEnv;
 using Snippet.Modules.Snippets.Infrastructure;
 
@@ -9,6 +8,7 @@ if (File.Exists(".env"))
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddSerilog();
+
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddCors();
 
@@ -18,9 +18,7 @@ builder.Services.AddProblemDetails(options =>
 builder.Services.AddOpenApi(options =>
     options.AddProblemDetailsSchemas());
 
-builder.Services
-    .AddAuthentication()
-    .AddZitadelJwtBearer();
+builder.Services.AddAuthentication();
 
 builder.Services.AddAuthorization();
 
@@ -46,6 +44,4 @@ app.UseAuthorization();
 app.UseModules(builder.Configuration);
 
 await app.Services.InitModules();
-app.Run();
-
-public partial class Program { }
+await app.RunAsync();
